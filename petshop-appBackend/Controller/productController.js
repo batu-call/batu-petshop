@@ -98,4 +98,13 @@ import fs from 'fs'
         })
     });
 
+    export const getLatestProduct = catchAsyncError(async(req,res,next) => {
+        const products = await Product.find().sort({ createAt : -1}).limit(10);
+
+        res.status(200).json({
+            success : true,
+            products
+        })
+    }) 
+
     

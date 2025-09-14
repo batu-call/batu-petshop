@@ -6,6 +6,9 @@ import fileUpload from 'express-fileupload';
 import { dbConncetion } from './database/dbConncetion.js';
 import os from 'os'
 import userRouter from './Router/userRouter.js'
+import productRouter from './Router/productRouter.js'
+import cartRouter from './Router/cartRouter.js'
+import orderRouter from './Router/orderRouter.js'
 
 
 
@@ -38,6 +41,9 @@ config({path:"./Config/config.env"});
 
 
     app.use("/api/v1/user",userRouter);
+    app.use("/api/v1/product",productRouter);
+    app.use("/api/v1/cart",cartRouter);
+    app.use("/api/v1/order",orderRouter);
 
 
 

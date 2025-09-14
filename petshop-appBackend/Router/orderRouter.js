@@ -10,3 +10,7 @@ router.get("/:id",isAdminAuthenticated,getOrder);
 router.get("/meOrders",isUserAuthenticated,getUserOrder);
 router.put("/:id/pay",isUserAuthenticated,updateOrderToPaid);
 router.put("/:id/status",isAdminAuthenticated,updateOrderStatus);   
+
+
+
+export default router;

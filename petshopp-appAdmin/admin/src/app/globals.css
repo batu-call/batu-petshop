@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+
+@layer utilities {
+  .bg-primary {
+    background-color: #B1CBBB;
+  }
+  .bg-secondary {
+    background-color: #DDEEDD;
+  }
+  .bg-secondary_20 {
+    background-color: rgba(221, 238, 221, 0.2);
+  }
+  .text-jost {
+    font-family: 'Jost',sans-serif;
+  }
+  .text-color {
+    color: #393E46;
+  }
+  .text-color2 {
+    color: #B1CBBB;
+  }
+}
+
+
+body {
+  font-family: 'Jost', Arial, Helvetica, sans-serif                                         
+}
+
+
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
