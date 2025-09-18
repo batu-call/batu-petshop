@@ -1,7 +1,7 @@
-import { catchAsyncError } from "../Middlewares/catchAsyncError";
-import ErrorHandler from "../Middlewares/errorMiddleware";
-import { Cart } from "../Models/CartSchema";
-import { Product } from "../Models/ProductSchema";
+import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
+import ErrorHandler from "../Middlewares/errorMiddleware.js";
+import { Cart } from "../Models/CartSchema.js";
+import { Product } from "../Models/ProductSchema.js";
 
 export const addToCart = catchAsyncError(async (req, res, next) => {
   const { productId, quantity } = req.body;

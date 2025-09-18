@@ -1,6 +1,6 @@
 import express from 'express'
 import { deleteProduct, getAllProduct, getLatestProduct, getProduct, newProduct } from '../Controller/productController.js';
-import upload from '../Config/multer';
+import upload from '../Config/multer.js';
 import { isAdminAuthenticated } from '../Middlewares/Auth.js';
 
     const router = express.Router();

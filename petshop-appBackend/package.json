@@ -9,18 +9,18 @@
     "express-fileupload": "^1.5.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.4",
+    "multer": "^2.0.2",
     "validator": "^13.15.15"
   },
   "name": "petshop-appbackend",
   "version": "1.0.0",
   "type": "module",
   "main": "app.js",
-  "devDependencies": {},
- "scripts": {
-  "dev": "nodemon app.js",
-  "start": "node app.js",
-  "test": "echo \"Error: no test specified\" && exit 1"
-},
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "author": "",
   "license": "ISC",
   "description": ""

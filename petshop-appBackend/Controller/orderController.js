@@ -1,6 +1,6 @@
-import catchAsyncError from "../Middlewares/catchAsyncError.js";
+import {catchAsyncError} from "../Middlewares/catchAsyncError.js";
 import ErrorHandler from "../Middlewares/errorMiddleware.js";
-import Order from "../Models/orderSchema.js";
+import {Order} from "../Models/orderSchema.js";
 
 export const createOrder = catchAsyncError(async (req, res, next) => {
   const { items, shippingAddress, paymentMethod, totalPrice } = req.body;

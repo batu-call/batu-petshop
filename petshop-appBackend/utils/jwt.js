@@ -1,6 +1,6 @@
  export const generateToken = (user,message,statusCode,res) => {
     const token = user.generateJsonWebToken();
-    const cookieName = user.role === "Admin" ? "AdminToken" : "UserToken"
+    const cookieName = user.role === "admin" ? "AdminToken" : "UserToken"
     res.status(statusCode).cookie(cookieName,token,{
         httOnly:true,
         secure:false,
