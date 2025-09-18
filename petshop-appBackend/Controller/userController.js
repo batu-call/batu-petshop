@@ -2,7 +2,7 @@ import {catchAsyncError} from '../Middlewares/catchAsyncError.js'
 import ErrorHandler from '../Middlewares/errorMiddleware.js'
 import { User } from '../Models/userSchema.js'
 import generateToken from '../utils/jwt.js'
-import cloudinary from 'cloudinary'
+import { validateFields } from '../utils/validateFields.js';
 
 
 
@@ -28,10 +28,8 @@ import cloudinary from 'cloudinary'
         }
 
         user = await User.create({
-            firstName,lastName,email,phone,password,address,avatar: avatarPath,role
+            firstName,lastName,email,phone,password,address,avatar,role
         });
-
-        const avatarPath = req.file ? req.file.path : ""; 
 
         generateToken(user,"User Register!",200,res);
     });
@@ -74,58 +72,35 @@ import cloudinary from 'cloudinary'
     });
 
 
-export const newAdmin = catchAsyncError(async (req, res, next) => {
-  const { firstName, lastName, email, phone, password, address } = req.body;
-  const role = "admin";
-  
-  let avatarUrl = "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg";
-  if (req.files && req.files.avatar) {
-    const file = req.files.avatar;
-    const cloudinaryResponse = await cloudinary.uploader.upload(file.tempFilePath);
-    avatarUrl = cloudinaryResponse.secure_url;
-  }
+    export const newAdmin = catchAsyncError(async(req,res,next)=>{
+        
+        const {firstName,lastName,email,phone,password,address,avatar,role} = req.body;
 
-  const admin = await User.create({
-    firstName,
-    lastName,
-    email,
-    phone,
-    password,
-    address,
-    avatar: avatarUrl,
-    role,
-  });
+        const errorValidate =  validateFields({ firstName,lastName,email,phone,password,address,avatar,role});
+        if(errorValidate) return next(errorValidate);
 
-  res.status(201).json({
-    success: true,
-    message: "New Admin Registered!",
-    admin,
-  });
-});
-
-
-    export const adminLogin = catchAsyncError(async(req,res,next) =>{
-        const {email,password} = req.body;
-
-        if(!email || !password){
-            return next(new ErrorHandler("Please provide email and password",400))        
+        const isRegistered = await User.findOne({email});
+        if(isRegistered){
+            return next(new ErrorHandler(`${isRegistered.role} With This Email Already Exists!`,400))
         }
-        const admin = await User.findOne({email,role:"admin"}).select("+password")
-        if(!admin){
-            return next(new ErrorHandler("Invalid email or password",401));
-        }
-        const isPasswordMatch = await admin.comparePassword(password);
-        if(!isPasswordMatch){
-            return next(new ErrorHandler("Invalid email or password",401));
-        }
-        const token = admin.generateJsonWebToken();
 
-        res.status(200).cookie("AdminToken",token,{httpOnly:true,secure:false}).json({
-            success:true,
-            message:"Admin logged in successfully",
+        const admin = await User.create({
+            firstName,
+            lastName, 
+            email, 
+            phone,
+            password, 
+            address, 
+            avatar, 
+            role,
+        })
+
+        res.status(201).json({
+            success: true,
+            message:"New Admin Register!",
             admin
         })
-    }) 
+    })
 
     export const AdminLogout = catchAsyncError(async(req,res,next) => {
         res.status(200).cookie("AdminToken","" , {

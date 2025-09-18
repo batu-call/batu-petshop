@@ -41,7 +41,7 @@ import jwt from 'jsonwebtoken'
                 11, "Phone Number Must Contain Extact 11 Digits!"
             ]
         } ,
-        password : {
+        passowrd : {
             type:String,
             required:true,
             minLength:[
@@ -62,8 +62,8 @@ import jwt from 'jsonwebtoken'
         },
          role:{
             type:String,
-            enum:["admin","user"],
-            default:"user",
+            enum:["Admin","User"],
+            default:"User",
         }
         
     })

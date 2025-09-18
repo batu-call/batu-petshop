@@ -15,7 +15,7 @@ import {User} from '../Models/userSchema.js'
         
         req.user = await User.findById(decoded.id);
         
-        if(req.user.role !== "admin"){
+        if(req.user.role !== "Admin"){
             return next(new ErrorHandler(`${req.user.role} not authorized for this resources!`,403))
         }
         next();
@@ -33,7 +33,7 @@ export const isUserAuthenticated = catchAsyncError(async(req,res,next)=> {
     
     req.user = await User.findById(decoded.id);
     
-    if(req.user.role !== "user"){
+    if(req.user.role !== "User"){
         return next(new ErrorHandler(`${req.user.role} not authorized for this resources!`),403)
     }
 })
