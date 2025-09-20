@@ -1,0 +1,104 @@
+import React from 'react'
+import Image from 'next/image'
+
+const Main = () => {
+  return (
+    <div className='w-full h-screen bg-primary'>
+      <div className='w-full h-25 bg-primary shadow-xl '></div>
+      <div className='w-40 h-screen bg-white fixed'>
+        {/* Cat */}
+      <div className='bg-primary inline-block p-2 items-center mt-6 ml-7 rounded-2xl'>
+        <div className='flex gap-3 items-center justify-center'>
+       <Image src="/cat_7721779.png" alt='cat-image'
+       height={40}
+       width={40}
+       />
+       <h2 className='text-2xl text-jost text-white p-1'>Cat</h2>
+      </div>
+      </div>
+      {/* Dog */}
+       <div className='bg-primary inline-block p-2 items-center mt-6 ml-7 rounded-2xl'>
+        <div className='flex gap-3 items-center justify-center'>
+       <Image src="/dog.png" alt='cat-image'
+       height={40}
+       width={40}
+       />
+       <h2 className='text-2xl text-jost text-white p-1'>Dog</h2>
+      </div>
+      </div>
+      {/* BİRD */}
+       <div className='bg-primary inline-block p-2 items-center mt-6 ml-7 rounded-2xl'>
+        <div className='flex gap-3 items-center justify-center'>
+       <Image src="/bird.png" alt='cat-image'
+       height={40}
+       width={40}
+       />
+       <h2 className='text-2xl text-jost text-white p-1'>BİRD</h2>
+      </div>
+      </div>
+      {/* FİSH */}
+       <div className='bg-primary inline-block p-2 items-center mt-6 ml-7 rounded-2xl'>
+        <div className='flex gap-3 items-center justify-center'>
+       <Image src="/cat_7721779.png" alt='cat-image'
+       height={40}
+       width={40}
+       />
+       <h2 className='text-2xl text-jost text-white p-1'>FİSH</h2>
+      </div>
+      </div>
+      {/* Reptile */}
+       <div className='bg-primary inline-block p-2 items-center mt-6 ml-7 rounded-2xl'>
+        <div className='flex gap-3 items-center justify-center'>
+       <Image src="/fish.png" alt='cat-image'
+       height={40}
+       width={40}
+       />
+       <h2 className='text-2xl text-jost text-white p-1'>Reptile</h2>
+      </div>
+      </div>
+      {/* Rabbit */}
+       <div className='bg-primary inline-block p-2 items-center mt-6 ml-7 rounded-2xl'>
+        <div className='flex gap-3 items-center justify-center'>
+       <Image src="/rabbit.png" alt='cat-image'
+       height={40}
+       width={40}
+       />
+       <h2 className='text-2xl text-jost text-white p-1'>Rabbit</h2>
+      </div>
+      </div>
+      {/* Horse */}
+       <div className='bg-primary inline-block p-2 items-center mt-6 ml-7 rounded-2xl'>
+        <div className='flex gap-3 items-center justify-center'>
+       <Image src="/cat_7721779.png" alt='cat-image'
+       height={40}
+       width={40}
+       />
+       <h2 className='text-2xl text-jost text-white p-1'>Horse</h2>
+      </div>
+      </div>
+      {/* Contact */}
+       <div className='bg-primary inline-block p-2 items-center mt-6 ml-7 rounded-2xl'>
+        <div className='flex gap-3 items-center justify-center'>
+       <Image src="/cat_7721779.png" alt='cat-image'
+       height={40}
+       width={40}
+       />
+       <h2 className='text-2xl text-jost text-white p-1'>Contact</h2>
+      </div>
+      </div>
+      {/* +category */}
+       <div className='bg-primary inline-block p-2 items-center mt-6 ml-7 rounded-2xl'>
+        <div className='flex gap-3 items-center justify-center'>
+       <Image src="/cat_7721779.png" alt='cat-image'
+       height={40}
+       width={40}
+       />
+       <h2 className='text-2xl text-jost text-white p-1'>+category</h2>
+      </div>
+      </div>
+    </div>
+    </div>
+  )
+}
+
+export default Main
