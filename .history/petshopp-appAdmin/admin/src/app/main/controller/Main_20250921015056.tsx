@@ -11,7 +11,7 @@ const Main = () => {
       <Navbar />
       {/* Catgeory */}
       <Sidebar />
-      <Image src={"/admin-banner3.png"} alt='admin-banner' width={1760} height={600} className='ml-40 h-[791px] w-[1760px]' priority/>
+      <Image src={"/admin-banner3.png"} alt='admin-banner' width={1760} height={600} className='ml-40 h-[700px]' priority/>
     </div>
   )
 }

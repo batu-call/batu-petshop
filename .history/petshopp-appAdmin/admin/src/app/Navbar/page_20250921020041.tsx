@@ -106,7 +106,7 @@ const Page = () => {
         <div className="absolute left-0 hidden group-hover:block mt-1 w-50 bg-white shadow-lg rounded-xl z-10">
           <ul className="flex flex-col">
             <li>        
-                <a className="block px-4 py-2 hover:bg-gray-200 border-secondary border-b-2">All Orders</a>
+                <a className="block px-4 py-2 hover:bg-gray-200 border-secondary border-b-2 group-hover:block">All Orders</a>
          
             </li>
             <li>
