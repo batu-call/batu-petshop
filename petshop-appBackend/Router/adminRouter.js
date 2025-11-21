@@ -1,0 +1,35 @@
+import express from 'express'
+import { newAdmin, getAdminDetails, AdminLogout, getAllUser, getUserDetails, adminLogin, getAdmin, deleteAdmin } from '../Controller/userController.js';
+import { isAdminAuthenticated } from '../Middlewares/Auth.js';
+import { User } from '../Models/userSchema.js';
+import ErrorHandler from '../Middlewares/errorMiddleware.js';
+import upload from '../Config/multer.js';
+
+const router = express.Router();
+
+
+router.post("/add", upload.single("avatar"), async (req, res, next) => {
+  try {
+    const adminCount = await User.countDocuments({ role: "Admin" });
+
+    if (adminCount > 0) {
+      
+      return isAdminAuthenticated(req, res, async () => {
+        await newAdmin(req, res, next);
+      });
+    }
+
+    
+    await newAdmin(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/login",adminLogin)
+router.get("/me", isAdminAuthenticated, getAdmin);
+router.delete("/:id", isAdminAuthenticated, deleteAdmin);
+router.get("/details", isAdminAuthenticated, getAdminDetails);
+router.get("/logout", isAdminAuthenticated, AdminLogout);
+
+export default router;
