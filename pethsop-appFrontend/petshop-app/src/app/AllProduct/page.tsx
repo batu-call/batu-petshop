@@ -44,7 +44,7 @@ const AllProduct = () => {
     const fetchProduct = async() =>{
       setLoading(true)
       try {
-        const response = await axios.get("http://localhost:5000/api/v1/product/products",{withCredentials:true})
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products`,{withCredentials:true})
         if(response.data.success){
           setProduct(response.data.products)
         }
@@ -67,7 +67,7 @@ const AllProduct = () => {
    const handlerAddToCart = async (product: Product) => {
     if(user || isAuthenticated){
       try {
-        const response = await axios.post("http://localhost:5000/api/v1/cart/addCart", {
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`, {
           productId: product._id,
           quantity: 1
         }, { withCredentials: true });

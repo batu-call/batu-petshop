@@ -37,7 +37,7 @@ const Cat = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/v1/product/products?category=Cat",
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products?category=Cat`,
           { withCredentials: true }
         );
         if (response.data.success) {
@@ -62,7 +62,7 @@ const Cat = () => {
     if (user || isAuthenticated) {
       try {
         const response = await axios.post(
-          "http://localhost:5000/api/v1/cart/addCart",
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`,
           { productId: product._id, quantity: 1 },
           { withCredentials: true }
         );

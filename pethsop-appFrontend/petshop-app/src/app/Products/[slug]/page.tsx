@@ -66,7 +66,7 @@ const ProductDetails = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/v1/product/products/slug/${slug}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products/slug/${slug}`
         );
         if (response.data.success) {
           setProduct(response.data.product);
@@ -91,7 +91,7 @@ const ProductDetails = () => {
     const fetchSimilarProducts = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/v1/product/products`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products`,
           { withCredentials: true }
         );
         if (response.data.success) {
@@ -117,7 +117,7 @@ const ProductDetails = () => {
     const fetchReviews = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/v1/reviews/${product._id}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/${product._id}`
         );
         if (response.data.success) {
           setReviews(response.data.review);
@@ -139,7 +139,7 @@ const ProductDetails = () => {
     if (user || isAuthenticated) {
       try {
         const response = await axios.post(
-          "http://localhost:5000/api/v1/cart/addCart",
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`,
           { productId: product?._id, quantity: quantity },
           { withCredentials: true }
         );
@@ -165,7 +165,7 @@ const ProductDetails = () => {
       if (!item._id) return toast.error("Product not found!");
       try {
         const response = await axios.post(
-          "http://localhost:5000/api/v1/cart/addCart",
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`,
           { productId: item._id, quantity: quantity },
           { withCredentials: true }
         );
@@ -192,7 +192,7 @@ const ProductDetails = () => {
     }
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/v1/reviews/add",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/add`,
         { productId: product?._id, comment, rating },
         { withCredentials: true }
       );

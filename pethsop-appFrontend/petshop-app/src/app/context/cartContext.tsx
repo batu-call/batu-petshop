@@ -35,7 +35,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     const refreshCart = async() => {
       if(!user) return 
       try {
-        const response = await axios.get("http://localhost:5000/api/v1/cart/getCart",{withCredentials:true});
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/getCart`,{withCredentials:true});
         if(response.data.cart.items){
           setCart(response.data.cart.items);
         }

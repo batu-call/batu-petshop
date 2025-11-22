@@ -43,7 +43,7 @@ const Order = () => {
     const fetchCart = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/v1/cart/getCart",
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/getCart`,
           { withCredentials: true }
         );
         if (response.data.success) {
@@ -102,7 +102,7 @@ const Order = () => {
       paymentIntentId:paymentIntentId ?? null
     };
     try {
-      const response = await axios.post("http://localhost:5000/api/v1/order",
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/order`,
         payload,
         {withCredentials:true}
       );

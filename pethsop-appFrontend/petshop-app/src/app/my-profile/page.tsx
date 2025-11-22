@@ -59,7 +59,7 @@ const MyProfil = () => {
       if (file) data.append("avatar", file);
 
       const response = await axios.put(
-        "http://localhost:5000/api/v1/user/update",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/update`,
         data,
         { withCredentials: true }
       );

@@ -36,7 +36,7 @@ const Cart = () => {
     const fetchCart = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/v1/cart/getCart",
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/getCart`,
           { withCredentials: true }
         );
         if (response.data.success) {
@@ -71,7 +71,7 @@ const Cart = () => {
 
     try {
       const response = await axios.put(
-        "http://localhost:5000/api/v1/cart/updateQuantity",
+       `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/updateQuantity`,
         { productId, quantity: newQuantity },
         { withCredentials: true }
       );
@@ -90,7 +90,7 @@ const Cart = () => {
   const removeCart = async (productId: string) => {
     try {
       const response = await axios.delete(
-        `http://localhost:5000/api/v1/cart/removeCart/${productId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/removeCart/${productId}`,
         { withCredentials: true }
       );
       if (response.data.success) {
@@ -111,7 +111,7 @@ const Cart = () => {
   const removeAllCart = async () => {
     try {
       const response = await axios.delete(
-        "http://localhost:5000/api/v1/cart/removeAllCart",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/removeAllCart`,
         { withCredentials: true }
       );
       if (response.data.success) {

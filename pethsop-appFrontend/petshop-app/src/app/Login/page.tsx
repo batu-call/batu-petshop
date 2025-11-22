@@ -29,7 +29,7 @@ const Login = () => {
 
       const handlerLogin = async() => {
         try {
-          const response = await axios.post("http://localhost:5000/api/v1/user/login",{
+          const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/login`,{
             email,password,rememberMe},
             {withCredentials:true}
           )

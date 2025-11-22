@@ -49,7 +49,7 @@ const Orders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/v1/order/meOrders", { withCredentials: true })
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/order/meOrders`, { withCredentials: true })
         setOrders(response.data.orders)
       } catch (error) {
         console.error("Error fetching orders:", error)
