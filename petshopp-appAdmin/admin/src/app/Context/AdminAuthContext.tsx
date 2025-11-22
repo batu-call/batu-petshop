@@ -28,7 +28,7 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
  useEffect(() => {
   const fetchAdmin = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/v1/admin/me",{
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/admin/me`,{
         withCredentials: true,
       });
       if (response.data.success) 
@@ -48,7 +48,7 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
 
  const logout = async () => {
   try {
-    await axios.post("http://localhost:5000/api/v1/admin/logout", {}, {
+    await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/admin/logout`, {}, {
       withCredentials: true, 
     });
     setAdmin(null);
