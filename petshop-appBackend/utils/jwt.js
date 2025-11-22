@@ -3,8 +3,8 @@
     const cookieName = user.role === "Admin" ? "AdminToken" : "UserToken"
     res.status(statusCode).cookie(cookieName,token,{
         httpOnly:true,
-        secure:false,
-        sameSite:"Lax",
+        secure:true,
+        sameSite:"None",
         expires:new Date(Date.now() + Number(process.env.COOKIE_EXPIRES *24*60*60*1000))
     })
     .json({
