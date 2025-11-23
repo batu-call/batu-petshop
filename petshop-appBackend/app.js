@@ -20,7 +20,7 @@ config({ path: './Config/config.env' });
 
 // Middleware
 const allowedOrigins = [
-  process.env.FRONTEND_URL, 
+  "https://batu-petshop-app.vercel.app", 
   process.env.ADMIN_URL    
 ];
 
