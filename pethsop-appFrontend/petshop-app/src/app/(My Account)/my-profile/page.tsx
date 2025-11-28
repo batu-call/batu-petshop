@@ -1,12 +1,12 @@
 "use client";
 import React, { useContext, useState } from "react";
-import { AuthContext } from "../context/authContext";
-import Navbar from "../Navbar/page";
-import Sidebar from "../Sidebar/page";
+import { AuthContext } from "../../context/authContext";
 import Image from "next/image";
 import { Box, Button, TextField, Typography } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import Navbar from "@/app/Navbar/page";
+import Sidebar from "@/app/Sidebar/page";
 
 type FormDataType = {
   firstName: string;
@@ -28,7 +28,7 @@ const MyProfil = () => {
 
   if (!user) return (
     <div className="w-full">
-      <Navbar/>
+      <Navbar />
       <Sidebar/>
       <div className="ml-40 flex justify-center items-center h-full ">
       <h2 className="text-color text-2xl">No user found, please <a href="/Login" className="text-color2">Login</a></h2>

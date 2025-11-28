@@ -97,7 +97,7 @@ const NewArrivals = () => {
   };
 
   return (
-    <div className="ml-40 flex-1 min-h-screen bg-white p-6">
+    <div className="ml-5 xl:ml-40 flex-1 min-h-screen bg-white p-6">
       <div className="text-color font-bold text-jost flex items-center justify-center mt-14">
         <ScrollFloat
           animationDuration={1}
@@ -114,8 +114,13 @@ const NewArrivals = () => {
         onSwiper={(swiper) => (swiperRef.current = swiper)} 
         onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
         style={{ "--swiper-theme-color": "#393E46" ,  "--swiper-navigation-size": "30px"} as React.CSSProperties}
-        spaceBetween={20}
-        slidesPerView={5}
+         breakpoints={{
+          0: { slidesPerView: 1, spaceBetween: 10 },
+          480: { slidesPerView: 2, spaceBetween: 15 }, 
+          768: { slidesPerView: 3, spaceBetween: 18 },      
+          1024: { slidesPerView: 4, spaceBetween: 20 },  
+          1280: { slidesPerView: 5, spaceBetween: 20 },     
+        }}
         loop
         modules={[Autoplay, Navigation]}
         autoplay={{ delay: 2500, disableOnInteraction: false }}
@@ -125,7 +130,7 @@ const NewArrivals = () => {
         {product.map((p) => (
           <SwiperSlide key={p._id}>
             <Link href={`/Products/${p.slug}`}>
-              <div className="bg-primary w-80 h-120 rounded-2xl shadow-md hover:shadow-xl grid overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative p-4 my-5 cursor-pointer">
+              <div className="bg-primary w-full h-auto  rounded-2xl shadow-md hover:shadow-xl grid overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative p-4 my-5 cursor-pointer">
                 <div className="flex items-center justify-center p-4">
                   {p.image?.length ? (
                     <Image

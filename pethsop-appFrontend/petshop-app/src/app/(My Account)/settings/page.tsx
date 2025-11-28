@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import Navbar from "../Navbar/page";
-import Sidebar from "../Sidebar/page";
 import { Box, TextField, Button, Typography } from "@mui/material";
 import axios from "axios";
+import Navbar from "@/app/Navbar/page";
+import Sidebar from "@/app/Sidebar/page";
 
 const Settings = () => {
   // Password form

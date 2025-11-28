@@ -187,8 +187,8 @@ const ProductDetails = () => {
 
   const handleAddReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if(!isAuthenticated){
-      return toast.error("Please log in to comment")
+    if (!isAuthenticated) {
+      return toast.error("Please log in to comment");
     }
     try {
       const response = await axios.post(
@@ -300,24 +300,24 @@ const ProductDetails = () => {
                 className="border p-2 w-full rounded"
               />
               <div className="flex gap-5 mb-5">
-              <select
-                value={rating}
-                onChange={(e) => setRating(Number(e.target.value))}
-                className="border p-2 rounded"
-              >
-                {[5, 4, 3, 2, 1].map((r) => (
-                  <option key={r} value={r} className="text-color">
-                    {r} ☆
-                  </option>
-                ))}
-              </select>
-              <button
-                type="submit"
-                disabled={loading}
-                className="bg-primary text-white px-4 py-2 rounded cursor-pointer transition duration-300 ease-in-out hover:scale-110"
-              >
-                {loading ? "Submitting..." : "Submit Review"}
-              </button>
+                <select
+                  value={rating}
+                  onChange={(e) => setRating(Number(e.target.value))}
+                  className="border p-2 rounded"
+                >
+                  {[5, 4, 3, 2, 1].map((r) => (
+                    <option key={r} value={r} className="text-color">
+                      {r} ☆
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-primary text-white px-4 py-2 rounded cursor-pointer transition duration-300 ease-in-out hover:scale-110"
+                >
+                  {loading ? "Submitting..." : "Submit Review"}
+                </button>
               </div>
             </form>
 
@@ -485,13 +485,13 @@ const ProductDetails = () => {
           <>
             {product && (
               <div className="bg-primary shadow-lg rounded-2xl flex flex-col md:flex-row max-w-6xl mx-auto overflow-hidden">
-                <div className="relative w-full md:w-1/2 h-80 md:h-auto">
+                <div className="relative w-full md:w-1/2 h-80 md:h-auto overflow-hidden group cursor-zoom-in">
                   {product.image?.[0]?.url ? (
                     <Image
                       src={product.image[0].url}
                       alt={product.product_name}
                       fill
-                      className="object-cover"
+                      className="object-cover transform transition-transform duration-300 ease-in-out group-hover:scale-125"
                     />
                   ) : (
                     <div className="w-full h-80 bg-gray-200 flex items-center justify-center">

@@ -16,7 +16,7 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import { Search } from "lucide-react"
 import TextField from "@mui/material/TextField";
-
+import MobileMenu from "@/app/components/mobile"
 
 const Navbar = () => {
   const router = useRouter();
@@ -47,43 +47,50 @@ const Navbar = () => {
     }
   };
 
+  
   return (
-    <div>
+    <div className="w-full">
       {/* Navbar container */}
-      <div className="w-full h-30 bg-primary shadow-md relative">
+      <div className="w-full h-15 xs:h-50 sm:h-15 md:h-20 lg:h-30 xl:h-30 bg-primary shadow-md relative">
+        {/* Mobil */} 
+        <div className="absolute top-3 sm:hidden">
+            <MobileMenu anchor="left" /> 
+          </div>
         {/* Logo */}
-        <Link href="/main" className="fixed">
+        <div className="">
+        <Link href="/main" className="lg:fixed">
           <Image
             src="/logo.png"
             alt="main-icon"
             width={500}
             height={500}
-            className="flex justify-center items-center w-40 h-40"
+            className="hidden sm:flex justify-center items-center w-15 h-15 sm:h-25 sm:w-25 md:w-25 md:h-25 lg:w-40 lg:h-40"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        </Link>
-
+            />
+        </Link> 
+            </div>
+      
         {/* Me */}
-        <h2 className="ml-40 absolute top-0 color-white opacity-20">
+        {/* <h2 className="ml-40 lg:absolute lg:top-0 color-white opacity-20 text-[10px] lg:text-xs ">
           This website is a portfolio project created for demonstration purposes
           only. All products shown are fictitious and not for sale. Designed and
           developed by Batuhan Callioglu.
-        </h2>
+        </h2> */}
 
         {/* Logout button */}
-        <div className="absolute top-10 right-15 flex items-center justify-center">
+        <div className="lg:absolute lg:top-10 lg:right-15 flex items-center justify-center absolute top-4 right-1">
           <div className="relative w-full max-w-md mx-auto">
             <div className="mr-5 relative">
-      <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 opacity-60" />
+      <Search className="absolute right-2 top-1/2 -translate-y-1/2 lg:w-5 lg:h-5 w-2 h-2 opacity-60" />
       <TextField 
         placeholder="Search..."
         variant="outlined"
         autoComplete="off"
         fullWidth
       sx={{
-          width: "260px",        
+          width: {xs:"140px",sm:"200px" ,md:"140px" ,lg:"260px"},        
           "& .MuiOutlinedInput-root": {
-            height: "38px",
+            height: {xs:"30px",md:"15px",lg:"38px"},
             borderRadius: "10px",
             paddingRight: "40px",
             transition: "0.2s ease",
@@ -108,7 +115,7 @@ const Navbar = () => {
             <div className="flex gap-5 items-center justify-center">
                <Dropdown>
   <DropdownButton>
-    <div className="w-[50px] h-[50px] relative cursor-pointer">
+    <div className="lg:w-[50px] lg:h-[50px] w-6 h-6 relative cursor-pointer">
       <Image
         src={user?.avatar || "/default-avatar.png"}
         alt="user avatar"
@@ -145,7 +152,7 @@ const Navbar = () => {
                   <ShoppingCartIcon
                     fontSize="large"
                     color="action"
-                    className="p-1"
+                    className="p-1 w-2 h-2"
                   />
 
                   {cart.length > 0 && (
@@ -159,7 +166,7 @@ const Navbar = () => {
             <div className="flex items-center justify-center transition duration-300 ease-in-out hover:scale-105">
               {isAuthenticated ? (
                 <Button
-                  className="cursor-pointer bg-secondary text-color w-40 text-base hover:bg-secondary transition-colors"
+                  className="hidden lg:flex cursor-pointer bg-secondary text-color w-15 lg:w-40 text-base hover:bg-secondary transition-colors"
                   onClick={handleLogout}
                 >
                   Logout

@@ -12,11 +12,11 @@ const Sidebar = () => {
 
 
   return (
-    <div>
+    <div className="hidden sm:hidden md:hidden lg:block xl:block">
       <div className="w-40 h-screen bg-white fixed">
         {/* Cat */}
         <Link href={"/Cat"}>
-          <div className={`group inline-block p-2 items-center mt-24 ml-3 rounded-2xl w-35 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${pathname === "/Cat" ? "bg-[#DDEEDD]" : "bg-primary"}`}>
+          <div className={`group inline-block p-2 items-center mt-24 ml-3 rounded-2xl w-15 sm:w-15 md:w-40 lg:w-35 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${pathname === "/Cat" ? "bg-[#DDEEDD]" : "bg-primary"}`}>
             <div className={`flex gap-9 items-center justify-center transition-colors duration-400 ${pathname === "/Cat" ? "bg-[#DDEEDD]" : "bg-primary"} group-hover:bg-[#DDEEDD]`}>
               <Image src="/cat_7721779.png" alt='cat-image' height={40} width={40} />
               <h2 className='text-2xl text-jost text-white p-1'>Cat</h2>

@@ -1,11 +1,11 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import Navbar from '../Navbar/page'
-import Sidebar from '../Sidebar/page'
 import axios from 'axios'
 import { Accordion, AccordionSummary, AccordionDetails, Typography, Box } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import Image from 'next/image'
+import Navbar from '@/app/Navbar/page'
+import Sidebar from '@/app/Sidebar/page'
 
 type OrderItems = {
  product:

@@ -21,16 +21,13 @@ const sniglet = Sniglet({
 
 const Main = () => {
   
-  console.log("FRONTEND API:", process.env.NEXT_PUBLIC_API_URL);
-  
-
   return (
-    <div className=''>
+    <div>
       <UserGuard requireAuth={false}>
     <Navbar />
     <Sidebar/>
-    <div className='ml-40 flex gap-120 h-full'>
-  <div className="w-full h-full px-2 py-3 relative" >
+    <div className='ml-0 md:ml-30 lg:ml-40 flex gap-120 h-full'>
+  <div className="w-full px-2 py-3 relative ">
      <Image
     src="/Yellow Cute Pet Shop Banner (4).png"
     alt="main-banner-image"
@@ -40,15 +37,15 @@ const Main = () => {
   /> 
 
   {/* main text */}
-  <div className='absolute top-20 right-80' >
-<div className=''>
+  <div className='absolute right-4 lg:absolute lg:top-20 lg:right-80'>
+<div>
   <BlurText
   text="Pet Shop"
   delay={150}
   animateBy="words"
   direction="top"
   
-  className="mb-8 text-color text-jost text-9xl flex items-center justify-center font-bold" 
+  className="mb-8 text-color text-jost text-sm lg:text-9xl flex items-center justify-center font-bold" 
 />
 
   <BlurText
@@ -56,13 +53,13 @@ const Main = () => {
   delay={50}
   animateBy="words"
   direction="top"
-  className="mb-8 text-color text-jost text-xl flex items-center justify-center font-bold w-120" 
+  className="mb-8 text-color text-jost text-sm lg:text-xl flex items-center justify-center font-bold w-60 sm:w-70 lg:w-120" 
 />
 </div>
 </div>
 
-<div className='absolute top-95 right-100'> 
-<div className='flex flex-col gap-20 mt-5 text-xl text-color font-bold py-2 px-3 '>
+<div className='lg:absolute lg:top-95 lg:right-100 absolute top-5 right-5'> 
+<div className='flex flex-col gap-20 mt-5 lg:text-xl text-xs text-color font-bold py-2 px-3'>
   <h2>Pet wellness and grooming</h2>
   <h2>Best affordable pet accessories</h2>
   <h2>Best quality organic pet food</h2>
@@ -76,15 +73,15 @@ const Main = () => {
         <Link href={"/AllProduct"}><Button
       className={sniglet.className}
       sx={{
-        width: "20rem",
-        height: "3.5rem",
+        width: {xs: "3rem", sm: "16rem", md: "20rem" },
+        height: {xs: "1rem", sm: "2rem", md: "3.5rem" },
         borderRadius: "1.5rem",
         bgcolor: "white",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         cursor: "pointer",
-        fontSize: "1.75rem",   
+        fontSize: {xs: "0.3rem", sm:"1rem" , md:"1.75rem"},   
         fontWeight:800,
         color:"#393E46",
         transition: "all 0.3s ease-in-out",
@@ -98,15 +95,15 @@ const Main = () => {
       <li><Link href={"/Contact"}><Button
       className={sniglet.className}
       sx={{
-        width: "20rem",
-        height: "3.5rem",
+        width: {xs: "3rem", sm: "16rem", md: "20rem" },
+        height: {xs: "1rem", sm: "2rem", md: "3.5rem" },
         borderRadius: "1.5rem",
         bgcolor: "white",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         cursor: "pointer",
-        fontSize: "1.75rem",   
+        fontSize: {xs: "0.3rem", sm:"1rem" , md:"1.75rem"},    
         fontWeight:800,
         color:"#393E46",
         transition: "all 0.3s ease-in-out",
