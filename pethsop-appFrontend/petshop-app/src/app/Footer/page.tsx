@@ -92,7 +92,7 @@ const Footer = () => {
       <hr className="my-4" />
 
       {/* Footer links */}
-      <div className="flex">
+      <div className="xl:flex flex flex-col space-y-2">
         <div className="h-10 sm:h-32 flex px-4 sm:px-20">
           <ul className="flex gap-10 sm:gap-60 justify-center items-center text-sm sm:text-lg text-jost text-color font-bold">
             <Link href={"/Contact"}>

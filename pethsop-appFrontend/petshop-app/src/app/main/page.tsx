@@ -22,12 +22,12 @@ const sniglet = Sniglet({
 const Main = () => {
   
   return (
-    <div>
+    <div className='min-h-screen flex flex-col'>
       <UserGuard requireAuth={false}>
     <Navbar />
     <Sidebar/>
-    <div className='ml-0 md:ml-30 lg:ml-40 flex gap-120 h-full'>
-  <div className="w-full px-2 py-3 relative ">
+    <div className='ml-0 md:ml-30 lg:ml-40 flex gap-120 xl:h-[800px] '>
+  <div className="w-full relative aspect-[16/7] min-h-[200px]">
      <Image
     src="/Yellow Cute Pet Shop Banner (4).png"
     alt="main-banner-image"
@@ -45,7 +45,7 @@ const Main = () => {
   animateBy="words"
   direction="top"
   
-  className="mb-8 text-color text-jost text-sm lg:text-9xl flex items-center justify-center font-bold" 
+  className="mb-2 lg:mb-8 text-color text-jost text-sm lg:text-9xl flex items-center justify-center font-bold" 
 />
 
   <BlurText
@@ -53,13 +53,13 @@ const Main = () => {
   delay={50}
   animateBy="words"
   direction="top"
-  className="mb-8 text-color text-jost text-sm lg:text-xl flex items-center justify-center font-bold w-60 sm:w-70 lg:w-120" 
+  className="mb-8 text-color text-jost text-[10px] lg:text-xl flex items-center justify-center font-bold w-60 sm:w-70 lg:w-120" 
 />
 </div>
 </div>
 
-<div className='lg:absolute lg:top-95 lg:right-100 absolute top-5 right-5'> 
-<div className='flex flex-col gap-20 mt-5 lg:text-xl text-xs text-color font-bold py-2 px-3'>
+<div className='lg:absolute lg:top-95 lg:right-100 absolute top-19 right-10'> 
+<div className='flex flex-col gap-4 lg:gap-20 mt-5 lg:text-xl text-[5px] text-color font-bold py-2 px-3'>
   <h2>Pet wellness and grooming</h2>
   <h2>Best affordable pet accessories</h2>
   <h2>Best quality organic pet food</h2>
@@ -67,7 +67,7 @@ const Main = () => {
   </div>
 
 {/* Button */}
-  <div className='flex flex-col gap-20 px-2 py-3 mt-8 absolute bottom-3 right-50'>
+  <div className='flex flex-col gap-20 px-2 py-3 mt-8 absolute right-15 bottom-0 lg:absolute lg:bottom-3 lg:right-50'>
     <ul className='flex gap-6'>
       <li>
         <Link href={"/AllProduct"}><Button
@@ -95,7 +95,7 @@ const Main = () => {
       <li><Link href={"/Contact"}><Button
       className={sniglet.className}
       sx={{
-        width: {xs: "3rem", sm: "16rem", md: "20rem" },
+        width: {xs: "1rem", sm: "16rem", md: "20rem" },
         height: {xs: "1rem", sm: "2rem", md: "3.5rem" },
         borderRadius: "1.5rem",
         bgcolor: "white",
