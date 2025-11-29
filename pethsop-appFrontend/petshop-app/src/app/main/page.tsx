@@ -45,7 +45,7 @@ const Main = () => {
   animateBy="words"
   direction="top"
   
-  className="mb-2 lg:mb-8 text-color text-jost text-sm lg:text-9xl flex items-center justify-center font-bold" 
+  className="mb-2 lg:mb-8 text-color text-jost text-4xl sm:text-6xl lg:text-7xl flex items-center justify-center font-bold" 
 />
 
   <BlurText
@@ -59,7 +59,7 @@ const Main = () => {
 </div>
 
 <div className='lg:absolute lg:top-95 lg:right-100 absolute top-19 right-10'> 
-<div className='flex flex-col gap-4 lg:gap-20 mt-5 lg:text-xl text-[5px] text-color font-bold py-2 px-3'>
+<div className='flex flex-col gap- lg:gap-20 mt-5 lg:text-xl text-[5px] text-color font-bold py-2 px-3'>
   <h2>Pet wellness and grooming</h2>
   <h2>Best affordable pet accessories</h2>
   <h2>Best quality organic pet food</h2>
@@ -73,7 +73,7 @@ const Main = () => {
         <Link href={"/AllProduct"}><Button
       className={sniglet.className}
       sx={{
-        width: {xs: "3rem", sm: "16rem", md: "20rem" },
+       width: {xs: "1rem", sm: "16rem", md: "20rem" },
         height: {xs: "1rem", sm: "2rem", md: "3.5rem" },
         borderRadius: "1.5rem",
         bgcolor: "white",

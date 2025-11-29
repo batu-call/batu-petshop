@@ -58,8 +58,7 @@ const Footer = () => {
   }, []);
 
   return (
-    <div className="ml-0 sm:ml-40">
-      {/* Animation container ABOVE HR */}
+    <div className="sm:ml-40">
       <div className="w-full flex relative overflow-hidden h-[200px] mb-4">
         {/* Ball */}
         <div
@@ -92,9 +91,9 @@ const Footer = () => {
       <hr className="my-4" />
 
       {/* Footer links */}
-      <div className="xl:flex flex flex-col space-y-2">
+      <div className="xl:flex xl:flex-row flex flex-col space-y-2 w-full">
         <div className="h-10 sm:h-32 flex px-4 sm:px-20">
-          <ul className="flex gap-10 sm:gap-60 justify-center items-center text-sm sm:text-lg text-jost text-color font-bold">
+          <ul className="flex gap-10 sm:gap-60 justify-center items-center text-xs sm:text-lg text-jost text-color font-bold">
             <Link href={"/Contact"}>
             <li className="transition duration-300 ease-in-out hover:scale-105">About</li>
             </Link>
@@ -110,7 +109,7 @@ const Footer = () => {
           </ul>
         </div>
         <div className="flex gap-4 ml-4 sm:ml-24">
-          <div className="flex gap-[16px] items-center">
+          <div className="flex gap-7 xl:gap-[16px] items-center">
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
               <InstagramIcon fontSize="large" style={{ color: "#E1306C" }} className="transition duration-300 ease-in-out hover:scale-105"/>
             </a>

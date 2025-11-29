@@ -9,7 +9,7 @@ const Contact = () => {
    <div className='relative'>
    <Navbar/>
     <Sidebar/>
-   <div className='ml-40'>
+   <div className='lg:ml-40'>
     <div className='h-full relative'>
     <Image src={"/contact.png"} alt='contact-image' fill className='object-cover'/>
     </div>

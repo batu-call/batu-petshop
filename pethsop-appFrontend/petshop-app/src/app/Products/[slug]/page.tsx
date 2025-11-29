@@ -55,7 +55,7 @@ const ProductDetails = () => {
   const [similar, setSimilar] = useState<Product[]>([]);
   const router = useRouter();
   const { user, isAuthenticated } = useContext(AuthContext);
-  const [selectedTab, setSelectedTab] = useState("shipping");
+  const [selectedTab, setSelectedTab] = useState("similar");
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const swiperRef = useRef<SwiperType>(null);
@@ -365,7 +365,7 @@ const ProductDetails = () => {
       case "similar":
         return (
           <div className="p-6">
-            <h2 className="text-color2 text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
+            <h2 className="text-color2 text-2xl sm:text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
               Similar Products
             </h2>
             <Swiper
@@ -374,7 +374,7 @@ const ProductDetails = () => {
               style={
                 {
                   "--swiper-theme-color": "#393E46",
-                  "--swiper-navigation-size": "30px",
+                  "--swiper-navigation-size": "25px",
                 } as React.CSSProperties
               }
               spaceBetween={20}
@@ -384,19 +384,19 @@ const ProductDetails = () => {
               autoplay={{ delay: 2500, disableOnInteraction: false }}
               navigation
               breakpoints={{
-                320: { slidesPerView: 1 },
-                640: { slidesPerView: 2 },
-                768: { slidesPerView: 3 },
-                1024: { slidesPerView: 4 },
-                1280: { slidesPerView: 5 },
+                320: { slidesPerView: 1, spaceBetween: 10 },
+                640: { slidesPerView: 2, spaceBetween: 15 },
+                768: { slidesPerView: 3, spaceBetween: 20 },
+                1024: { slidesPerView: 4, spaceBetween: 20 },
+                1280: { slidesPerView: 5, spaceBetween: 20 },
               }}
               className="py-8 mt-7"
             >
               {similar.map((item) => (
                 <SwiperSlide key={item._id}>
-                  <Link href={`/Products/${item.slug}`}>
-                    <div className="bg-primary w-80 h-120 rounded-2xl shadow-md hover:shadow-xl grid overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative p-4 my-5 cursor-pointer">
-                      {/* IMAGE */}
+                  <Link href={`/Products/${item.slug}`} className="flex items-center justify-center w-full">
+                    <div className="bg-primary rounded-2xl shadow-md hover:shadow-xl grid overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative p-4 sm:p-4 sm:my-5 cursor-pointer">
+                      {/* IMAGE */}  
                       <div className="flex items-center justify-center p-4">
                         {item.image && item.image.length > 0 ? (
                           <Image
@@ -404,7 +404,8 @@ const ProductDetails = () => {
                             alt={item.product_name}
                             width={400}
                             height={400}
-                            className="rounded-full w-60 h-60 object-cover border-4 border-white shadow-2xl"
+                            sizes="(max-width: 640px) 192px, 208px"
+                            className="rounded-full object-cover w-32 h-32 sm:w-60 sm:h-60 border-4 border-white shadow-2xl"
                           />
                         ) : (
                           <p className="text-white text-sm">No image!</p>
@@ -413,7 +414,7 @@ const ProductDetails = () => {
 
                       {/* Product Name */}
                       <div className="px-4 py-2 text-center flex items-center justify-center">
-                        <h2 className="text-white text-lg truncate font-semibold text-center w-64 mx-auto">
+                        <h2 className="text-white text-lg truncate font-semibold text-center max-w-full mx-auto">
                           {item.product_name}
                         </h2>
                       </div>
@@ -426,9 +427,9 @@ const ProductDetails = () => {
                       </div>
 
                       {/* Price & Button */}
-                      <div className="flex gap-2 justify-between items-center mt-auto">
-                        <h2 className="text-color text-2xl font-semibold ml-3">
-                          {item.price},00$
+                      <div className="flex gap-2 justify-between items-center mt-auto w-full">
+                        <h2 className="text-color text-sm sm:text-sm md:text-2xl font-semibold ml-3 flex-shrink-0 ">
+                          ${item.price.toFixed(2)}
                         </h2>
                         <Button
                           onClick={(e) => {
@@ -436,7 +437,7 @@ const ProductDetails = () => {
                             e.stopPropagation();
                             handlerSimilarAddCart(item);
                           }}
-                          className="bg-secondary text-color cursor-pointer hover:bg-white text-base m-2"
+                          className="bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base m-2 flex-shrink"
                         >
                           Add To Cart
                         </Button>
@@ -472,9 +473,9 @@ const ProductDetails = () => {
     <div className="h-screen relative">
       <Navbar />
       <Sidebar />
-      <div className="ml-40 min-h-screen bg-gray-50 py-10 px-6">
+      <div className="lg:ml-40 min-h-screen bg-gray-50 py-10 px-6">
         {loading ? (
-          <div className="ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
+          <div className="lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
             <CircularText
               text="LOADING"
               spinDuration={20}
@@ -538,12 +539,14 @@ const ProductDetails = () => {
               </div>
             )}
             <div className="w-full h-20 flex justify-center items-center mt-8">
-              <ul className="flex gap-5 justify-center items-center text-jost">
+              <ul className="flex gap-5 items-center sm:justify-center justify-start overflow-x-auto whitespace-nowrap px-2 pb-2 text-jost">
                 {["shipping", "features", "reviews", "similar"].map((tab) => (
                   <Button
                     key={tab}
                     onClick={() => setSelectedTab(tab)}
-                    className={`bg-white text-color text-sm border-2 shadow-2xl p-2 w-40 h-12 flex justify-center items-center hover:bg-[#A8D1B5] cursor-pointer ${
+                    className={`bg-white text-color text-xs lg:text-sm border-2 shadow-2xl p-2 w-20 min-w-[120px] lg:w-40 lg:h-12 flex justify-center
+                      items-center hover:bg-[#A8D1B5] cursor-pointer transition duration-300 ease-in-out hover:scale-105 
+                      ${
                       selectedTab === tab ? "bg-[#A8D1B5]" : ""
                     }`}
                   >

@@ -163,10 +163,10 @@ const Navbar = () => {
                 </Link>
               </div>
             </div>
-            <div className="flex items-center justify-center transition duration-300 ease-in-out hover:scale-105">
+            <div className="hidden lg:flex items-center justify-center transition duration-300 ease-in-out hover:scale-105">
               {isAuthenticated ? (
                 <Button
-                  className="hidden lg:flex cursor-pointer bg-secondary text-color w-15 lg:w-40 text-base hover:bg-secondary transition-colors"
+                  className="cursor-pointer bg-secondary text-color w-15 lg:w-40 text-base hover:bg-secondary transition-colors"
                   onClick={handleLogout}
                 >
                   Logout

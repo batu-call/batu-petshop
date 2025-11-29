@@ -58,12 +58,12 @@ const Login = () => {
     <div className="bg-primary w-full h-screen relative">
       <Navbar/>
       <Sidebar/>
-    <div className="bg-white w-1/4 p-12 shadow-2xl rounded-2xl absolute left-190 top-50">
+      <div className="w-full min-h-screen flex items-center justify-center">
+    <div className="bg-white w-full sm:w-full md:w-1/2 lg:w-1/2 xl:w-1/4 p-12 shadow-2xl rounded-2xl xl:absolute xl:left-190 xl:top-50">
     <Box 
       display="flex"
       flexDirection="column"
       gap={3}
-      width="320px"
       margin="100px auto"
       fontFamily={"jost"}
       >
@@ -134,6 +134,7 @@ const Login = () => {
         Login
       </Button>
     </Box>     
+    </div>
     </div>
     </div>
   );

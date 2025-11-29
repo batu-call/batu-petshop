@@ -55,65 +55,65 @@ const Order = () => {
         } else if (error instanceof Error) {
           toast.error(error.message);
         } else {
-          toast.error("xfghdxfgjdxfg!");
+          toast.error("An unknown error occurred while fetching the cart.");
         }
       }
     };
     fetchCart();
   }, []);
 
-
   const orderCreate = useCallback(
-    async(paymentIntentId?: string | null) => {
-    if(!items.length) {
-      toast.error("The cart is empty, the order cannot be created!")
-      return null
-    }
-    if(!fullName || !email ||  !city || !phoneNumber || !address){
-      toast.error("Please fill in all address information");
-      return null;
-    }
-
-   const orderItems = items.map((item) => ({
-  product:
-    typeof item.product === "string"
-      ? item.product
-      : item.product && "_id" in item.product
-      ? item.product._id
-      : item._id,
-  name: item.name,
-  price: item.price,
-  quantity: item.quantity,
-  image: item.image,
-}));
-
-    const payload = {
-      items:orderItems,
-      totalAmount,
-      shippingFee,
-      shippingAddress:{
-        fullName,
-        email,
-        address,
-        city,
-        phoneNumber,
-        postalCode
-      },
-      paymentIntentId:paymentIntentId ?? null
-    };
-    try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/order`,
-        payload,
-        {withCredentials:true}
-      );
-      if(response.data.success){
-        toast.success("Your order has been saved!")
-        return response.data.order
-      }else {
-        toast.error(response.data.message || "Order could not be created.")
-        return null
+    async (paymentIntentId?: string | null) => {
+      if (!items.length) {
+        toast.error("The cart is empty, the order cannot be created!");
+        return null;
       }
-    } catch (error: unknown) {
+      if (!fullName || !email || !city || !phoneNumber || !address) {
+        toast.error("Please fill in all address information");
+        return null;
+      }
+
+      const orderItems = items.map((item) => ({
+        product:
+          typeof item.product === "string"
+            ? item.product
+            : item.product && "_id" in item.product
+            ? item.product._id
+            : item._id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+      }));
+
+      const payload = {
+        items: orderItems,
+        totalAmount,
+        shippingFee,
+        shippingAddress: {
+          fullName,
+          email,
+          address,
+          city,
+          phoneNumber,
+          postalCode,
+        },
+        paymentIntentId: paymentIntentId ?? null,
+      };
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/order`,
+          payload,
+          { withCredentials: true }
+        );
+        if (response.data.success) {
+          toast.success("Your order has been saved!");
+          return response.data.order;
+        } else {
+          toast.error(response.data.message || "Order could not be created.");
+          return null;
+        }
+      } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
           toast.error(error.response.data.message || "Server error.");
         } else if (error instanceof Error) {
@@ -123,310 +123,225 @@ const Order = () => {
         }
         return null;
       }
-  },
-  [items, totalAmount, shippingFee, fullName, email, address, city, phoneNumber, postalCode]
-);
+    },
+    [
+      items,
+      totalAmount,
+      shippingFee,
+      fullName,
+      email,
+      address,
+      city,
+      phoneNumber,
+      postalCode,
+    ]
+  );
 
-
-  const handlerPaymentSuccess = async(paymentIntentId?:string | null) => {
+  const handlerPaymentSuccess = async (paymentIntentId?: string | null) => {
     const order = await orderCreate(paymentIntentId);
-    if(order) {
+    if (order) {
       setItems([]);
       router.push(`/Success?orderId=${order._id}`);
     }
-  }
+  };
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       <Sidebar />
-      <div className="ml-40 h-[calc(100vh-7.5rem)] flex">
-        {/* Left */}
-        <div className="w-1/2 h-full">
-          {/* Items */}
-          <div className="w-full h-2/3 border border-[#A8D1B5] flex flex-col gap-2 max-h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 rounded-lg transition-all duration-300">
+      {/* Ana İçerik Konteyneri: Responsive Marjin, Padding ve Flex Düzeni */}
+      <div className="ml-0 md:ml-[16rem] lg:ml-[20rem] p-4 lg:p-8 flex flex-col gap-6 lg:flex-row lg:gap-8 flex-1">
+        
+        {/* Sol Alan (Ürünler ve Özet): Mobil cihazlarda tam genişlik (w-full), büyük ekranlarda yarım (lg:w-1/2) */}
+        <div className="w-full lg:w-1/2 flex flex-col gap-6">
+          
+          {/* Ürün Listesi */}
+          <div className="w-full h-[60vh] lg:h-[70vh] border border-[#A8D1B5] flex flex-col gap-2 p-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 rounded-lg shadow-md bg-white">
+            <h2 className="text-xl font-bold text-color p-2 border-b">Order Items ({itemlength})</h2>
             {items.map((c) => (
-              <div key={c._id} className="flex border-2">
-                <div className="w-[120px] h-[120px] relative border-2">
+              <div
+                key={c._id}
+                className="flex items-center border border-gray-100 rounded-lg p-2 transition duration-200 hover:bg-gray-50"
+              >
+                {/* Ürün Resmi */}
+                <div className="w-[80px] h-[80px] relative flex-shrink-0">
                   <Image
                     src={c.image}
                     alt="product-image"
                     fill
-                    className="object-cover rounded-2xl p-2 "
+                    className="object-cover rounded-md p-1"
                   />
                 </div>
-                <div className="w-[400px] h-[120px] flex justify-center items-center">
-                  <p className="flex justify-center items-center text-xl text-color text-shadow-2xs">
+                
+                {/* Ürün Adı */}
+                <div className="flex-1 min-w-0 px-2 sm:px-4">
+                  <p className="text-sm sm:text-base text-color font-semibold truncate">
                     {c.name}
                   </p>
                 </div>
-                <div className="w-[120px] h-[120px] flex justify-center items-center">
-                  <p className="flex justify-center items-center text-2xl text-color2 text-shadow-emerald-900">
-                    {c.quantity}
+                
+                {/* Miktar (Quantity) */}
+                <div className="w-16 flex justify-center items-center flex-shrink-0">
+                  <p className="text-base sm:text-lg text-color2 font-extrabold">
+                    x{c.quantity}
                   </p>
                 </div>
-                <div className="w-[400px] h-[120px] flex justify-center items-center">
-                  <p className="flex justify-center items-center text-xl text-color text-shadow-2xs">
-                    {c.price * c.quantity} $
+                
+                {/* Toplam Fiyat */}
+                <div className="w-24 sm:w-32 flex justify-end items-center flex-shrink-0">
+                  <p className="text-sm sm:text-base text-color font-bold">
+                    ${(c.price * c.quantity).toFixed(2)}
                   </p>
                 </div>
               </div>
             ))}
+            {items.length === 0 && (
+                <div className="text-center text-gray-500 py-10">Your cart is empty.</div>
+            )}
           </div>
-          {/* Items Description */}
-          <div className="w-full h-1/3 border border-[#A8D1B5] flex gap-12 justify-center items-center">
-            <div>
-              <div className="flex gap-10 items-center justify-center mt-6">
-                <p className="text-color text-2xl text-shadow-gray-100 font-semibold">
-                  Total Items
-                </p>
-                <span className="text-color text-xl font-semibold bg-primary px-8 py-1 shadow-md">
+          
+          {/* Fiyat Özeti */}
+          <div className="w-full border border-[#A8D1B5] p-4 rounded-lg shadow-md bg-white">
+            <h2 className="text-xl font-bold text-color border-b pb-2 mb-4">Order Summary</h2>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <p className="text-color text-lg font-semibold">Total Items</p>
+                <span className="text-color text-lg font-bold bg-gray-100 px-4 py-1 rounded">
                   {itemlength}
                 </span>
               </div>
-              <div className="flex gap-10 items-center justify-center mt-6">
-                <p className="text-color text-2xl text-shadow-gray-100 font-semibold">
-                  Sub Total
-                </p>
-                <span className="text-color text-xl font-semibold bg-primary px-8 py-1 shadow-md">
-                  {subtotal} $
+              <div className="flex justify-between items-center">
+                <p className="text-color text-lg font-semibold">Sub Total</p>
+                <span className="text-color text-lg font-bold bg-gray-100 px-4 py-1 rounded">
+                  ${subtotal.toFixed(2)}
                 </span>
               </div>
-            </div>
-            <div className="">
-              <div className="flex gap-10 items-center justify-center mt-6">
-                <p className="text-color text-2xl text-shadow-gray-100 font-semibold">
-                  Shipping Fee
-                </p>
-                <span className="text-color text-xl font-semibold bg-primary px-8 py-1 shadow-md">
-                  {shippingFee} $
+              <div className="flex justify-between items-center border-b pb-3">
+                <p className="text-color text-lg font-semibold">Shipping Fee</p>
+                <span className="text-color text-lg font-bold bg-gray-100 px-4 py-1 rounded">
+                  ${shippingFee.toFixed(2)}
                 </span>
               </div>
-              <div className="flex gap-10 items-center justify-center mt-6">
-                <p className="text-color text-2xl text-shadow-gray-100 font-semibold">
-                  Total Amount
-                </p>
-                <span className="text-color text-xl font-semibold bg-primary px-8 py-1 shadow-md">
-                  {totalAmount} $
+              <div className="flex justify-between items-center pt-2">
+                <p className="text-color text-2xl font-extrabold">Total Amount</p>
+                <span className="text-white text-2xl font-extrabold bg-primary px-6 py-2 rounded-lg shadow-lg">
+                  ${totalAmount.toFixed(2)}
                 </span>
               </div>
             </div>
           </div>
         </div>
-        {/* Right */}
-        <div className="w-1/2 h-full">
-                    {/* Address */}
-          <div className="w-full h-2/5 border border-[#A8D1B5]">
-            <div className="w-full flex justify-center items-center">
-              <h2 className="text-color text-2xl text-shadow-gray-100 font-semibold">
-                Address Information
-              </h2>
-            </div>
-            <div className="w-full flex gap-2">
-              <div className="flex flex-col gap-2 p-4 w-1/2">
-                <div className="w-full">
-                  <TextField
-                    label="FullName"
-                    name="FullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    variant="standard"
-                    fullWidth
-                    autoComplete="off"
-                    slotProps={{
-                      inputLabel: {
-                        sx: {
-                          color: "#B1CBBB",
-                          "&.Mui-focused": {
-                            color: "#393E46",
-                            backgroundColor: "#B1CBBB",
-                            padding: 0.4,
-                            borderRadius: 1,
-                          },
-                        },
-                      },
-                    }}
-                    sx={{
-                      "& .MuiInput-underline:after": {
-                        borderBottomColor: "#B1CBBB",
-                      },
-                    }}
-                  />
-                </div>
-                <div className="w-full mt-6">
-                  <TextField
-                    label="Email"
-                    name="Email"
-                    type="text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    variant="standard"
-                    fullWidth
-                    autoComplete="off"
-                    slotProps={{
-                      inputLabel: {
-                        sx: {
-                          color: "#B1CBBB",
-                          "&.Mui-focused": {
-                            color: "#393E46",
-                            backgroundColor: "#B1CBBB",
-                            padding: 0.4,
-                            borderRadius: 1,
-                          },
-                        },
-                      },
-                    }}
-                    sx={{
-                      "& .MuiInput-underline:after": {
-                        borderBottomColor: "#B1CBBB",
-                      },
-                    }}
-                  />
-                </div>
-                <div className="w-full mt-5">
-                  <TextField
-                    label="City"
-                    name="City"
-                    type="text"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    variant="standard"
-                    fullWidth
-                    autoComplete="off"
-                    slotProps={{
-                      inputLabel: {
-                        sx: {
-                          color: "#B1CBBB",
-                          "&.Mui-focused": {
-                            color: "#393E46",
-                            backgroundColor: "#B1CBBB",
-                            padding: 0.4,
-                            borderRadius: 1,
-                          },
-                        },
-                      },
-                    }}
-                    sx={{
-                      "& .MuiInput-underline:after": {
-                        borderBottomColor: "#B1CBBB",
-                      },
-                    }}
-                  />
-                </div>
+        
+        {/* Sağ Alan (Adres ve Ödeme): Mobil cihazlarda tam genişlik (w-full), büyük ekranlarda yarım (lg:w-1/2) */}
+        <div className="w-full lg:w-1/2 flex flex-col gap-6">
+          
+          {/* Adres Formu */}
+          <div className="w-full border border-[#A8D1B5] p-4 sm:p-6 rounded-lg shadow-md bg-white">
+            <h2 className="text-color text-2xl font-bold mb-4 border-b pb-2">
+              Address Information
+            </h2>
+            
+            {/* Form Alanları */}
+            <div className="flex flex-wrap -mx-2">
+              {/* Sol Sütun (Mobil: Tam, Tablet/Desktop: Yarım) */}
+              <div className="flex flex-col gap-4 p-2 w-full sm:w-1/2">
+                <TextField
+                  label="FullName"
+                  name="FullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  variant="standard"
+                  fullWidth
+                  autoComplete="off"
+                  // MUI Stilleri
+                  slotProps={{ inputLabel: { sx: { color: "#B1CBBB", "&.Mui-focused": { color: "#393E46", backgroundColor: "#B1CBBB", padding: 0.4, borderRadius: 1, }, }, }, }}
+                  sx={{ "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB", }, }}
+                />
+                <TextField
+                  label="Email"
+                  name="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  variant="standard"
+                  fullWidth
+                  autoComplete="off"
+                  slotProps={{ inputLabel: { sx: { color: "#B1CBBB", "&.Mui-focused": { color: "#393E46", backgroundColor: "#B1CBBB", padding: 0.4, borderRadius: 1, }, }, }, }}
+                  sx={{ "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB", }, }}
+                />
+                <TextField
+                  label="City"
+                  name="City"
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  variant="standard"
+                  fullWidth
+                  autoComplete="off"
+                  slotProps={{ inputLabel: { sx: { color: "#B1CBBB", "&.Mui-focused": { color: "#393E46", backgroundColor: "#B1CBBB", padding: 0.4, borderRadius: 1, }, }, }, }}
+                  sx={{ "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB", }, }}
+                />
               </div>
-              <div className="flex flex-col gap-2 p-4 w-1/2">
-                <div className="w-full">
-                  <TextField
-                    label="Phone Number"
-                    name="Phone Number"
-                    type="text"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    variant="standard"
-                    fullWidth
-                    autoComplete="off"
-                    slotProps={{
-                      inputLabel: {
-                        sx: {
-                          color: "#B1CBBB",
-                          "&.Mui-focused": {
-                            color: "#393E46",
-                            backgroundColor: "#B1CBBB",
-                            padding: 0.4,
-                            borderRadius: 1,
-                          },
-                        },
-                      },
-                    }}
-                    sx={{
-                      "& .MuiInput-underline:after": {
-                        borderBottomColor: "#B1CBBB",
-                      },
-                    }}
-                  />
-                </div>
-                <div className="w-full">
-                  <TextField
-                    label="Adress"
-                    name="Adress"
-                    type="text"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    variant="standard"
-                    fullWidth
-                    autoComplete="off"
-                    multiline
-                    rows={2}
-                    slotProps={{
-                      inputLabel: {
-                        sx: {
-                          color: "#B1CBBB",
-                          "&.Mui-focused": {
-                            color: "#393E46",
-                            backgroundColor: "#B1CBBB",
-                            padding: 0.4,
-                            borderRadius: 1,
-                          },
-                        },
-                      },
-                    }}
-                    sx={{
-                      "& .MuiInput-underline:after": {
-                        borderBottomColor: "#B1CBBB",
-                      },
-                    }}
-                  />
-                </div> 
-                <div className="w-full mt-5">
-                  <TextField
-                    label="Postal Code"
-                    name="Postal Code"
-                    type="text"
-                    value={postalCode}
-                    onChange={(e) => setPostalCode(e.target.value)}
-                    variant="standard"
-                    fullWidth
-                    autoComplete="off"
-                    slotProps={{
-                      inputLabel: {
-                        sx: {
-                          color: "#B1CBBB",
-                          "&.Mui-focused": {
-                            color: "#393E46",
-                            backgroundColor: "#B1CBBB",
-                            padding: 0.4,
-                            borderRadius: 1,
-                          },
-                        },
-                      },
-                    }}
-                    sx={{
-                      "& .MuiInput-underline:after": {
-                        borderBottomColor: "#B1CBBB",
-                      },
-                    }}
-                  />
-                </div>
+              
+              {/* Sağ Sütun (Mobil: Tam, Tablet/Desktop: Yarım) */}
+              <div className="flex flex-col gap-4 p-2 w-full sm:w-1/2">
+                <TextField
+                  label="Phone Number"
+                  name="Phone Number"
+                  type="tel" // type="tel" olarak düzeltildi
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  variant="standard"
+                  fullWidth
+                  autoComplete="off"
+                  slotProps={{ inputLabel: { sx: { color: "#B1CBBB", "&.Mui-focused": { color: "#393E46", backgroundColor: "#B1CBBB", padding: 0.4, borderRadius: 1, }, }, }, }}
+                  sx={{ "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB", }, }}
+                />
+                <TextField
+                  label="Address"
+                  name="Address"
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  variant="standard"
+                  fullWidth
+                  autoComplete="off"
+                  multiline
+                  rows={2}
+                  slotProps={{ inputLabel: { sx: { color: "#B1CBBB", "&.Mui-focused": { color: "#393E46", backgroundColor: "#B1CBBB", padding: 0.4, borderRadius: 1, }, }, }, }}
+                  sx={{ "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB", }, }}
+                />
+                <TextField
+                  label="Postal Code"
+                  name="Postal Code"
+                  type="text"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                  variant="standard"
+                  fullWidth
+                  autoComplete="off"
+                  slotProps={{ inputLabel: { sx: { color: "#B1CBBB", "&.Mui-focused": { color: "#393E46", backgroundColor: "#B1CBBB", padding: 0.4, borderRadius: 1, }, }, }, }}
+                  sx={{ "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB", }, }}
+                />
               </div>
             </div>
           </div>
-                    {/* Pay */}
-         <div className="w-full h-3/5 border border-[#A8D1B5] flex justify-center items-center">
-             
-                <StripePay
-                  totalAmount={totalAmount}
-                  items={items}
-                  fullName={fullName}
-                  email={email}
-                  city={city}
-                  phoneNumber={phoneNumber}
-                  address={address}
-                  postalCode={postalCode}
-                  onPaymentSuccess={(paymentIntentId?: string) => handlerPaymentSuccess(paymentIntentId)}
-                />
-       
-            </div>
+          
+          {/* Ödeme Alanı */}
+          <div className="w-full border border-[#A8D1B5] p-4 sm:p-6 rounded-lg shadow-md bg-white flex justify-center items-center">
+            <StripePay
+              totalAmount={totalAmount}
+              items={items}
+              fullName={fullName}
+              email={email}
+              city={city}
+              phoneNumber={phoneNumber}
+              address={address}
+              postalCode={postalCode}
+              onPaymentSuccess={(paymentIntentId?: string) => handlerPaymentSuccess(paymentIntentId)}
+            />
+          </div>
         </div>
       </div>
     </div>
