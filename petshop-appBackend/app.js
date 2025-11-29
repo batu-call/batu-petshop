@@ -20,13 +20,12 @@ config({ path: './Config/config.env' });
 
 // Middleware
 const allowedOrigins = [
-  "https://batu-petshop-app.vercel.app", 
+  process.env.FRONTEND_URL , 
   process.env.ADMIN_URL    
 ];
 
 const corsOptions = {
   origin: function(origin, callback) {
-    console.log("Request origin:", origin);
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
