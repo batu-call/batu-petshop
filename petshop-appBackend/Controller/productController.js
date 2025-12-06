@@ -200,3 +200,25 @@ export const updateProductController = async (req, res) => {
     });
   }
 };
+
+
+export const searchProducts = catchAsyncError(async(req,res,next) => {
+    const {query} = req.query;
+    
+    if (!query || query.trim() === "") {
+  return res.status(400).json({ message: "Search query required" });
+}
+
+    try {
+      const products  = await Product.find({
+        $or:[
+          {name: {$regex : query , $options : "i"}},
+          {description : {$regex : query , $options : "i"}}
+        ]
+      });
+      res.status(200).json(products)
+    } catch (error) {
+      console.error("Search error:", error);
+    res.status(500).json({ message: "Search failed" });
+    }
+})

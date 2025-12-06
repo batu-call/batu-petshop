@@ -58,7 +58,7 @@ const Footer = () => {
   }, []);
 
   return (
-    <div className="sm:ml-40">
+    <div className="md:ml-24 lg:ml-40">
       <div className="w-full flex relative overflow-hidden h-[200px] mb-4">
         {/* Ball */}
         <div
@@ -91,9 +91,9 @@ const Footer = () => {
       <hr className="my-4" />
 
       {/* Footer links */}
-      <div className="xl:flex xl:flex-row flex flex-col space-y-2 w-full">
-        <div className="h-10 sm:h-32 flex px-4 sm:px-20">
-          <ul className="flex gap-10 sm:gap-60 justify-center items-center text-xs sm:text-lg text-jost text-color font-bold">
+      <div className="lg:flex lg:flex-row flex flex-col space-y-2 w-full">
+        <div className="h-10 sm:h-32 flex px-4 sm:px-20 lg:px-10">
+          <ul className="flex gap-10 sm:gap-20 md:gap-15 lg:gap-16 xl:gap-30 2xl:gap-60 justify-center items-center text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-jost text-color font-bold">
             <Link href={"/Contact"}>
             <li className="transition duration-300 ease-in-out hover:scale-105">About</li>
             </Link>
@@ -108,8 +108,8 @@ const Footer = () => {
             </Link>
           </ul>
         </div>
-        <div className="flex gap-4 ml-4 sm:ml-24">
-          <div className="flex gap-7 xl:gap-[16px] items-center">
+        <div className="flex gap-4 ml-4 sm:ml-24 md:ml-20 lg:ml-7 xl:ml-24">
+          <div className="flex gap-7 md:gap-17 lg:gap-[16px] items-center">
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
               <InstagramIcon fontSize="large" style={{ color: "#E1306C" }} className="transition duration-300 ease-in-out hover:scale-105"/>
             </a>

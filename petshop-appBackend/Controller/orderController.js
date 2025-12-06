@@ -239,3 +239,19 @@ export const getOrderStats = catchAsyncError(async (req, res, next) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 });
+
+export const getOrderByUserId = catchAsyncError(async (req, res, next) => {
+
+  const orders = await Order.find({ user: req.params.id })
+    .populate("user", "firstName lastName email")
+    .populate({
+      path: "items.product",
+      select: "product_name image price",
+    })
+    .sort({ createdAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    orders,
+  });
+});

@@ -18,7 +18,7 @@ const Main = () => {
       {/* Catgeory */}
       <Sidebar />
       <div>
-      <div className='ml-50 absolute w-200 font-bold mt-12'>
+      <div className='lg:ml-50 absolute w-200 font-bold mt-12'>
         <h1 className='text-6xl mt-24 font-bold'>
         <TextType 
         text={["Welcome to your Admin Panel!"]}

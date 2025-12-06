@@ -216,10 +216,14 @@ export const getAllUser = catchAsyncError(async (req, res, next) => {
 });
 
 export const getUserDetails = catchAsyncError(async (req, res, next) => {
+ const user = await User.findById(req.params.id);
+ if(!user){
+  return next(new ErrorHandler("User not found!", 400));
+ }
+
   res.status(200).json({
     success: true,
-    count: req.user.length,
-    user: req.user,
+    user,
   });
 });
 

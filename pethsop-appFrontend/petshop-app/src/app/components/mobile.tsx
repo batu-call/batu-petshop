@@ -22,6 +22,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LoginIcon from "@mui/icons-material/Login";
 import HomeIcon from "@mui/icons-material/Home";
+import ContactMailIcon from "@mui/icons-material/ContactMail";
 
 type Anchor = "left" | "right";
 
@@ -64,9 +65,13 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
     { text: "Horse", href: "/Horse", imgSrc: "/Horse.png" },
   ];
 
+   const general: MenuItem[] = [
+      { text: "Home", href: "/main", icon: <HomeIcon sx={{ color: "#A8D1B5" }} /> },
+    { text: "Contact", href: "/Contact", icon: <ContactMailIcon sx={{ color: "#A8D1B5" }} /> }
+  ];
+
   const accountItems: MenuItem[] = isAuthenticated
     ? [
-      { text: "Home", href: "/main", icon: <HomeIcon sx={{ color: "#A8D1B5" }} /> },
         { text: "Profile", href: "/my-profile", icon: <AccountCircleIcon sx={{ color: "#A8D1B5" }} /> },
         { text: "Settings", href: "/settings", icon: <SettingsIcon sx={{ color: "#A8D1B5" }} /> },
         { text: "Orders", href: "/orders", icon: <ReceiptIcon sx={{ color: "#A8D1B5" }} />, },
@@ -83,6 +88,20 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
 
   const drawerList = (
     <div role="presentation" onClick={toggleDrawer(false)} onKeyDown={toggleDrawer(false)} className="w-[250px] bg-white h-full">
+
+      <List>
+        <div className="px-4 py-2 font-bold text-gray-500 uppercase">General</div>
+        {general.map((item) => (
+          <ListItem key={item.text} disablePadding>
+            <Link href={item.href} className="w-full">
+              <ListItemButton>
+                <ListItemIcon>{renderIconOrImage(item)}</ListItemIcon>
+                <ListItemText primary={item.text} primaryTypographyProps={{ className: "text-color font-bold" }} />
+              </ListItemButton>
+            </Link>
+          </ListItem>
+        ))}
+      </List>
       <List>
         <div className="px-4 py-2 font-bold text-gray-500 uppercase">Categories</div>
         {categories.map((item) => (

@@ -428,7 +428,7 @@ const ProductDetails = () => {
 
                       {/* Price & Button */}
                       <div className="flex gap-2 justify-between items-center mt-auto w-full">
-                        <h2 className="text-color text-sm sm:text-sm md:text-2xl font-semibold ml-3 flex-shrink-0 ">
+                        <h2 className="text-color text-sm md:text-2xl font-semibold ml-3 flex-shrink-0 ">
                           ${item.price.toFixed(2)}
                         </h2>
                         <Button
@@ -473,7 +473,7 @@ const ProductDetails = () => {
     <div className="h-screen relative">
       <Navbar />
       <Sidebar />
-      <div className="lg:ml-40 min-h-screen bg-gray-50 py-10 px-6">
+      <div className="md:ml-25 lg:ml-40 min-h-screen bg-gray-50 py-10 px-6">
         {loading ? (
           <div className="lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
             <CircularText
@@ -504,7 +504,7 @@ const ProductDetails = () => {
                   <h1 className="text-4xl font-bold text-color flex justify-center items-center">
                     {product.product_name}
                   </h1>
-                  <p className="text-color text-lg">{product.description}</p>
+                  <p className="text-color text-lg break-words whitespace-normal">{product.description}</p>
                   <div className="flex flex-col gap-4">
                     <span className="text-3xl font-semibold text-color">
                       ${product.price ? product.price * quantity : 0}

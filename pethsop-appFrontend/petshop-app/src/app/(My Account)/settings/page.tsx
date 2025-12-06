@@ -74,10 +74,10 @@ const Settings = () => {
       <Navbar />
       <Sidebar />
 
-      <div className="ml-40 bg-primary h-full flex items-center justify-center">
-        <div className="w-2/3 bg-white h-2/3 rounded-2xl p-10 flex gap-6">
+      <div className="md:ml-24 lg:ml-40 bg-primary h-auto md:h-197 flex items-center justify-center p-2">
+        <div className="w-full md:w-2/3 bg-white md:h-2/3 rounded-2xl p-10 flex flex-col md:flex md:flex-row gap-6">
           {/* Password Section */}
-          <div className="w-1/2">
+          <div className="w-full md:w-1/2">
             <Typography variant="h5" className="flex items-center justify-center mb-4 text-color">Password</Typography>
             <div className="mt-12">
             <Box display="flex" flexDirection="column" gap={3}>
@@ -161,10 +161,10 @@ const Settings = () => {
             </div>
           </div>
 
-          <div className="w-px bg-gray-300" />
+          <div className="w-px bg-gray-300"/>
 
           {/* Notifications Section */}
-          <div className="w-1/2">
+          <div className="w-full md:w-1/2">
             <Typography variant="h5" className="flex items-center justify-center mb-4 text-color">Notifications</Typography>
             <div className="mt-20">
             <Box display="flex" flexDirection="column" gap={6}>

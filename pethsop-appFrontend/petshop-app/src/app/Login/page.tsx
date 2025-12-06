@@ -55,11 +55,11 @@ const Login = () => {
     
 
   return (
-    <div className="bg-primary w-full h-screen relative">
+    <div className="bg-primary w-full min-h-screen">
       <Navbar/>
       <Sidebar/>
-      <div className="w-full min-h-screen flex items-center justify-center">
-    <div className="bg-white w-full sm:w-full md:w-1/2 lg:w-1/2 xl:w-1/4 p-12 shadow-2xl rounded-2xl xl:absolute xl:left-190 xl:top-50">
+      <div className="w-full h-full flex items-center justify-center p-4">
+    <div className="bg-white w-full sm:w-3/4 md:w-2/4 lg:w-3/4 xl:w-1/4 p-6 shadow-2xl rounded-2xl">
     <Box 
       display="flex"
       flexDirection="column"

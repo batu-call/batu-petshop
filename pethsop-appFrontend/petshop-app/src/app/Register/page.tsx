@@ -94,8 +94,8 @@ const Register = () => {
       <Navbar />
       <Sidebar />
 
-      <div className="flex items-center justify-center p-4 md:p-8 mt-12 ml-40">
-        <div className="bg-white w-full sm:w-3/4 md:w-2/4 lg:w-1/3 xl:w-1/4 p-6 sm:p-10 shadow-2xl rounded-2xl">
+      <div className="md:ml-24 lg:ml-40 flex items-center justify-center p-4 md:p-8 mt-12">
+        <div className="bg-white w-full sm:w-3/4 md:w-3/4 lg:w-1/2 xl:w-2/5 p-6 sm:p-10 shadow-2xl rounded-2xl">
           <Box
             display="flex"
             flexDirection="column"

@@ -89,8 +89,8 @@ const Deals = () => {
   };
 
   return (
-    <div className="ml-40 flex-1 min-h-screen bg-white p-6">
-      <div className="text-color font-bold text-jost flex items-center justify-center">
+    <div className="md:ml-24 lg:ml-40 flex-1 h-auto bg-white p-6">
+      <div className="text-color font-bold text-jost flex items-center justify-center lg:mt-14">
         <ScrollFloat
           animationDuration={1}
           ease="back.inOut(2)"
@@ -107,7 +107,7 @@ const Deals = () => {
         style={
           {
             "--swiper-theme-color": "#393E46",
-            "--swiper-navigation-size": "30px",
+            "--swiper-navigation-size": "25px",
           } as React.CSSProperties
         }
         spaceBetween={20}
@@ -117,18 +117,19 @@ const Deals = () => {
         autoplay={{ delay: 2500, disableOnInteraction: false }}
         navigation
         breakpoints={{
-          320: { slidesPerView: 1 },
-          640: { slidesPerView: 2 },
-          768: { slidesPerView: 3 },
-          1024: { slidesPerView: 4 },
-          1280: { slidesPerView: 5 },
+           0: { slidesPerView: 1, spaceBetween: 10 }, 
+           480: { slidesPerView: 2, spaceBetween: 15 }, 
+           768: { slidesPerView: 2, spaceBetween: 18 }, 
+           1024: { slidesPerView: 3, spaceBetween: 20 }, 
+           1440: { slidesPerView: 4, spaceBetween: 20 }, 
+           1441: { slidesPerView: 5, spaceBetween: 20 },   
         }}
-        className="py-8 mt-14 custom-swiper"
+        className="py-8 mt-2 lg:mt-14 custom-swiper"
       >
         {product.map((p) => (
           <SwiperSlide key={p._id}>
-            <Link href={`/Products/${p.slug}`}>
-              <div className="bg-primary h-120 w-80 rounded-2xl shadow-md hover:shadow-xl grid overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] my-5 relative p-4 cursor-pointer">
+            <Link href={`/Products/${p.slug}`} className="flex items-center justify-center w-full">
+              <div className="bg-primary rounded-2xl shadow-md hover:shadow-xl grid overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] my-5 relative p-4 cursor-pointer">
                 {/* IMAGE */}
                 <div className="flex items-center justify-center p-4">
                   {p.image && p.image.length > 0 ? (
@@ -137,7 +138,7 @@ const Deals = () => {
                       alt={p.product_name}
                       width={400}
                       height={400}
-                      className="rounded-full w-60 h-60 object-cover border-4 border-white shadow-2xl"
+                      className="rounded-full w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 xl:w-60 xl:h-60 object-cover border-4 border-white shadow-2xl"
                     />
                   ) : (
                     <p className="text-white text-sm">No image!</p>
@@ -146,21 +147,21 @@ const Deals = () => {
 
                 {/* Product Name */}
                 <div className="px-4 py-2 text-center">
-                  <h2 className="text-white text-lg truncate font-semibold">
+                  <h2 className="text-white text-sm sm:text-lg truncate font-semibold">
                     {p.product_name}
                   </h2>
                 </div>
 
                 {/* Description */}
                 <div className="px-4 py-2 h-[70px] overflow-hidden">
-                  <p className="text-sm text-color font-semibold line-clamp-3 leading-snug">
+                  <p className="text-xs sm:text-sm text-color font-semibold line-clamp-3 leading-snug">
                     {p.description}
                   </p>
                 </div>
 
                 {/* Price & Button */}
                 <div className="flex gap-2 justify-between items-center mt-auto">
-                  <h2 className="text-color text-2xl font-semibold ml-3">
+                  <h2 className="text-color text-sm md:text-md lg:text-lg xl:text-2xl font-semibold ml-3">
                     {p.price},00$
                   </h2>
                   <Button
@@ -169,12 +170,12 @@ const Deals = () => {
                       e.stopPropagation();
                       handlerAddToCart(p);
                     }}
-                    className="bg-secondary text-color cursor-pointer hover:bg-white text-base m-2"
+                    className="bg-secondary text-color cursor-pointer hover:bg-white text-xs sm:text-base m-2"
                   >
                     Add To Cart
                   </Button>
                 </div>
-              </div>
+                </div>
             </Link>
           </SwiperSlide>
         ))}

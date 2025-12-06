@@ -7,6 +7,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Menu, X, ChevronDown } from "lucide-react";
+import MobileMenu from "../components/mobile";
 
 const Navbar = () => {
   const router = useRouter();
@@ -41,6 +42,9 @@ const Navbar = () => {
     <div className="w-full h-30 bg-primary shadow-md relative">
       {/* Top Navbar */}
       <div>
+        <div className="absolute top-3 md:hidden">
+          <MobileMenu anchor="left" />
+        </div>
         {/* Logo */}
         <Link href="/main" className="fixed">
           <Image
@@ -48,13 +52,13 @@ const Navbar = () => {
             alt="main-icon"
             width={500}
             height={500}
-            className="flex justify-center items-center w-40 h-40"
+            className="hidden md:flex justify-center items-center w-40 h-40"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </Link>
 
         {/* Me */}
-        <h2 className="ml-40 absolute top-0 color-white opacity-20">
+        <h2 className="ml-40 absolute top-0 color-white opacity-20 hidden md:flex">
           This website is a portfolio project created for demonstration purposes
           only. All products shown are fictitious and not for sale. Designed and
           developed by Batuhan Callioglu.
@@ -62,13 +66,17 @@ const Navbar = () => {
 
         {/* Hamburger (Mobile) */}
         <div
-          className="sm:hidden cursor-pointer"
+          className="sm:hidden cursor-pointer ml-30"
           onClick={() => setMenuOpen(!menuOpen)}
         >
           {menuOpen ? (
-            <X size={30} className="text-white" />
+            <div className="flex">
+              <span className="flex">Admin Panel <ChevronDown/> </span>
+            </div>
           ) : (
-            <Menu size={30} className="text-white" />
+            <div className="flex">
+              <span className="flex">Admin Panel <ChevronDown/> </span>
+            </div>
           )}
         </div>
 

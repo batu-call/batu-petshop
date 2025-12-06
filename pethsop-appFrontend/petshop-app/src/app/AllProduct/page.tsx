@@ -94,9 +94,9 @@ const AllProduct = () => {
     <>
       <Navbar />
       <Sidebar/>
-      <div className="ml-40 flex-1 min-h-screen bg-white p-6">
+      <div className="md:ml-25 lg:ml-40 flex-1 min-h-screen bg-white p-6">
         {loading ?  (
-          <div className="ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
+          <div className="md:ml-25 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
             <CircularText
               text="LOADING"
               spinDuration={20}
@@ -106,9 +106,9 @@ const AllProduct = () => {
         )
         :
          (
-                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-6 cursor-pointer'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 cursor-pointer'>
         {product.map((p) => (
-            <Link key={p._id} href={`/Products/${p.slug}`} className='bg-primary w-80 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden justify-between hover:-translate-y-2 relative'>
+            <Link key={p._id} href={`/Products/${p.slug}`} className='bg-primary w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden justify-between hover:-translate-y-2 relative'>
             <div className='flex items-center justify-center p-4'>
           {p.image && p.image.length > 0 ? (
       <Image
@@ -116,7 +116,7 @@ const AllProduct = () => {
         alt={p.product_name}
         width={400}
         height={400}
-        className='rounded-full w-60 h-60 object-cover border-4 border-white shadow-2xl'
+        className='rounded-full w-28 h-28 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-48 lg:h-48 xl:w-56 xl:h-56 object-cover border-4 border-white shadow-2xl'
       />
     ) : (
       <p className="text-white text-sm">No image!</p>
@@ -125,21 +125,21 @@ const AllProduct = () => {
    
 
            <div className='px-4 py-2 text-center'> 
-          <h2 className='text-white text-lg truncate font-semibold'>{p.product_name}</h2>
+          <h2 className='text-white text-sm sm:text-base md:text-lg truncate font-semibold break-words whitespace-normal'>{p.product_name}</h2>
            </div>
 
-            <h2 className="text-sm text-color px-4 py-2 line-clamp-5 font-semibold">{p.description}</h2>
+            <h2 className="text-sm sm:text-base text-color px-4 py-2 line-clamp-5 font-semibold break-words whitespace-normal">{p.description}</h2>
 
 
             <div className='flex gap-2 justify-between items-center'>
-            <h2 className='text-color text-2xl m-4 ml-3 font-semibold'>{p.price},00$</h2>
+            <h2 className='text-color text-sm sm:text-base xl:text-lg m-4 ml-3 font-semibold'>{p.price},00$</h2>
             <Button 
             onClick={(e) =>{
               e.preventDefault();
               e.stopPropagation();
               handlerAddToCart(p);
             }}
-            className='bg-secondary text-color cursor-pointer hover:bg-white text-base m-4'>Add To Cart
+            className=' bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base m-4'>Add To Cart
             </Button>
             </div>
             </Link>

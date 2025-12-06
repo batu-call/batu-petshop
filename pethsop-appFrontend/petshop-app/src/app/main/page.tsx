@@ -26,7 +26,7 @@ const Main = () => {
       <UserGuard requireAuth={false}>
     <Navbar />
     <Sidebar/>
-    <div className='ml-0 md:ml-30 lg:ml-40 flex gap-120 xl:h-[800px] '>
+    <div className='ml-0 md:ml-24 lg:ml-40 flex gap-120 xl:h-[800px]'>
   <div className="w-full relative aspect-[16/7] min-h-[200px]">
      <Image
     src="/Yellow Cute Pet Shop Banner (4).png"
@@ -37,7 +37,7 @@ const Main = () => {
   /> 
 
   {/* main text */}
-  <div className='absolute right-4 lg:absolute lg:top-20 lg:right-80'>
+  <div className='absolute right-1 md:absolute md:right-1 lg:absolute lg:top-2 lg:right-30 xl:absolute xl:top-20 xl:right-80'>
 <div>
   <BlurText
   text="Pet Shop"
@@ -45,7 +45,7 @@ const Main = () => {
   animateBy="words"
   direction="top"
   
-  className="mb-2 lg:mb-8 text-color text-jost text-4xl sm:text-6xl lg:text-7xl flex items-center justify-center font-bold" 
+  className="mb-2 xl:mb-8 text-color text-jost text-2xl sm:text-6xl xl:text-7xl flex items-center justify-center font-bold" 
 />
 
   <BlurText
@@ -53,13 +53,13 @@ const Main = () => {
   delay={50}
   animateBy="words"
   direction="top"
-  className="mb-8 text-color text-jost text-[10px] lg:text-xl flex items-center justify-center font-bold w-60 sm:w-70 lg:w-120" 
+  className="mb-8 text-color text-jost text-[8px] md:text-sm xl:text-xl flex items-center justify-center font-bold w-60 sm:w-70 xl:w-120" 
 />
 </div>
 </div>
 
-<div className='lg:absolute lg:top-95 lg:right-100 absolute top-19 right-10'> 
-<div className='flex flex-col gap- lg:gap-20 mt-5 lg:text-xl text-[5px] text-color font-bold py-2 px-3'>
+<div className='absolute top-19 right-2 md:absolute md:top-32 md:right-8 lg:absolute lg:top-44 lg:right-42 xl:absolute xl:top-95 xl:right-100'> 
+<div className='flex flex-col gap-3 md:gap-4 lg:gap-8 xl:gap-20 mt-5 text-[7px] md:text-xs xl:text-xl text-color font-bold py-2 px-3'>
   <h2>Pet wellness and grooming</h2>
   <h2>Best affordable pet accessories</h2>
   <h2>Best quality organic pet food</h2>
@@ -67,21 +67,21 @@ const Main = () => {
   </div>
 
 {/* Button */}
-  <div className='flex flex-col gap-20 px-2 py-3 mt-8 absolute right-15 bottom-0 lg:absolute lg:bottom-3 lg:right-50'>
+  <div className='flex flex-col gap-20 px-2 py-3 mt-8 absolute right-5 bottom-0 lg:absolute lg:top-74 lg:right-5 xl:absolute xl:top-165 xl:right-50'>
     <ul className='flex gap-6'>
       <li>
         <Link href={"/AllProduct"}><Button
       className={sniglet.className}
       sx={{
-       width: {xs: "1rem", sm: "16rem", md: "20rem" },
-        height: {xs: "1rem", sm: "2rem", md: "3.5rem" },
+       width: {xs: "2rem", sm: "16rem", md: "12rem",lg:"20rem" },
+        height: {xs: "1.5rem", sm: "2rem", md: "2rem",lg:"3.5rem" },
         borderRadius: "1.5rem",
         bgcolor: "white",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         cursor: "pointer",
-        fontSize: {xs: "0.3rem", sm:"1rem" , md:"1.75rem"},   
+        fontSize: {xs: "0.5rem", sm:"1rem" , md:"1rem" ,lg:"1.75rem"},   
         fontWeight:800,
         color:"#393E46",
         transition: "all 0.3s ease-in-out",
@@ -92,18 +92,18 @@ const Main = () => {
     >
           Shop Now
     </Button></Link></li>
-      <li><Link href={"/Contact"}><Button
+      <li className='hidden lg:block'><Link href={"/Contact"}><Button
       className={sniglet.className}
       sx={{
-        width: {xs: "1rem", sm: "16rem", md: "20rem" },
-        height: {xs: "1rem", sm: "2rem", md: "3.5rem" },
+        width: {xs: "1rem", sm: "16rem", md: "12rem",lg:"20rem" },
+        height: {xs: "1rem", sm: "2rem", md: "2rem" ,lg:"3.5rem"},
         borderRadius: "1.5rem",
         bgcolor: "white",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         cursor: "pointer",
-        fontSize: {xs: "0.3rem", sm:"1rem" , md:"1.75rem"},    
+        fontSize: {xs: "0.5rem", sm:"1rem" , md:"1rem",lg:"1.75rem"},    
         fontWeight:800,
         color:"#393E46",
         transition: "all 0.3s ease-in-out",
