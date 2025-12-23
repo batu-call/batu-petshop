@@ -209,7 +209,7 @@ const NewArrivals = () => {
                   </h2>
                 </div>
 
-                <div className="px-4 py-2 h-[70px] overflow-hidden">
+                <div className="px-4 py-2 h-17.5 overflow-hidden">
                   <p className="text-xs sm:text-sm text-color font-semibold line-clamp-3 leading-snug">
                     {p.description}
                   </p>

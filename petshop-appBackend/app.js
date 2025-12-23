@@ -19,26 +19,25 @@ const app = express();
 config({ path: "./Config/config.env" });
 
 // Middleware
-const allowedOrigins = [process.env.FRONTEND_URL, process.env.ADMIN_URL];
+const allowedOrigins = [
+  process.env.FRONTEND_URL, 
+  process.env.ADMIN_URL].filter(Boolean);
+
 
 const corsOptions = {
-  origin: function (origin, callback) {
+  origin: function(origin, callback) {
+    console.log("Request origin:", origin); // log ile kontrol
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.error("Blocked by CORS:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
   methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-    "Accept",
-  ],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
 };
-
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
