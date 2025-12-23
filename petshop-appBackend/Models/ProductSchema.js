@@ -20,6 +20,11 @@ export const ProductSchema = new mongoose.Schema(
       required: true,
     },
 
+    salePrice: {
+      type: Number,
+      default: null,
+    },
+
     category: {
       type: String,
       required: true,
@@ -75,4 +80,5 @@ ProductSchema.pre("save", function (next) {
   next();
 });
 
-export const Product =  mongoose.models.Product || mongoose.model("Product", ProductSchema);
+export const Product =
+  mongoose.models.Product || mongoose.model("Product", ProductSchema);

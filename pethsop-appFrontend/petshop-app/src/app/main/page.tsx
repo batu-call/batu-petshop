@@ -26,10 +26,10 @@ const Main = () => {
       <UserGuard requireAuth={false}>
     <Navbar />
     <Sidebar/>
-    <div className='ml-0 md:ml-24 lg:ml-40 flex gap-120 xl:h-[800px]'>
+    <div className='ml-0 md:ml-24 lg:ml-40 flex gap-120 xl:h-[848px]'>
   <div className="w-full relative aspect-[16/7] min-h-[200px]">
      <Image
-    src="/Yellow Cute Pet Shop Banner (4).png"
+    src="/Yellow Cute Pet Shop Banner (5).png"
     alt="main-banner-image"
     fill 
     priority
@@ -58,7 +58,7 @@ const Main = () => {
 </div>
 </div>
 
-<div className='absolute top-19 right-2 md:absolute md:top-32 md:right-8 lg:absolute lg:top-44 lg:right-42 xl:absolute xl:top-95 xl:right-100'> 
+<div className='absolute top-19 right-2 md:absolute md:top-32 md:right-8 lg:absolute lg:top-44 lg:right-42 xl:absolute xl:top-103 xl:right-100'> 
 <div className='flex flex-col gap-3 md:gap-4 lg:gap-8 xl:gap-20 mt-5 text-[7px] md:text-xs xl:text-xl text-color font-bold py-2 px-3'>
   <h2>Pet wellness and grooming</h2>
   <h2>Best affordable pet accessories</h2>
@@ -67,7 +67,7 @@ const Main = () => {
   </div>
 
 {/* Button */}
-  <div className='flex flex-col gap-20 px-2 py-3 mt-8 absolute right-5 bottom-0 lg:absolute lg:top-74 lg:right-5 xl:absolute xl:top-165 xl:right-50'>
+  <div className='flex flex-col gap-20 px-2 py-3 mt-8 absolute right-5 bottom-0 lg:absolute lg:top-74 lg:right-5 xl:absolute xl:top-175 xl:right-40'>
     <ul className='flex gap-6'>
       <li>
         <Link href={"/AllProduct"}><Button

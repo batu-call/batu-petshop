@@ -104,13 +104,65 @@ export const deleteProduct = catchAsyncError(async (req, res, next) => {
 
 export const getAllProduct = catchAsyncError(async (req, res, next) => {
   const { category } = req.query;
+
+  let filter = { isActive: true };
+
+  if (category) {
+    filter.category = category;
+  }
+
+  const products = await Product.find(filter).sort({ createdAt: -1 });
+
+  const updatedProducts = products.map((p) => ({
+    ...p._doc,
+    slug: p.slug || slugify(p.product_name, { lower: true, strict: true }),
+  }));
+
+  res.status(200).json({
+    success: true,
+    products: updatedProducts,
+  });
+});
+
+export const getSimilarProducts = catchAsyncError(async (req, res, next) => {
+  const { productId } = req.params;
+  const limit = Number(req.query.limit) || 7;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    return next(new ErrorHandler("Product not found", 404));
+  }
+
+  const products = await Product.find({
+  _id: { $ne: product._id },
+  category: product.category,
+  isActive: true,
+})
+  .limit(limit)
+  .sort({ createdAt: -1 });
+
+  const updatedProducts = products.map((p) => ({
+    ...p._doc,
+    slug: p.slug || slugify(p.product_name, { lower: true, strict: true }),
+  }));
+
+  res.status(200).json({
+    success: true,
+    products: updatedProducts,
+  });
+});
+
+export const getAdminAllProduct = catchAsyncError(async (req, res, next) => {
+  const { category } = req.query;
+
   let filter = {};
 
   if (category) {
     filter.category = category;
   }
 
-  const products = await Product.find(filter).sort({createdAt : -1});
+  const products = await Product.find(filter).sort({ createdAt: -1 });
 
   const updatedProducts = products.map((p) => ({
     ...p._doc,
@@ -124,7 +176,10 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
 });
 
 export const getProduct = catchAsyncError(async (req, res, next) => {
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findOne({
+    _id: req.params.id,
+    isActive: true,
+  });
 
   if (!product) {
     return next(new ErrorHandler("Product Not Found!"), 404);
@@ -137,7 +192,28 @@ export const getProduct = catchAsyncError(async (req, res, next) => {
 });
 
 export const getLatestProduct = catchAsyncError(async (req, res, next) => {
-  const products = await Product.find().sort({ createdAt: -1 }).limit(10);
+  const products = await Product.find({ isActive: true })
+    .sort({ createdAt: -1 })
+    .limit(10);
+
+  res.status(200).json({
+    success: true,
+    products,
+  });
+});
+
+export const getHotDeals = catchAsyncError(async (req, res, next) => {
+  const limit = Number(req.query.limit) || 10;
+
+  const products = await Product.find({
+    isActive: true,
+    $or: [
+      { isFeatured: true },
+      { salePrice: { $ne: null } },
+    ],
+  })
+    .sort({ updatedAt: -1 })
+    .limit(limit);
 
   res.status(200).json({
     success: true,
@@ -146,6 +222,21 @@ export const getLatestProduct = catchAsyncError(async (req, res, next) => {
 });
 
 export const getProductBySlug = catchAsyncError(async (req, res, next) => {
+  const { slug } = req.params;
+
+  const product = await Product.findOne({ slug, isActive: true });
+
+  if (!product) {
+    return next(new ErrorHandler("Product Not Found!", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    product,
+  });
+});
+
+export const getAdminProductBySlug = catchAsyncError(async (req, res, next) => {
   const { slug } = req.params;
 
   const product = await Product.findOne({ slug });
@@ -163,7 +254,16 @@ export const getProductBySlug = catchAsyncError(async (req, res, next) => {
 export const updateProductController = async (req, res) => {
   try {
     const { id } = req.params;
-    const { product_name, description, price, productFeatures , stock, isActive, isFeatured} = req.body;
+    const {
+      product_name,
+      description,
+      price,
+      salePrice,
+      productFeatures,
+      stock,
+      isActive,
+      isFeatured,
+    } = req.body;
 
     const product = await Product.findById(id);
     if (!product) {
@@ -173,16 +273,28 @@ export const updateProductController = async (req, res) => {
       });
     }
 
-    product.product_name = product_name || product.product_name;
-    product.description = description || product.description;
+    if (salePrice !== null && salePrice !== undefined) {
+      if (Number(salePrice) >= Number(price)) {
+        return res.status(400).json({
+          success: false,
+          message: "Sale price must be lower than price",
+        });
+      }
+    }
+
+    product.product_name = product_name ?? product.product_name;
+    product.description = description ?? product.description;
     product.price = price ?? product.price;
-    product.productFeatures = productFeatures || product.productFeatures;
+    product.salePrice =
+      salePrice === null || salePrice === undefined ? null : Number(salePrice);
+    product.productFeatures = productFeatures ?? product.productFeatures;
     product.stock = stock ?? product.stock;
     product.isActive = isActive ?? product.isActive;
     product.isFeatured = isFeatured ?? product.isFeatured;
 
     if (product_name) {
-      product.slug = slugify(product_name, { lower: true });
+      const baseSlug = slugify(product_name, { lower: true, strict: true });
+      product.slug = `${baseSlug}-${nanoid(6)}`;
     }
 
     await product.save();
@@ -201,24 +313,24 @@ export const updateProductController = async (req, res) => {
   }
 };
 
+export const searchProducts = catchAsyncError(async (req, res, next) => {
+  const { query } = req.query;
 
-export const searchProducts = catchAsyncError(async(req,res,next) => {
-    const {query} = req.query;
-    
-    if (!query || query.trim() === "") {
-  return res.status(400).json({ message: "Search query required" });
-}
+  if (!query || query.trim() === "") {
+    return res.status(400).json({ message: "Search query required" });
+  }
 
-    try {
-      const products  = await Product.find({
-        $or:[
-          {name: {$regex : query , $options : "i"}},
-          {description : {$regex : query , $options : "i"}}
-        ]
-      });
-      res.status(200).json(products)
-    } catch (error) {
-      console.error("Search error:", error);
+  try {
+    const products = await Product.find({
+      isActive: true,
+      $or: [
+        { product_name: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+      ],
+    });
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Search error:", error);
     res.status(500).json({ message: "Search failed" });
-    }
-})
+  }
+});

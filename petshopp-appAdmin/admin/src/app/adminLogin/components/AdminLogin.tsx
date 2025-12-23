@@ -7,12 +7,14 @@ import Typography from "@mui/material/Typography";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useAdminAuth } from "@/app/Context/AdminAuthContext";
 
 
 
 const AdminLogin = () => {
     const AdminColor = "#B1CBBB";
     const router = useRouter();
+    const { setAdmin } = useAdminAuth();
 
     const [email,setEmail] = useState("")
     const [password,setPassword] = useState("")
@@ -26,13 +28,14 @@ const AdminLogin = () => {
             {withCredentials:true}
           )
             if(response.data.success){
-              toast.success(response.data.message);
+              setAdmin(response.data.admin);
+              toast.success(response.data.message || "Login successful!");
               router.push("/main")
             }
 
         } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(error.response.data.message);
+        toast.error("Login failed! Please try again.");
       } else if (error instanceof Error) {
         toast.error(error.message);
       } else {

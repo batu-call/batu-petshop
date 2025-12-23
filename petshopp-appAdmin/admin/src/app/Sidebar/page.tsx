@@ -13,7 +13,7 @@ const Sidebar = () => {
 
   return (
     <div>
-      <div className="w-40 h-screen bg-white fixed">
+      <div className="w-40 h-screen bg-white hidden md:block fixed">
         {/* Cat */}
         <Link href={"/Cat"}>
           <div className={`group inline-block p-2 items-center mt-24 ml-3 rounded-2xl w-35 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${pathname === "/Cat" ? "bg-[#DDEEDD]" : "bg-primary"}`}>

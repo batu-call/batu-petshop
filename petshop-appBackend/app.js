@@ -10,6 +10,9 @@ import orderRouter from './Router/orderRouter.js';
 import adminRouter from './Router/adminRouter.js';
 import analyticsRouter from './Router/analyticsRouter.js';
 import reviewsRouter from './Router/reviewsRouter.js';
+import favoriteRouter from './Router/favoriteRouter.js'
+import couponRouter from './Router/couponRoutes.js'
+
 
 const app = express();
 
@@ -53,6 +56,8 @@ app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/order", orderRouter);
 app.use("/api/v1/analytics", analyticsRouter);
 app.use("/api/v1/reviews", reviewsRouter);
+app.use("/api/v1/favorite", favoriteRouter);
+app.use("/api/v1/coupon", couponRouter);
 
 
 export default app;

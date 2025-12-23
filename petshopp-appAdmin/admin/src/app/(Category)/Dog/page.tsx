@@ -60,7 +60,7 @@ const Dog = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/v1/product/products?category=Dog",
+          "http://localhost:5000/api/v1/product/admin/products?category=Dog",
           { withCredentials: true }
         );
         if (response.data.success) {

@@ -31,6 +31,16 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Product not found!", 404));
     }
 
+    
+    if (product.stock < item.quantity) {
+      return next(
+        new ErrorHandler(
+          `${product.product_name} There is not enough stock for!`,
+          400
+        )
+      );
+    }
+
     orderItems.push({
       product: product._id,
       name: product.product_name,
@@ -47,6 +57,19 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     totalAmount,
     status: "pending",
   });
+
+  for(const item of items) {
+    await Product.findByIdAndUpdate(
+      item.product,
+      {
+        $inc: {
+          stock: -item.quantity,
+          sold: item.quantity
+        }
+      },
+      {new:true}
+    )
+  }
 
   res.status(201).json({
     success: true,

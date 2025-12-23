@@ -1,5 +1,5 @@
 import express from 'express'
-import { AdminLogout, deleteUser, getAdminDetails, getAllUser, getUserDetails, getUserMe, Login, Logout, newAdmin, UserRegister, updateUser } from '../Controller/userController.js';
+import { AdminLogout, deleteUser, getAdminDetails, getAllUser, getUserDetails, getUserMe, Login, Logout, newAdmin, UserRegister, updateUser, updatePassword, resetPassword, forgotPassword } from '../Controller/userController.js';
 import { isAdminAuthenticated, isUserAuthenticated } from '../Middlewares/Auth.js';
 import upload from "../Config/multer.js"
 
@@ -20,6 +20,11 @@ router.get("/users",isAdminAuthenticated,getAllUser);
 router.get("/users/:id",isAdminAuthenticated,getUserDetails);
 router.delete('/:id', isAdminAuthenticated, deleteUser);
 router.put("/update", isUserAuthenticated, upload.single("avatar"), updateUser);
+router.put("/update-password", isUserAuthenticated, updatePassword);
+
+
+router.post("/forgot-password", forgotPassword);
+router.put("/reset-password/:token", resetPassword);
 
 
 

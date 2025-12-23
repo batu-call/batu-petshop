@@ -11,6 +11,7 @@ import mongoose from 'mongoose'
             ref:"Product",
             required:true
         },
+        helpful: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
         comment : {
             type: String,
             required:true

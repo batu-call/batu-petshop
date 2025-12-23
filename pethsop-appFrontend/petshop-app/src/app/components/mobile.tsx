@@ -23,6 +23,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import LoginIcon from "@mui/icons-material/Login";
 import HomeIcon from "@mui/icons-material/Home";
 import ContactMailIcon from "@mui/icons-material/ContactMail";
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
 type Anchor = "left" | "right";
 
@@ -73,9 +74,10 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
   const accountItems: MenuItem[] = isAuthenticated
     ? [
         { text: "Profile", href: "/my-profile", icon: <AccountCircleIcon sx={{ color: "#A8D1B5" }} /> },
-        { text: "Settings", href: "/settings", icon: <SettingsIcon sx={{ color: "#A8D1B5" }} /> },
+        { text: "Favorite", href: "/favorite", icon: <FavoriteBorderIcon sx={{ color: "#A8D1B5" }} /> },
         { text: "Orders", href: "/orders", icon: <ReceiptIcon sx={{ color: "#A8D1B5" }} />, },
         { text: "Billing", href: "/billing", icon: <CreditCardIcon sx={{ color: "#A8D1B5" }} /> },
+        { text: "Settings", href: "/settings", icon: <SettingsIcon sx={{ color: "#A8D1B5" }} /> },
       ]
     : [];
 

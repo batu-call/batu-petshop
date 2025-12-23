@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import MobileMenu from "../components/mobile";
 
 const Navbar = () => {
@@ -84,7 +84,7 @@ const Navbar = () => {
         <div className="hidden sm:flex md:flex gap-8 justify-center mb-12 mr-4 p-2 absolute  top-10 right-15">
           {/* Products */}
           <div className="relative group">
-            <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-1">
+            <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-1 transition duration-300 ease-in-out hover:scale-105">
               Products <ChevronDown size={16} />
             </button>
             <div className="absolute hidden group-hover:flex flex-col w-48 bg-white shadow-lg rounded-xl z-10">
@@ -111,7 +111,7 @@ const Navbar = () => {
 
           {/* Users */}
           <div className="relative group">
-            <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-1">
+            <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-1 transition duration-300 ease-in-out hover:scale-105">
               Users <ChevronDown size={16} />
             </button>
             <div className="absolute hidden group-hover:flex flex-col w-48 bg-white shadow-lg rounded-xl z-10">
@@ -144,7 +144,7 @@ const Navbar = () => {
 
           {/* Orders */}
           <div className="relative group">
-            <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-1">
+            <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-1 transition duration-300 ease-in-out hover:scale-105">
               Orders <ChevronDown size={16} />
             </button>
             <div className="absolute hidden group-hover:flex flex-col w-48 bg-white shadow-lg rounded-xl z-10">
@@ -165,6 +165,12 @@ const Navbar = () => {
                 className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
               >
                 Completed Orders
+              </Link>
+              <Link
+                href="/AllCoupon"
+                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
+              >
+                Discount Code
               </Link>
               <Link
                 href="/OrderStats"

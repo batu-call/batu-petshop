@@ -21,7 +21,7 @@ type Features = {
 type ProductFormData = {
   product_name: string;
   description: string;
-  price: string;
+  price: string; 
   category: string;
   productFeatures: Features[];
   stock: number;

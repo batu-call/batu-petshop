@@ -10,6 +10,10 @@ import CircularText from "@/components/CircularText";
 import { AuthContext } from "@/app/context/authContext";
 import Navbar from "@/app/Navbar/page";
 import Sidebar from "@/app/Sidebar/page";
+import { Heart } from "lucide-react";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import { useCart } from "@/app/context/cartContext";
+import { useFavorite } from "@/app/context/favoriteContext";
 
 type ProductImage = {
   url: string;
@@ -31,6 +35,9 @@ const Bird = () => {
   const [product, setProduct] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, isAuthenticated } = useContext(AuthContext);
+  const { favorites, addFavorite, removeFavorite, fetchFavorites } =
+    useFavorite();
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -59,28 +66,36 @@ const Bird = () => {
   }, []);
 
   const handlerAddToCart = async (product: Product) => {
-    if (user || isAuthenticated) {
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`,
-          { productId: product._id, quantity: 1 },
-          { withCredentials: true }
-        );
-        if (response.data.success) {
-          toast.success(response.data.message || "Added to cart!");
-          return;
-        }
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error) && error.response) {
-          toast.error(error.response.data.message);
-        } else {
-          toast.error("Something went wrong!");
-        }
-      }
-    } else {
-      router.push("/Login");
+    if (!user && !isAuthenticated) return router.push("/Login");
+
+    try {
+      await addToCart(product._id);
+    } catch {
+      toast.error("Something went wrong!");
     }
   };
+
+  useEffect(() => {
+    fetchFavorites();
+  }, [fetchFavorites]);
+
+  const handleFavorite = async (productId: string) => {
+    if (!isAuthenticated) {
+      router.push("/Login");
+      return;
+    }
+
+    const isFav = favorites.some((f) => f._id === productId);
+
+    if (isFav) {
+      await removeFavorite(productId);
+    } else {
+      await addFavorite(productId);
+    }
+  };
+
+  const isFavorite = (productId: string) =>
+    favorites.some((f) => f._id === productId);
 
   return (
     <>
@@ -103,6 +118,24 @@ const Bird = () => {
                 href={`/Products/${p.slug}`}
                 className="bg-primary w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative"
               >
+                {/* favorite */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="p-2 rounded-full hover:bg-[#D6EED6] absolute top-0 right-0 cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleFavorite(p._id);
+                  }}
+                >
+                  {isFavorite(p._id) ? (
+                    <FavoriteIcon className="text-gray-400 w-3 h-3" />
+                  ) : (
+                    <Heart className="text-gray-400 w-5 h-5" />
+                  )}
+                </Button>
+                {/* Image */}
                 <div className="flex items-center justify-center p-4">
                   {p.image && p.image.length > 0 ? (
                     <Image

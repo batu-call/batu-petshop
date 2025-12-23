@@ -8,6 +8,7 @@ import Image from "next/image";
 import { TextField } from "@mui/material";
 import StripePay from "../StripePay";
 import { useRouter } from "next/navigation";
+import CircularText from "@/components/CircularText";
 
 type Items = {
   _id: string;
@@ -29,6 +30,7 @@ const Order = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
   const router = useRouter();
+  const [loading,setLoading] = useState(true)
 
   const subtotal = items.reduce(
     (acc, item) => acc + item.price * item.quantity,
@@ -40,6 +42,7 @@ const Order = () => {
   const itemlength = items.length;
 
   useEffect(() => {
+    setLoading(true)
     const fetchCart = async () => {
       try {
         const response = await axios.get(
@@ -57,6 +60,9 @@ const Order = () => {
         } else {
           toast.error("An unknown error occurred while fetching the cart.");
         }
+      }
+      finally {
+        setLoading(false);
       }
     };
     fetchCart();
@@ -149,13 +155,19 @@ const Order = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       <Sidebar />
-      {/* Ana İçerik Konteyneri: Responsive Marjin, Padding ve Flex Düzeni */}
-      <div className="ml-0 md:ml-[16rem] lg:ml-[20rem] p-4 lg:p-8 flex flex-col gap-6 lg:flex-row lg:gap-8 flex-1">
+       {loading ? (
+        <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
+          <CircularText
+            text="LOADING"
+            spinDuration={20}
+            className="text-white text-4xl"
+          />
+        </div>
+      ) : (
+      <div className="ml-0 md:ml-24 lg:ml-40 p-4 lg:p-8 flex flex-col gap-6 lg:flex-row lg:gap-8 flex-1">
         
-        {/* Sol Alan (Ürünler ve Özet): Mobil cihazlarda tam genişlik (w-full), büyük ekranlarda yarım (lg:w-1/2) */}
         <div className="w-full lg:w-1/2 flex flex-col gap-6">
           
-          {/* Ürün Listesi */}
           <div className="w-full h-[60vh] lg:h-[70vh] border border-[#A8D1B5] flex flex-col gap-2 p-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 rounded-lg shadow-md bg-white">
             <h2 className="text-xl font-bold text-color p-2 border-b">Order Items ({itemlength})</h2>
             {items.map((c) => (
@@ -163,7 +175,6 @@ const Order = () => {
                 key={c._id}
                 className="flex items-center border border-gray-100 rounded-lg p-2 transition duration-200 hover:bg-gray-50"
               >
-                {/* Ürün Resmi */}
                 <div className="w-[80px] h-[80px] relative flex-shrink-0">
                   <Image
                     src={c.image}
@@ -173,21 +184,18 @@ const Order = () => {
                   />
                 </div>
                 
-                {/* Ürün Adı */}
                 <div className="flex-1 min-w-0 px-2 sm:px-4">
                   <p className="text-sm sm:text-base text-color font-semibold truncate">
                     {c.name}
                   </p>
                 </div>
                 
-                {/* Miktar (Quantity) */}
                 <div className="w-16 flex justify-center items-center flex-shrink-0">
                   <p className="text-base sm:text-lg text-color2 font-extrabold">
                     x{c.quantity}
                   </p>
                 </div>
                 
-                {/* Toplam Fiyat */}
                 <div className="w-24 sm:w-32 flex justify-end items-center flex-shrink-0">
                   <p className="text-sm sm:text-base text-color font-bold">
                     ${(c.price * c.quantity).toFixed(2)}
@@ -200,7 +208,6 @@ const Order = () => {
             )}
           </div>
           
-          {/* Fiyat Özeti */}
           <div className="w-full border border-[#A8D1B5] p-4 rounded-lg shadow-md bg-white">
             <h2 className="text-xl font-bold text-color border-b pb-2 mb-4">Order Summary</h2>
             <div className="space-y-3">
@@ -232,18 +239,17 @@ const Order = () => {
           </div>
         </div>
         
-        {/* Sağ Alan (Adres ve Ödeme): Mobil cihazlarda tam genişlik (w-full), büyük ekranlarda yarım (lg:w-1/2) */}
+
         <div className="w-full lg:w-1/2 flex flex-col gap-6">
           
-          {/* Adres Formu */}
+
           <div className="w-full border border-[#A8D1B5] p-4 sm:p-6 rounded-lg shadow-md bg-white">
             <h2 className="text-color text-2xl font-bold mb-4 border-b pb-2">
               Address Information
             </h2>
-            
-            {/* Form Alanları */}
+
             <div className="flex flex-wrap -mx-2">
-              {/* Sol Sütun (Mobil: Tam, Tablet/Desktop: Yarım) */}
+
               <div className="flex flex-col gap-4 p-2 w-full sm:w-1/2">
                 <TextField
                   label="FullName"
@@ -254,7 +260,6 @@ const Order = () => {
                   variant="standard"
                   fullWidth
                   autoComplete="off"
-                  // MUI Stilleri
                   slotProps={{ inputLabel: { sx: { color: "#B1CBBB", "&.Mui-focused": { color: "#393E46", backgroundColor: "#B1CBBB", padding: 0.4, borderRadius: 1, }, }, }, }}
                   sx={{ "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB", }, }}
                 />
@@ -284,12 +289,11 @@ const Order = () => {
                 />
               </div>
               
-              {/* Sağ Sütun (Mobil: Tam, Tablet/Desktop: Yarım) */}
               <div className="flex flex-col gap-4 p-2 w-full sm:w-1/2">
                 <TextField
                   label="Phone Number"
                   name="Phone Number"
-                  type="tel" // type="tel" olarak düzeltildi
+                  type="tel" 
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   variant="standard"
@@ -328,7 +332,7 @@ const Order = () => {
             </div>
           </div>
           
-          {/* Ödeme Alanı */}
+
           <div className="w-full border border-[#A8D1B5] p-4 sm:p-6 rounded-lg shadow-md bg-white flex justify-center items-center">
             <StripePay
               totalAmount={totalAmount}
@@ -344,6 +348,7 @@ const Order = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

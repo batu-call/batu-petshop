@@ -50,7 +50,7 @@ export const addToCart = catchAsyncError(async (req, res, next) => {
 
   export const getCart = catchAsyncError(async(req,res,next) => {
     
-    let cart = await Cart.findOne({user: req.user._id}).populate("items.product");
+    let cart = await Cart.findOne({user: req.user._id}).populate("items.product", "product_name price image slug description");
 
     if(!cart) {
       cart = await Cart.create({user: req.user._id});
@@ -72,7 +72,7 @@ export const addToCart = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Cart Not Found!",404));
     }
 
-    cart.items = cart.items.filter(item => item._id.toString() !== productId);
+    cart.items = cart.items.filter(item => item.product.toString() !== productId);
 
     await cart.save();
 

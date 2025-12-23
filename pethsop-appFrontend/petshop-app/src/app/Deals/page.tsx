@@ -14,6 +14,9 @@ import Link from "next/link";
 import { AuthContext } from "../context/authContext";
 import { useRouter } from "next/navigation";
 import type { Swiper as SwiperType } from "swiper";
+import { Heart } from "lucide-react";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import { useCart } from "../context/cartContext";
 
 type ProductImage = {
   url: string;
@@ -36,12 +39,14 @@ const Deals = () => {
   const { user, isAuthenticated } = useContext(AuthContext);
   const [activeIndex, setActiveIndex] = useState(0);
   const swiperRef = useRef<SwiperType>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/hot-deals`,
           { withCredentials: true }
         );
         if (response.data.success) {
@@ -60,31 +65,66 @@ const Deals = () => {
     fetchProduct();
   }, []);
 
-  const handlerAddToCart = async (product: Product) => {
-    if (user || isAuthenticated) {
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`,
-          {
-            productId: product._id,
-            quantity: 1,
-          },
-          { withCredentials: true }
-        );
+  useEffect(() => {
+  if (!isAuthenticated) return; 
 
-        if (response.data.success) {
-          toast.success(response.data.message || "Added to cart!");
-          return;
-        }
-      } catch (error: unknown) {
+  const fetchFavorites = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/`,
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        const favProducts: Product[] = res.data.favorites;
+        setFavorites(favProducts.map((p) => p._id));
+      }
+    } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
           toast.error(error.response.data.message);
+        } else if (error instanceof Error) {
+          toast.error(error.message);
         } else {
           toast.error("Something went wrong!");
         }
       }
-    } else {
-      router.push("/Login");
+  };
+
+  fetchFavorites();
+}, [isAuthenticated]);
+
+   const handlerAddToCart = async (product: Product) => {
+  if (!user && !isAuthenticated) return router.push("/Login");
+
+  try {
+    await addToCart(product._id);
+  } catch {
+    toast.error("Something went wrong!");
+  }
+};
+
+  const handlerFavorite = async (productId: string) => {
+    if (!user && !isAuthenticated) return router.push("/Login");
+
+    try {
+      if (favorites.includes(productId)) {
+        await axios.delete(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/remove/${productId}`,
+          { withCredentials: true }
+        );
+        setFavorites((prev) => prev.filter((id) => id !== productId));
+        toast.success("Removed from favorites!");
+      } else {
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/add`,
+          { productId },
+          { withCredentials: true }
+        );
+        setFavorites((prev) => [...prev, productId]);
+        toast.success("Added to favorites!");
+      }
+    } catch {
+      toast.error("Favorite action failed!");
     }
   };
 
@@ -117,19 +157,37 @@ const Deals = () => {
         autoplay={{ delay: 2500, disableOnInteraction: false }}
         navigation
         breakpoints={{
-           0: { slidesPerView: 1, spaceBetween: 10 }, 
-           480: { slidesPerView: 2, spaceBetween: 15 }, 
-           768: { slidesPerView: 2, spaceBetween: 18 }, 
-           1024: { slidesPerView: 3, spaceBetween: 20 }, 
-           1440: { slidesPerView: 4, spaceBetween: 20 }, 
-           1441: { slidesPerView: 5, spaceBetween: 20 },   
+          0: { slidesPerView: 1, spaceBetween: 10 },
+          480: { slidesPerView: 2, spaceBetween: 15 },
+          768: { slidesPerView: 2, spaceBetween: 18 },
+          1024: { slidesPerView: 3, spaceBetween: 20 },
+          1440: { slidesPerView: 4, spaceBetween: 20 },
+          1441: { slidesPerView: 5, spaceBetween: 20 },
         }}
         className="py-8 mt-2 lg:mt-14 custom-swiper"
       >
         {product.map((p) => (
           <SwiperSlide key={p._id}>
-            <Link href={`/Products/${p.slug}`} className="flex items-center justify-center w-full">
+            <Link
+              href={`/Products/${p.slug}`}
+              className="flex items-center justify-center w-full"
+            >
               <div className="bg-primary rounded-2xl shadow-md hover:shadow-xl grid overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] my-5 relative p-4 cursor-pointer">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="p-2 rounded-full hover:bg-[#D6EED6] absolute top-0 right-0 cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlerFavorite(p._id);
+                  }}
+                >
+                  {favorites.includes(p._id) ? (
+                    <FavoriteIcon className="text-gray-400 w-3 h-3" />
+                  ) : (
+                    <Heart className="text-gray-400 w-5 h-5" />
+                  )}
+                </Button>
                 {/* IMAGE */}
                 <div className="flex items-center justify-center p-4">
                   {p.image && p.image.length > 0 ? (
@@ -175,7 +233,7 @@ const Deals = () => {
                     Add To Cart
                   </Button>
                 </div>
-                </div>
+              </div>
             </Link>
           </SwiperSlide>
         ))}

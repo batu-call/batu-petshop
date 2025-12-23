@@ -1,11 +1,12 @@
 import express from 'express'
-import { createCoupon, deleteCoupon, getCouponById, getCoupons, updateCoupon } from '../Controller/couponController.js';
+import { applyCoupon, createCoupon, deleteCoupon, getCouponById, getCoupons, updateCoupon } from '../Controller/couponController.js';
 
 
     const router = express.Router();
 
 
-router.post("/add",createCoupon)
+router.post("/",createCoupon)
+router.post("/apply", applyCoupon);
 router.get("/",getCoupons)
 router.get("/:id",getCouponById)
 router.put("/:id",updateCoupon)

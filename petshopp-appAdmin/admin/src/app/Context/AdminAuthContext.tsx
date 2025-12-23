@@ -25,17 +25,28 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
 
  
  
- useEffect(() => {
+useEffect(() => {
   const fetchAdmin = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/admin/me`,{
-        withCredentials: true,
-      });
-      if (response.data.success) 
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/admin/me`,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
         setAdmin(response.data.admin);
-      else setAdmin(null);
-    } catch (err) {
-    console.error("Fetch admin error:", err);
+      } else {
+        setAdmin(null);
+      }
+
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status !== 401) {
+          console.error("Unexpected admin fetch error:", err);
+        }
+      } else {
+        console.error("Non-Axios error:", err);
+      }
       setAdmin(null);
     } finally {
       setLoading(false);
@@ -43,7 +54,8 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
   };
 
   fetchAdmin();
-}, []); 
+}, []);
+
 
 
  const logout = async () => {

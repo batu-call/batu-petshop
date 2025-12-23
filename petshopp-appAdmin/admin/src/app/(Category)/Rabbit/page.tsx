@@ -51,7 +51,7 @@ const Rabbit = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/v1/product/products?category=Rabbit",
+          "http://localhost:5000/api/v1/product/admin/products?category=Rabbit",
           { withCredentials: true }
         );
         if (response.data.success) setProduct(response.data.products);

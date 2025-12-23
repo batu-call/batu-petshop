@@ -60,7 +60,7 @@ const Cat = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/v1/product/products?category=Cat",
+          "http://localhost:5000/api/v1/product/admin/products?category=Cat",
           { withCredentials: true }
         );
         if (response.data.success) {

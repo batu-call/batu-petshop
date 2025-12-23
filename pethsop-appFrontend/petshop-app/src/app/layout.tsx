@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { Jost } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { CartProvider } from "./context/cartContext";
+import { FavoriteProvider } from "./context/favoriteContext";
+import { ConfirmProvider } from "./context/confirmContext";
 
 
 
@@ -30,7 +32,11 @@ export default function RootLayout({
       <body className={`antialiased ${jost.className}`}>
         <AuthProvider>
           <CartProvider>
+          <FavoriteProvider>
+           <ConfirmProvider>
           {children}
+        </ConfirmProvider>
+        </FavoriteProvider>
           </CartProvider>
         </AuthProvider>
           <Toaster position="top-right" reverseOrder={false} />

@@ -11,6 +11,8 @@ import CircularText from "@/components/CircularText";
 import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import CloseIcon from "@mui/icons-material/Close";
+import StarOutlineIcon from "@mui/icons-material/StarOutline";
+import { X } from "lucide-react";
 
 type Features = {
   name: string;
@@ -33,6 +35,7 @@ type Product = {
   product_name: string;
   description: string;
   price: number;
+  salePrice?: number;
   stock: number;
   isActive: boolean;
   isFeatured: boolean;
@@ -42,10 +45,24 @@ type Product = {
   productFeatures: Features[];
 };
 
+type Reviews = {
+  _id: string;
+  productId: string;
+  userId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
 const AdminProductDetails = () => {
   const { slug } = useParams();
   const [product, setProduct] = useState<Product>();
   const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState<Reviews[]>([]);
 
   const [newFeature, setNewFeature] = useState<Features>({
     name: "",
@@ -58,19 +75,53 @@ const AdminProductDetails = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `http://localhost:5000/api/v1/product/products/slug/${slug}`
+          `http://localhost:5000/api/v1/product/admin/products/slug/${slug}`,
+          { withCredentials: true }
         );
         if (response.data.success) {
           setProduct(response.data.product);
         }
       } catch (error: unknown) {
-        toast.error("Failed to load product");
+        if (axios.isAxiosError(error) && error.response) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error("Something went wrong while fetching reviews!");
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchProduct();
   }, [slug]);
+
+  useEffect(() => {
+    if (!product?._id) return;
+
+    const fetchReviews = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/${product._id}`
+        );
+        if (response.data.success) {
+          setReviews(response.data.review);
+        } else {
+          setReviews([]);
+        }
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error) && error.response) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error("Something went wrong while fetching reviews!");
+        }
+      }
+    };
+    fetchReviews();
+  }, [product]);
+
+  const discountPercent =
+    product?.salePrice && product.salePrice < product.price
+      ? Math.round(((product.price - product.salePrice) / product.price) * 100)
+      : 0;
 
   const handleUpdate = async () => {
     if (!product?._id) return toast.error("Product not found!");
@@ -82,6 +133,7 @@ const AdminProductDetails = () => {
           product_name: product.product_name,
           description: product.description,
           price: product.price,
+          salePrice: product.salePrice === undefined ? null : product.salePrice,
           stock: product.stock,
           isActive: product.isActive,
           isFeatured: product.isFeatured,
@@ -92,7 +144,7 @@ const AdminProductDetails = () => {
       if (response.data.success) {
         toast.success("Product updated successfully!");
       }
-    }catch (error: unknown) {
+    } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
         toast.error(error.response.data.message || "Update failed");
       } else if (error instanceof Error) {
@@ -115,6 +167,37 @@ const AdminProductDetails = () => {
         : prev
     );
     setNewFeature({ name: "", description: "" });
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:5000/api/v1/reviews/admin/${id}`,
+        { withCredentials: true }
+      );
+
+      toast.success(response.data.message);
+
+      setReviews((prev) => prev.filter((r) => r._id !== id));
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.message || "Unexpected error");
+      } else {
+        toast.error("Unexpected error!");
+      }
+    }
+  };
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
   };
 
   if (loading) {
@@ -181,6 +264,30 @@ const AdminProductDetails = () => {
                   }
                   className="text-xl font-semibold text-color bg-white border p-2 rounded"
                 />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-lg text-color font-semibold">
+                  Sale Price (optional)
+                </label>
+                <input
+                  type="number"
+                  value={product.salePrice ?? ""}
+                  onChange={(e) =>
+                    setProduct({
+                      ...product,
+                      salePrice: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    })
+                  }
+                  className="text-xl font-semibold text-color bg-white border p-2 rounded"
+                />
+                {discountPercent > 0 && (
+                  <p className="text-sm text-zinc-600 font-semibold">
+                    %{discountPercent} discount is being applied
+                  </p>
+                )}
               </div>
 
               {/* Stock + Switch controls */}
@@ -250,44 +357,48 @@ const AdminProductDetails = () => {
           </h2>
 
           {product?.productFeatures.map((f, index) => (
-  <div
-    key={index}
-    className="flex items-start gap-3 border-b py-2 mb-2 relative group"
-  >
-    <input
-      value={f.name}
-      onChange={(e) => {
-        const updated = [...product.productFeatures];
-        updated[index].name = e.target.value;
-        setProduct({ ...product, productFeatures: updated });
-      }}
-      className="border p-2 rounded w-1/3"
-    />
-    <textarea
-      value={f.description}
-      onChange={(e) => {
-        const updated = [...product.productFeatures];
-        updated[index].description = e.target.value;
-        setProduct({ ...product, productFeatures: updated });
-      }}
-      className="border p-2 rounded w-2/3"
-    />
+            <div
+              key={index}
+              className="flex items-start gap-3 border-b py-2 mb-2 relative group"
+            >
+              <input
+                value={f.name}
+                onChange={(e) => {
+                  const updated = [...product.productFeatures];
+                  updated[index].name = e.target.value;
+                  setProduct({ ...product, productFeatures: updated });
+                }}
+                className="border p-2 rounded w-1/3"
+              />
+              <textarea
+                value={f.description}
+                onChange={(e) => {
+                  const updated = [...product.productFeatures];
+                  updated[index].description = e.target.value;
+                  setProduct({ ...product, productFeatures: updated });
+                }}
+                className="border p-2 rounded w-2/3"
+              />
 
-    {/* Close (delete) butonu */}
-    <button
-      onClick={() => {
-        if (confirm("Are you sure you want to delete this feature?")) {
-          const updated = product.productFeatures.filter((_, i) => i !== index);
-          setProduct({ ...product, productFeatures: updated });
-          toast.success("Feature removed");
-        }
-      }}
-      className="absolute top-2 right-2 text-color cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
-    >
-      <CloseIcon fontSize="small" />
-    </button>
-  </div>
-))}
+              {/* Close (delete) butonu */}
+              <button
+                onClick={() => {
+                  if (
+                    confirm("Are you sure you want to delete this feature?")
+                  ) {
+                    const updated = product.productFeatures.filter(
+                      (_, i) => i !== index
+                    );
+                    setProduct({ ...product, productFeatures: updated });
+                    toast.success("Feature removed");
+                  }
+                }}
+                className="absolute top-2 right-2 text-color cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+          ))}
 
           {/* Add new feature */}
           <div className="flex flex-col md:flex-row gap-3 mt-4">
@@ -314,6 +425,63 @@ const AdminProductDetails = () => {
               Add Feature
             </Button>
           </div>
+        </div>
+        <div className="px-6 py-4">
+          <h2 className="text-color text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
+            Product Reviews
+          </h2>
+          {/* Reviews List */}
+          {!reviews || reviews.length === 0  ? (
+            <p>No reviews yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {reviews.map((review) => (
+                <div key={review._id} className="border p-3 rounded relative">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (
+                        confirm("Are you sure you want to delete this review?")
+                      ) {
+                        handleDelete(review._id);
+                      }
+                    }}
+                  >
+                    <X className="shadow-2xl m-2 opacity-80 absolute right-0 top-0 transition duration-300 ease-in-out hover:scale-120 cursor-pointer" />
+                  </button>
+                  <div className="justify-between flex">
+                    <div className="flex gap-5">
+                      <p>
+                        {Array.from({ length: review.rating }, (_, i) => (
+                          <span key={i}>
+                            <StarOutlineIcon className="text-color2" />
+                          </span>
+                        ))}
+                      </p>
+                      <h2 className="text-sm flex justify-center items-center text-color">
+                        {review.userId?.firstName
+                          ? review.userId.firstName.charAt(0).toUpperCase() +
+                            review.userId.firstName.slice(1)
+                          : "User"}{" "}
+                        {review.userId?.lastName
+                          ? review.userId.lastName[0].toUpperCase()
+                          : ""}
+                      </h2>
+                    </div>
+
+                    <p className="text-sm text-gray-500">
+                      {formatDate(review.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <p className="text-xl text-color font-semibold mt-8">
+                    {review.comment}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -10,6 +10,10 @@ import CircularText from "@/components/CircularText";
 import { AuthContext } from "@/app/context/authContext";
 import Navbar from "@/app/Navbar/page";
 import Sidebar from "@/app/Sidebar/page";
+import { Heart } from "lucide-react";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import { useCart } from "@/app/context/cartContext";
+import { useFavorite } from "@/app/context/favoriteContext";
 
 type ProductImage = {
   url: string;
@@ -31,6 +35,9 @@ const Horse = () => {
   const [product, setProduct] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, isAuthenticated } = useContext(AuthContext);
+   const { favorites, addFavorite, removeFavorite, fetchFavorites } =
+     useFavorite();
+  const {addToCart} = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -58,29 +65,39 @@ const Horse = () => {
     fetchProduct();
   }, []);
 
-  const handlerAddToCart = async (product: Product) => {
-    if (user || isAuthenticated) {
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`,
-          { productId: product._id, quantity: 1 },
-          { withCredentials: true }
-        );
-        if (response.data.success) {
-          toast.success(response.data.message || "Added to cart!");
-          return;
-        }
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error) && error.response) {
-          toast.error(error.response.data.message);
-        } else {
-          toast.error("Something went wrong!");
-        }
+  
+     const handlerAddToCart = async (product: Product) => {
+  if (!user && !isAuthenticated) return router.push("/Login");
+
+  try {
+    await addToCart(product._id);
+  } catch {
+    toast.error("Something went wrong!");
+  }
+};
+  
+
+    useEffect(() => {
+      fetchFavorites();
+    }, [fetchFavorites]);
+  
+    const handlerFavorite = async (productId: string) => {
+      if (!isAuthenticated) {
+        router.push("/Login");
+        return;
       }
-    } else {
-      router.push("/Login");
-    }
-  };
+  
+      const isFav = favorites.some((f) => f._id === productId);
+  
+      if (isFav) {
+        await removeFavorite(productId);
+      } else {
+        await addFavorite(productId);
+      }
+    };
+  
+    const isFavorite = (productId: string) =>
+      favorites.some((f) => f._id === productId);
 
   return (
     <>
@@ -96,6 +113,21 @@ const Horse = () => {
             />
           </div>
         ) : (
+          <div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+<div>
+<h1 className="text-3xl font-extrabold text-color dark:text-white">Majestic Horses</h1>
+<p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Find your perfect companion for riding and shows.</p>
+</div>
+<div className="flex items-center gap-3">
+<span className="text-sm font-semibold text-gray-500 dark:text-gray-400">Sort by:</span>
+<select className="form-select text-sm rounded-lg border-gray-200 dark:border-gray-700 bg-white dark:bg-card-dark text-gray-700 dark:text-gray-200 focus:border-primary focus:ring focus:ring-primary/20 cursor-pointer">
+<option>Featured</option>
+<option>Price: Low to High</option>
+<option>Price: High to Low</option>
+</select>
+</div>
+</div><br />
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 md:gap-6 lg:gap-8 sm:p-0">
             {product.map((p) => (
               <Link
@@ -103,6 +135,24 @@ const Horse = () => {
                 href={`/Products/${p.slug}`}
                 className="bg-primary w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative"
               >
+                {/* favorite */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="p-2 rounded-full hover:bg-[#D6EED6] absolute top-0 right-0 cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handlerFavorite(p._id);
+                  }}
+                >
+                  {isFavorite(p._id) ? (
+                    <FavoriteIcon className="text-gray-400 w-3 h-3" />
+                  ) : (
+                    <Heart className="text-gray-400 w-5 h-5" />
+                  )}
+                </Button>
+                {/* image */}
                 <div className="flex items-center justify-center p-4">
                   {p.image && p.image.length > 0 ? (
                     <Image
@@ -146,6 +196,7 @@ const Horse = () => {
                 </div>
               </Link>
             ))}
+          </div>
           </div>
         )}
       </div>

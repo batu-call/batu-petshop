@@ -7,7 +7,7 @@ import generateToken from "../utils/jwt.js";
 import cloudinary from "cloudinary";
 
 export const UserRegister = catchAsyncError(async (req, res, next) => {
-  const { firstName, lastName, email, phone, password, address, role } =
+  const { firstName, lastName, email, phone, password, role } =
     req.body;
 
   if (
@@ -15,8 +15,7 @@ export const UserRegister = catchAsyncError(async (req, res, next) => {
     !lastName ||
     !email ||
     !phone ||
-    !password ||
-    !address ||
+    !password |
     !role
   ) {
     return next(new ErrorHandler("Please Fill Full Form!", 400));
@@ -42,7 +41,6 @@ export const UserRegister = catchAsyncError(async (req, res, next) => {
     email,
     phone,
     password,
-    address,
     role,
     avatar: avatarUrl,
   });
@@ -330,3 +328,125 @@ export const updateUser = catchAsyncError(async (req, res, next) => {
     user,
   });
 });
+
+
+export const updatePassword = catchAsyncError(async(req,res,next) => {
+  const user =  await User.findById(req.user?.id).select("+password")
+
+  if (!user) {
+    return next(new ErrorHandler("User not found",404))
+  }
+
+  const {oldPassword,newPassword} = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return next(new ErrorHandler("Please provide old and new password", 400));
+  }
+
+  const isMatched  = await user.comparePassword(oldPassword);
+   
+  if (!isMatched) {
+    return next(new ErrorHandler("Old password is incorrect", 401));
+  }
+
+  user.password = newPassword;
+  await user.save();
+  
+  res.status(200).json({
+    success:true,
+    message: "Password updated successfully",
+  })
+})
+
+// Fargot Password
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  // 🔒 Security: always return success
+  if (!user) {
+    return res.status(200).json({
+      success: true,
+      message:
+        "If an account exists, a password reset link has been sent.",
+    });
+  }
+
+  // 🔥 Generate reset token (schema method)
+  const resetToken = user.getResetPasswordToken();
+  await user.save({ validateBeforeSave: false });
+
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+  const message = `
+You requested a password reset.
+
+Click the link below:
+${resetUrl}
+
+This link will expire in 15 minutes.
+`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "Password Reset Request",
+      message,
+    });
+
+    res.status(200).json({
+      success: true,
+      message:
+        "If an account exists, a password reset link has been sent.",
+    });
+  } catch (error) {
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    res.status(500).json({
+      success: false,
+      message: "Email could not be sent.",
+    });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  }).select("+password");
+
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid or expired reset token.",
+    });
+  }
+
+  user.password = password;
+
+
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+
+  await user.save();
+
+ 
+  generateToken(
+    user,
+    "Password reset successful.",
+    200,
+    res
+  );
+};

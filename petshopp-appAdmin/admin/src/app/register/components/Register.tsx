@@ -12,6 +12,8 @@ import Image from "next/image";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Navbar from "@/app/Navbar/page";
 import Sidebar from "@/app/Sidebar/page";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const Register = () => {
   const AdminColor = "#B1CBBB";
@@ -93,7 +95,7 @@ const Register = () => {
     <div className="bg-primary w-full h-screen relative">
          <Navbar />
       <Sidebar />
-      <div className="bg-white w-1/4 p-12 shadow-2xl rounded-2xl absolute left-190 top-45">
+      <div className="bg-white w-1/3 p-12 shadow-2xl rounded-2xl absolute left-180 top-45">
          <Box
             display="flex"
             flexDirection="column"
@@ -226,32 +228,27 @@ const Register = () => {
                   }}
                 />
 
-                <TextField
-                  label="Phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  type="tel"
-                  variant="standard"
-                  fullWidth
-                  slotProps={{
-                    inputLabel: {
-                      sx: {
-                        color: "#B1CBBB",
-                        "&.Mui-focused": {
-                          color: "#393E46",
-                          backgroundColor: "#B1CBBB",
-                          padding: 0.4,
-                          borderRadius: 1,
-                        },
-                      },
-                    },
+                <PhoneInput
+                  country={"us"} 
+                  value={formData.phone} 
+                  onChange={(phone) => setFormData({ ...formData, phone })}
+                  inputStyle={{
+                    width: "100%",
+                    height: "56px",
+                    borderRadius: "8px",
+                    border: "1px solid #B1CBBB",
+                    paddingLeft: "50px",
+                    fontSize: "16px",
+                    color: "#393E46",
                   }}
-                  sx={{
-                    "& .MuiInput-underline:after": {
-                      borderBottomColor: "#B1CBBB",
-                    },
+                  buttonStyle={{
+                    border: "none",
+                    background: "transparent",
                   }}
+                  dropdownStyle={{
+                    borderRadius: "8px",
+                  }}
+                  specialLabel="Phone"
                 />
 
                 <TextField

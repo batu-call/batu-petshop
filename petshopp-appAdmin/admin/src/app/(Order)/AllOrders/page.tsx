@@ -42,6 +42,13 @@ export type OrdersType = {
 const AllOrders = () => {
   const [orders, setOrders] = useState<OrdersType[]>([]);
    const [loading,setLoading] = useState(true);
+   const [search,setSearch] = useState("")
+   const [filter,setFilter] = useState({
+    email:"",
+    status:"",
+     totalPriceMin: "", 
+    totalPriceMax: "",
+   })
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -67,12 +74,19 @@ const AllOrders = () => {
     fetchOrders();
   }, []);
 
- const formatDate = (dateString: string) => {
+const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return `${(date.getMonth()+1).toString().padStart(2,'0')}/${
-    date.getDate().toString().padStart(2,'0')}/${
-    date.getFullYear()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "long", 
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
 };
+
 
   
 if (loading) {
@@ -92,11 +106,81 @@ if (loading) {
   }
 
 
+  const filteredOrders = orders.filter((o) => {
+    const matchesSearch = 
+    o.shippingAddress.fullName.toLowerCase().includes(search.toLowerCase()) ;
+
+    const matchesEmail = filter.email
+  ? (
+      o.user?.email?.toLowerCase().includes(filter.email.toLowerCase()) ||
+      o.shippingAddress?.email?.toLowerCase().includes(filter.email.toLowerCase())
+    )
+  : true;
+
+    const matchStatus = filter.status ? o.status === filter.status : true;
+
+    const matchesTotalPrice =
+    (!filter.totalPriceMin || o.totalAmount >= Number(filter.totalPriceMin)) &&
+    (!filter.totalPriceMax || o.totalAmount <= Number(filter.totalPriceMax));
+
+
+    return (
+    matchesSearch &&
+    matchesEmail &&
+    matchStatus &&
+    matchesTotalPrice
+    )
+  })
+
+
   return (
     <div>
       <Navbar />
       <Sidebar />
+      
       <div className='ml-40 flex-1 h-screen bg-white p-4 overflow-x-auto'>
+        <div className="flex flex-col md:flex-row gap-2 mb-4">
+  <input
+    type="text"
+    placeholder="Search by name..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="border p-2 rounded flex-1"
+  />
+  <input
+    type="text"
+    placeholder="Filter by email"
+    value={filter.email}
+    onChange={(e) => setFilter({ ...filter, email: e.target.value })}
+    className="border p-2 rounded flex-1"
+  />
+  <select
+    value={filter.status}
+    onChange={(e) => setFilter({ ...filter, status: e.target.value })}
+    className="border p-2 rounded flex-1"
+  >
+    <option value="">All Status</option>
+    <option value="pending">pending</option>
+    <option value="paid">paid</option>
+    <option value="shipped">shipped</option>
+    <option value="delivered">delivered</option>
+    <option value="cancelled">cancelled</option>
+  </select>
+  <input
+    type="number"
+    placeholder="Min Total Price"
+    value={filter.totalPriceMin}
+    onChange={(e) => setFilter({ ...filter, totalPriceMin: e.target.value })}
+    className="border p-2 rounded w-32"
+  />
+  <input
+    type="number"
+    placeholder="Max Total Price"
+    value={filter.totalPriceMax}
+    onChange={(e) => setFilter({ ...filter, totalPriceMax: e.target.value })}
+    className="border p-2 rounded w-32"
+  />
+</div>
         <div className='w-full bg-secondary flex gap-2 mt-12 text-color justify-between'>
           <div className='text-xl p-1 w-120 h-9 flex items-center justify-center'>Order ID</div>
           <div className='text-xl p-1 w-120 h-9 flex items-center justify-center'>User Name</div>
@@ -107,10 +191,10 @@ if (loading) {
           <div className='text-xl p-1 w-120 h-9 flex items-center justify-center'>Created At</div>
         </div>
 
-        {orders.length === 0 ? (
+        {filteredOrders.length === 0 ? (
           <p className='text-bold text-2xl text-color mt-8'>No Orders!</p>
         ) : (
-          orders.map((o) => (
+          filteredOrders.map((o) => (
             <div key={o._id} className='flex items-center justify-center gap-2 border-y border-gray-300 h-16 shadow-sm text-color'>
               <div className='text-sm p-1 w-120 h-9 flex items-center justify-center text-left truncate'>{o._id}</div>
               <div className='text-xl p-1 w-120 h-9 flex items-center justify-center text-left truncate'>{o.user?.name || o.shippingAddress.fullName}</div>

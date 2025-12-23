@@ -1,6 +1,7 @@
 "use client";
 import axios from "axios";
 import { createContext, useState, ReactNode, useEffect } from "react";
+import toast from "react-hot-toast";
 
 
 export interface User {
@@ -47,7 +48,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (res.data.success) {
           setUser(res.data.user);
           setIsAuthenticated(true);
-          console.log(res.data.user)
         } else {
           setIsAuthenticated(false);
           setUser(null);
