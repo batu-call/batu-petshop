@@ -215,7 +215,10 @@ export default function AdminAnalyticsDashboard() {
                 <Tooltip
                   cursor={{ fill: "rgba(168, 209, 181, 0.3)" }}
                   labelFormatter={(label) => `Date: ${label}`}
-                  formatter={(value: number) => [`${value} logins`, "Logins"]}
+                  formatter={(value?: number) => [
+                    `${value ?? 0} login`,
+                    "Login",
+                  ]}
                 />
                 <Bar
                   dataKey="users"
