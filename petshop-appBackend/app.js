@@ -20,13 +20,13 @@ config({ path: "./Config/config.env" });
 
 // Middleware
 const allowedOrigins = [
-  process.env.FRONTEND_URL, 
-  process.env.ADMIN_URL].filter(Boolean);
-
+  "https://batu-petshop.vercel.app",
+  "https://batu-petshop-admin.vercel.app",
+];
 
 const corsOptions = {
-  origin: function(origin, callback) {
-    console.log("Request origin:", origin); // log ile kontrol
+  origin: function (origin, callback) {
+    console.log("Request origin:", origin);
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -36,7 +36,12 @@ const corsOptions = {
   },
   credentials: true,
   methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+  ],
 };
 app.use(cors(corsOptions));
 app.use(cookieParser());
