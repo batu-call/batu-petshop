@@ -14,6 +14,14 @@ import { Heart } from "lucide-react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { useCart } from "@/app/context/cartContext";
 import { useFavorite } from "@/app/context/favoriteContext";
+import { Star } from "@mui/icons-material";
+
+type ReviewStats = {
+  [productId: string]: {
+    count: number;
+    avgRating: number;
+  };
+};
 
 type ProductImage = {
   url: string;
@@ -36,9 +44,10 @@ const Dog = () => {
   const [product, setProduct] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useContext(AuthContext);
-  const { addToCart } = useCart();
   const { favorites, addFavorite, removeFavorite, fetchFavorites } =
     useFavorite();
+  const { addToCart } = useCart();
+  const [reviewStats, setReviewStats] = useState<ReviewStats>({});
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -66,6 +75,21 @@ const Dog = () => {
     fetchProduct();
   }, []);
 
+  useEffect(() => {
+    const fetchReviewStats = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/stats`
+        );
+        setReviewStats(response.data.stats);
+      } catch {
+        toast.error("Failed to load reviews");
+      }
+    };
+
+    fetchReviewStats();
+  }, []);
+
   const handlerAddToCart = async (product: Product) => {
     if (!isAuthenticated) return router.push("/Login");
 
@@ -80,7 +104,7 @@ const Dog = () => {
     fetchFavorites();
   }, [fetchFavorites]);
 
-  const handlerFavorite = async (productId: string) => {
+  const handleFavorite = async (productId: string) => {
     if (!isAuthenticated) {
       router.push("/Login");
       return;
@@ -102,9 +126,9 @@ const Dog = () => {
     <>
       <Navbar />
       <Sidebar />
-      <div className="ml-0 md:ml-24 lg:ml-40 flex-1 flex flex-col items-center justify-center md:items-start md:justify-start min-h-screen bg-white p-6 mt-3 md:mt-0">
+      <div className="ml-0 md:ml-24 lg:ml-40 flex-1 flex flex-col items-center justify-center md:items-start md:justify-start min-h-screen bg-[#fafafa] p-6 mt-3 md:mt-0">
         {loading ? (
-          <div className="md:ml-25 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
+          <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
             <CircularText
               text="LOADING"
               spinDuration={20}
@@ -112,13 +136,14 @@ const Dog = () => {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 md:gap-6 lg:gap-8 sm:p-0">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 md:gap-6 lg:gap-8 sm:p-0">
             {product.map((p) => {
               const discountPercent =
                 p.salePrice && p.salePrice < p.price
                   ? Math.round(((p.price - p.salePrice) / p.price) * 100)
                   : 0;
 
+              const stats = reviewStats[p._id];
               return (
                 <Link
                   key={p._id}
@@ -140,7 +165,7 @@ const Dog = () => {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      handlerFavorite(p._id);
+                      handleFavorite(p._id);
                     }}
                   >
                     {isFavorite(p._id) ? (
@@ -151,34 +176,48 @@ const Dog = () => {
                   </Button>
 
                   {/* image */}
-                  <div className="flex items-center justify-center p-4">
+                  <div className="flex items-center justify-center p-2 sm:p-4">
                     {p.image && p.image.length > 0 ? (
                       <Image
                         src={p.image[0].url}
                         alt={p.product_name}
                         width={400}
                         height={400}
-                        className="rounded-full w-28 h-28 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-48 lg:h-48 xl:w-56 xl:h-56 object-cover border-4 border-white shadow-2xl"
+                        className="rounded-full w-40 h-40 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-48 lg:h-48 xl:w-44 xl:h-44 object-cover border-4 border-white shadow-2xl"
                       />
                     ) : (
                       <p className="text-white text-sm">No image!</p>
                     )}
                   </div>
 
-                  <div className="px-4 py-2 text-center">
+                  <div className="px-2 sm:px-4 py-1 sm:py-2 text-center">
                     <h2 className="text-white text-sm sm:text-base md:text-lg truncate font-semibold">
                       {p.product_name}
                     </h2>
                   </div>
 
-                  <div className="px-4 py-3 sm:px-4 sm:py-2 h-20 sm:h-24 md:h-28 overflow-hidden">
-                    <h2 className="text-sm sm:text-base text-color font-semibold line-clamp-3 leading-snug">
+                  {/* Review stars & count */}
+                  {stats && stats.count > 0 && (
+                    <div className="flex items-center justify-center gap-1 text-gray-200 text-sm mt-1">
+                      <div className="flex text-yellow-500">
+                        {[...Array(Math.round(stats.avgRating))].map((_, i) => (
+                          <Star key={i} sx={{ fontSize: 16 }} />
+                        ))}
+                      </div>
+                      <span className="text-xs text-color3 font-semibold">
+                        ( {stats.count} )
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="px-4 py-3 sm:px-4 sm:py-2 h-20 sm:h-24 md:h-24 overflow-hidden mt-1">
+                    <h2 className="text-xs sm:text-base text-color font-semibold line-clamp-3 leading-snug">
                       {p.description}
                     </h2>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-2 justify-between items-center px-2 sm:px-4 py-2">
-                    <div className="flex flex-col items-center mt-3">
+                    <div className="flex flex-col items-center">
                       {p.salePrice && p.salePrice < p.price ? (
                         <>
                           <span className="line-through text-color text-xs opacity-55 font-bold">
@@ -201,7 +240,7 @@ const Dog = () => {
                         e.stopPropagation();
                         handlerAddToCart(p);
                       }}
-                      className="w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base m-4 transition-colors duration-400"
+                      className="w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400"
                     >
                       Add To Cart
                     </Button>

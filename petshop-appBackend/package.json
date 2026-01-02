@@ -11,6 +11,7 @@
     "mongoose": "^8.16.4",
     "multer": "^2.0.2",
     "nanoid": "^5.1.6",
+    "resend": "^6.6.0",
     "slugify": "^1.6.6",
     "stripe": "^19.2.0",
     "validator": "^13.15.15"

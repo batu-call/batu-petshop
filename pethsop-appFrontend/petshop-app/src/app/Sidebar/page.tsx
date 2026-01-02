@@ -12,22 +12,35 @@ const Sidebar = () => {
       <div className="md:w-24 lg:w-40 h-screen bg-white fixed">
         <div className="mt-0">
         {/* Logo */}
-        <Link href="/main" className="md:fixed">
-          <Image
-            src="/logo.png"
-            alt="main-icon"
-            width={500}
-            height={500}
-            className="hidden md:flex justify-center items-center w-16 h-16 sm:h-24 sm:w-24 md:w-24 md:h-24 lg:w-40 lg:h-40"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        </Link>
+        <Link href="/main" className="hidden md:flex justify-center">
+  <Image
+    src="/logo.png"
+    alt="main-icon"
+    width={400}
+    height={400}
+    priority
+    className="
+      object-contain
+      w-20 h-auto
+      md:w-24
+      lg:w-32
+      xl:w-40
+    "
+    sizes="
+      (max-width: 768px) 96px,
+      (max-width: 1024px) 128px,
+      (max-width: 1280px) 160px,
+      192px
+    "
+  />
+</Link>
+
         </div>
 
         {/* Cat */}
         <Link href={"/Cat"}>
           <div
-            className={`group inline-block p-2 items-center md:mt-28 lg:mt-54 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
+            className={`group inline-block p-2 items-center md:mt-24 lg:mt-12 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
               pathname === "/Cat" ? "bg-[#DDEEDD]" : "bg-primary"
             }`}
           >
@@ -45,7 +58,7 @@ const Sidebar = () => {
                   className="object-contain"
                 />
               </div>
-              <h2 className="text-md lg:text-2xl text-jost text-white p-1">
+              <h2 className="hidden lg:block text-md lg:text-2xl text-jost text-white p-1">
                 Cat
               </h2>
             </div>
@@ -55,7 +68,7 @@ const Sidebar = () => {
         {/* Dog */}
         <Link href={"/Dog"}>
           <div
-            className={`group inline-block p-2 items-center mt-6 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
+            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
               pathname === "/Dog" ? "bg-[#DDEEDD]" : "bg-primary"
             }`}
           >
@@ -73,7 +86,7 @@ const Sidebar = () => {
                   className="object-contain"
                 />
               </div>
-              <h2 className="text-md lg:text-2xl text-jost text-white p-1">
+              <h2 className="hidden lg:block text-md lg:text-2xl text-jost text-white p-1">
                 Dog
               </h2>
             </div>
@@ -83,7 +96,7 @@ const Sidebar = () => {
         {/* Bird */}
         <Link href={"/Bird"}>
           <div
-            className={`group inline-block p-2 items-center mt-6 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
+            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
               pathname === "/Bird" ? "bg-[#DDEEDD]" : "bg-primary"
             }`}
           >
@@ -101,7 +114,7 @@ const Sidebar = () => {
                   className="object-contain"
                 />
               </div>
-              <h2 className="text-md lg:text-2xl text-white p-1">Bird</h2>
+              <h2 className="hidden lg:block text-md lg:text-2xl text-white p-1">Bird</h2>
             </div>
           </div>
         </Link>
@@ -109,7 +122,7 @@ const Sidebar = () => {
         {/* Fish */}
         <Link href={"/Fish"}>
           <div
-            className={`group inline-block p-2 items-center mt-6 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
+            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
               pathname === "/Fish" ? "bg-[#DDEEDD]" : "bg-primary"
             }`}
           >
@@ -126,7 +139,7 @@ const Sidebar = () => {
                   sizes="(max-width: 768px) 48px, (max-width: 1024px) 40px, 64px"
                 />
               </div>
-              <h2 className="text-md lg:text-2xl text-jost text-white p-1">
+              <h2 className="hidden lg:block text-md lg:text-2xl text-jost text-white p-1">
                 Fish
               </h2>
             </div>
@@ -136,7 +149,7 @@ const Sidebar = () => {
         {/* Reptile */}
         <Link href={"/Reptile"}>
           <div
-            className={`group inline-block p-2 items-center mt-6 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
+            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
               pathname === "/Reptile" ? "bg-[#DDEEDD]" : "bg-primary"
             }`}
           >
@@ -154,7 +167,7 @@ const Sidebar = () => {
                   className="object-contain"
                 />
               </div>
-              <h2 className="text-[13px] lg:text-2xl text-jost text-white mr-2">
+              <h2 className="hidden lg:block text-[13px] lg:text-2xl text-jost text-white mr-2">
                 Reptile
               </h2>
             </div>
@@ -164,7 +177,7 @@ const Sidebar = () => {
         {/* Rabbit */}
         <Link href={"/Rabbit"}>
           <div
-            className={`group inline-block p-2 items-center mt-6 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
+            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
               pathname === "/Rabbit" ? "bg-[#DDEEDD]" : "bg-primary"
             }`}
           >
@@ -182,7 +195,7 @@ const Sidebar = () => {
                   className="object-contain"
                 />
               </div>
-              <h2 className="text-[12px] lg:text-2xl text-jost text-white p-1">
+              <h2 className="hidden lg:block text-[12px] lg:text-2xl text-jost text-white p-1">
                 Rabbit
               </h2>
             </div>
@@ -192,7 +205,7 @@ const Sidebar = () => {
         {/* Horse */}
         <Link href={"/Horse"}>
           <div
-            className={`group inline-block p-2 items-center mt-6 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
+            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
               pathname === "/Horse" ? "bg-[#DDEEDD]" : "bg-primary"
             }`}
           >
@@ -210,7 +223,7 @@ const Sidebar = () => {
                   className="object-contain"
                 />
               </div>
-              <h2 className="text-[12px] lg:text-2xl text-jost text-white p-1">
+              <h2 className="hidden lg:block text-[12px] lg:text-2xl text-jost text-white p-1">
                 Horse
               </h2>
             </div>
@@ -220,7 +233,7 @@ const Sidebar = () => {
         {/* Contact */}
         <Link href={"/Contact"}>
           <div
-            className={`group inline-block p-2 items-center mt-6 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
+            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
               pathname === "/Contact" ? "bg-[#DDEEDD]" : "bg-primary"
             }`}
           >

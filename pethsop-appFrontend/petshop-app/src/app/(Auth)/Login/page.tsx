@@ -4,13 +4,12 @@ import TextField from "@mui/material/TextField";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
-import Navbar from "../Navbar/page";
-import Sidebar from "../Sidebar/page";
-import { AuthContext } from "../context/authContext";
-
 import CircularText from "@/components/CircularText";
 import Link from "next/link";
 import { Button } from "@mui/material";
+import { AuthContext } from "@/app/context/authContext";
+import Navbar from "@/app/Navbar/page";
+import Sidebar from "@/app/Sidebar/page";
 
 const Login = () => {
   const router = useRouter();
@@ -67,8 +66,8 @@ const Login = () => {
           />
         </div>
       ) : (
-        <div className="md:ml-24 lg:ml-40 mt-24 p-4 flex items-center justify-center">
-          <div className="w-full max-w-5xl bg-background-light dark:bg-background-dark rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+        <div className="md:ml-24 lg:ml-40 p-4 flex items-center justify-center h-full">
+          <div className="w-full max-w-5xl bg-background-light dark:bg-background-dark rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row">
             {/* LEFT IMAGE */}
             <div className="hidden md:block w-1/2 relative bg-gray-100">
               <div

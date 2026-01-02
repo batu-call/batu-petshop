@@ -12,7 +12,6 @@ export default function StoreMap() {
   useEffect(() => {
     setIsClient(true);
 
-    // Rastgele ABD konumu
     const minLat = 24.396308;
     const maxLat = 49.384358;
     const minLng = -124.848974;
@@ -23,7 +22,6 @@ export default function StoreMap() {
       Math.random() * (maxLng - minLng) + minLng,
     ]);
 
-    // Leaflet default icon
     const iconDefault = L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void };
     delete iconDefault._getIconUrl;
 

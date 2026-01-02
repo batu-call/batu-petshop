@@ -40,7 +40,7 @@ export default function OrderStats() {
         const response = await axios.get<{
           success: boolean;
           data: OrderStatsData;
-        }>("http://localhost:5000/api/v1/order/stats", {
+        }>(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/order/stats`, {
           withCredentials: true,
         });
         setData(response.data.data);
@@ -83,7 +83,7 @@ export default function OrderStats() {
     <>
       <Navbar />
       <Sidebar />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 ml-40 mt-6 p-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 md:ml-24 lg:ml-40 mt-6 p-4">
         {/* Stat Cards */}
         <Card sx={{ backgroundColor: "#A8D1B5" }}>
           <CardHeader

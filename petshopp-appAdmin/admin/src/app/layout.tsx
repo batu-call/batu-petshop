@@ -4,6 +4,7 @@ import "./globals.css";
 import { AdminAuthProvider } from "./Context/AdminAuthContext";
 import { AdminGuard } from "./Context/AdminGuard";
 import { Toaster } from "react-hot-toast";
+import { ConfirmProvider } from "./Context/confirmContext";
 
 const jost = Jost({
   subsets: ["latin"],
@@ -27,7 +28,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`antialiased ${jost.className}`}>
         <AdminAuthProvider>
-          <AdminGuard>{children}</AdminGuard>
+            <ConfirmProvider>
+            {children}
+            </ConfirmProvider>
           <Toaster position="top-right" reverseOrder={false} />
         </AdminAuthProvider>
       </body>

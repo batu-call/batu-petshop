@@ -4,6 +4,7 @@ import { ReactNode, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation"  ;
 import { useAdminAuth } from "./AdminAuthContext";
 import CircularText from "@/components/CircularText";
+import Navbar from "../Navbar/page";
 
 type Props = { children: ReactNode };
 
@@ -18,14 +19,14 @@ export const AdminGuard = ({ children }: Props) => {
     }
   }, [admin, loading, router, pathname]);
 
-  if (loading) return <div className="absolute top-90 left-220">
-  <CircularText
-  text="LOADING"
-  onHover="speedUp"
-  spinDuration={20}
-  className="custom-class"
-/>
-  </div>;
+  if (loading) return 
+  <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
+            <CircularText
+              text="LOADING"
+              spinDuration={20}
+              className="text-white text-4xl"
+            />
+          </div>
   if (!admin && pathname !== "/") return null;
 
   return <>{children}</>;

@@ -29,7 +29,7 @@ const Main = () => {
     <div className='ml-0 md:ml-24 lg:ml-40 flex gap-120 xl:h-[848px]'>
   <div className="w-full relative aspect-[16/7] min-h-[200px]">
      <Image
-    src="/Yellow Cute Pet Shop Banner (5).png"
+    src="/Yellow Cute Pet Shop Banner (6).png"
     alt="main-banner-image"
     fill 
     priority
@@ -58,11 +58,68 @@ const Main = () => {
 </div>
 </div>
 
-<div className='absolute top-19 right-2 md:absolute md:top-32 md:right-8 lg:absolute lg:top-44 lg:right-42 xl:absolute xl:top-103 xl:right-100'> 
-<div className='flex flex-col gap-3 md:gap-4 lg:gap-8 xl:gap-20 mt-5 text-[7px] md:text-xs xl:text-xl text-color font-bold py-2 px-3'>
-  <h2>Pet wellness and grooming</h2>
-  <h2>Best affordable pet accessories</h2>
-  <h2>Best quality organic pet food</h2>
+<div className='absolute top-19 right-2 md:absolute md:top-31 md:right-8 lg:absolute lg:top-44 lg:right-42 xl:absolute xl:top-103 xl:right-100'> 
+<div className='flex flex-col lg:gap-8 xl:gap-14 mt-5 text-[7px] md:text-xs xl:text-xl text-color font-bold py-2 px-3'>
+  <div className="flex items-center gap-5">
+  <div className="relative 
+  w-8 h-8 
+  sm:w-10 sm:h-10 
+  md:w-12 md:h-12 
+  lg:w-14 lg:h-14 
+  xl:w-18 xl:h-18 
+  2xl:w-20 2xl:h-20">
+    <Image
+      src="/banner-icon2.png"
+      alt="banner-icon"
+      fill
+      className="object-contain"
+    />
+  </div>
+
+  <h2 className="text-[10px] sm:text-sm xl:text-xl font-bold text-color">
+    Pet wellness and grooming
+  </h2>
+</div>
+
+ <div className="flex items-center gap-2">
+  <div className="relative  w-8 h-8 
+  sm:w-10 sm:h-10 
+  md:w-12 md:h-12 
+  lg:w-14 lg:h-14 
+  xl:w-18 xl:h-18 
+  2xl:w-20 2xl:h-20">
+    <Image
+      src="/banner-icon2.png"
+      alt="banner-icon"
+      fill
+      className="object-contain"
+    />
+  </div>
+
+  <h2 className="text-[10px] sm:text-sm xl:text-xl font-bold text-color">
+    Best affordable pet accessories
+  </h2>
+</div>
+
+ <div className="flex items-center gap-2">
+  <div className="relative  w-8 h-8 
+  sm:w-10 sm:h-10 
+  md:w-12 md:h-12 
+  lg:w-14 lg:h-14 
+  xl:w-18 xl:h-18 
+  2xl:w-20 2xl:h-20">
+    <Image
+      src="/banner-icon2.png"
+      alt="banner-icon"
+      fill
+      className="object-contain"
+    />
+  </div>
+
+  <h2 className="text-[10px] sm:text-sm xl:text-xl font-bold text-color">
+    Best quality organic pet food
+  </h2>
+</div>
 </div>
   </div>
 

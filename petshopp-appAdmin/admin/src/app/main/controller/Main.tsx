@@ -1,52 +1,71 @@
-"use client"
-import React from 'react'
-import Navbar from '../../Navbar/page'
-import Sidebar from '../../Sidebar/page'
-import Image from 'next/image'
-import { AdminGuard } from '@/app/Context/AdminGuard'
-import TextType from '@/components/TextType'
+"use client";
+import React from "react";
+import Navbar from "../../Navbar/page";
+import Sidebar from "../../Sidebar/page";
+import Image from "next/image";
+import { AdminGuard } from "@/app/Context/AdminGuard";
+import TextType from "@/components/TextType";
 
-
-
-const Main = () => {  
-  
+const Main = () => {
   return (
-    <div className='w-full relative bg-primary h-screen'>
-    <AdminGuard>
-      {/* Navbar */}
-      <Navbar />
-      {/* Catgeory */}
-      <Sidebar />
-      <div>
-      <div className='lg:ml-50 absolute w-200 font-bold mt-12'>
-        <h1 className='text-6xl mt-24 font-bold'>
-        <TextType 
-        text={["Welcome to your Admin Panel!"]}
-        typingSpeed={75}
-        pauseDuration={1500}
-        showCursor={true}
-        cursorCharacter=""
-/>
-        </h1>
-        <h2 className='text-color text-7xl mt-12'>A <span className='text-white'>fast</span> and <span className='text-white'>secure</span></h2>
-        <h2 className='text-color text-8xl text-jost mt-12'>space to manage your site</h2>
-        <h2 className='text-color text-7xl text-jost mt-12'>content, and users.</h2>
-      </div>
-      <div className='w-280 ml-200'>
-      <Image 
-      src={"/main-banner-Photoroom.png"} 
-      alt='main-banner' 
-      width={1200} 
-      height={800} 
-      className='object-cover w-280 h-197'
-      priority
-      />
-        
-      </div>
-      </div>
-    </AdminGuard>
-    </div>
-  )
-}
+    <div className="w-full min-h-screen bg-primary overflow-hidden">
+      <AdminGuard>
+        <Navbar />
+        <Sidebar />
 
-export default Main
+        {/* CONTENT */}
+        <div className="relative md:ml-24 lg:ml-50 px-4 lg:px-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 items-start lg:items-center mt-12 lg:mt-35">
+
+            {/* LEFT TEXT */}
+            <div className="font-bold lg:pr-10">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl">
+                <TextType
+                  text={["Welcome to your Admin Panel!"]}
+                  typingSpeed={75}
+                  pauseDuration={1500}
+                  showCursor={true}
+                  cursorCharacter=""
+                />
+              </h1>
+
+              <h2 className="text-color text-4xl md:text-6xl lg:text-6xl xl:text-7xl mt-10">
+                A <span className="text-white">fast</span> and{" "}
+                <span className="text-white">secure</span>
+              </h2>
+
+              <h2 className="text-color text-4xl md:text-5xl lg:text-7xl xl:text-8xl mt-10">
+                space to manage your site
+              </h2>
+
+              <h2 className="text-color text-4xl md:text-5xl lg:text-6xl xl:text-7xl mt-10">
+                content, and users.
+              </h2>
+            </div>
+
+            {/* RIGHT IMAGE */}
+            <div className="flex justify-center lg:justify-end">
+              <Image
+                src="/main-banner-Photoroom.png"
+                alt="main-banner"
+                width={1400}
+                height={900}
+                priority
+                className="
+                  object-contain
+                  w-full
+                  max-w-md
+                  md:max-w-xl
+                  lg:max-w-[1100px]
+                "
+              />
+            </div>
+
+          </div>
+        </div>
+      </AdminGuard>
+    </div>
+  );
+};
+
+export default Main;

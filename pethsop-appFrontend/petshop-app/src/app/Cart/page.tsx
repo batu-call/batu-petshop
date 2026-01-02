@@ -26,10 +26,9 @@ type Product = {
 
 type CartItem = {
   _id: string;
-  product: Product; 
+  product: Product;
   quantity: number;
 };
-
 
 const Cart = () => {
   const [discountCode, setDiscountCode] = useState("");
@@ -39,13 +38,14 @@ const Cart = () => {
   const { cart, setCart, removeFromCart, fetchCart, clearCart } = useCart();
   const [loading, setLoading] = useState(true);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [shippingFee, setShippingFee] = useState(0);
+  const [freeOver, setFreeOver] = useState(0);
+  const [shippingLoading, setShippingLoading] = useState(true);
 
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
-  const shippingFee = 5;
-
 
   useEffect(() => {
     const loadCart = async () => {
@@ -60,10 +60,6 @@ const Cart = () => {
 
     loadCart();
   }, [fetchCart]);
-
-  useEffect(() => {
-    setTotalAmount(subtotal - discountAmount + shippingFee);
-  }, [subtotal, discountAmount]);
 
   const applyCoupon = async () => {
     if (!discountCode.trim()) {
@@ -92,6 +88,34 @@ const Cart = () => {
       }
     }
   };
+
+  const fetchShippingSettings = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/shipping`,
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        setShippingFee(res.data.data.fee);
+        setFreeOver(res.data.data.freeOver);
+      }
+    } catch (err) {
+      toast.error("Failed to load shipping settings");
+    } finally {
+      setShippingLoading(false);
+    }
+  };
+  const calculatedShippingFee =
+    freeOver > 0 && subtotal >= freeOver ? 0 : shippingFee;
+
+  useEffect(() => {
+    fetchShippingSettings();
+  }, []);
+
+  useEffect(() => {
+    setTotalAmount(subtotal - discountAmount + calculatedShippingFee);
+  }, [subtotal, discountAmount, calculatedShippingFee]);
 
   const handleQuantityChange = async (
     product: string | { _id: string },
@@ -166,8 +190,8 @@ const Cart = () => {
   return (
     <>
       <Navbar />
-      <div className="hidden lg:flex">
-      <Sidebar />
+      <div className="hidden md:flex">
+        <Sidebar />
       </div>
       {loading ? (
         <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
@@ -178,7 +202,7 @@ const Cart = () => {
           />
         </div>
       ) : (
-        <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4.5rem)] lg:ml-5">
+        <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4.5rem)] md:ml-24 lg:ml-5">
           <div className="hidden lg:flex lg:ml-40 justify-between items-center bg-white shadow-2xl border-2 fixed rounded-sm w-[610px] xl:w-[1260px] 2xl:w-[1263px] h-12 lg:h-12">
             <p className="text-center lg:ml-20 sm:ml-28 sm:text-left text-color lg:text-md 2xl:text-lg font-semibold">
               Product Name
@@ -320,8 +344,9 @@ const Cart = () => {
               </div>
             )}
           </div>
-            {/* Cart Summary */}
-          <div className="bg-white w-full lg:w-1/4 
+          {/* Cart Summary */}
+          <div
+            className="bg-white w-full lg:w-1/4 
     shadow-2xl 
     mt-4 lg:mt-3 xl:mt-16
     p-3 sm:p-4 lg:p-4 
@@ -329,7 +354,8 @@ const Cart = () => {
     flex flex-col gap-3 lg:gap-4
     sticky bottom-0 
     lg:sticky lg:top-24
-    right-0 self-start">
+    right-0 self-start"
+          >
             <h2 className="text-2xl font-bold text-color mb-2 border-b pb-2">
               Cart Summary
             </h2>
@@ -343,8 +369,17 @@ const Cart = () => {
 
             <div className="flex justify-between items-center text-lg">
               <h3 className="text-color">Shipping Fee:</h3>
-              <div className="font-semibold text-color">
-                {shippingFee.toFixed(2)}$
+              <div className="font-semibold text-color text-end">
+                {calculatedShippingFee === 0 ? (
+                  <span className="text-green-600 font-semibold">Free</span>
+                ) : (
+                  `${calculatedShippingFee.toFixed(2)}$`
+                )}
+                {freeOver > 0 && (
+  <p className="text-sm text-gray-500">
+    Free shipping over {freeOver}$
+  </p>
+)}
               </div>
             </div>
 
@@ -440,8 +475,12 @@ const Cart = () => {
                     {selectedItem.product.description}
                   </p>
                   <div className="text-xl font-bold mt-4 text-gray-900">
-                    {selectedItem.product.price.toFixed(2)}$ × {selectedItem.quantity} ={" "}
-                    {(selectedItem.product.price * selectedItem.quantity).toFixed(2)}$
+                    {selectedItem.product.price.toFixed(2)}$ ×{" "}
+                    {selectedItem.quantity} ={" "}
+                    {(
+                      selectedItem.product.price * selectedItem.quantity
+                    ).toFixed(2)}
+                    $
                   </div>
                   <Link href={`/Products/${selectedItem.product.slug}`}>
                     <Button

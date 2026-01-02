@@ -8,6 +8,10 @@ export const addReviews = catchAsyncError(async (req, res, next) => {
 
 
 
+if (!productId.match(/^[0-9a-fA-F]{24}$/)) {
+  return next(new ErrorHandler("Invalid product ID", 400));
+}
+
   let review = await Review.create({
     userId,
     productId,
@@ -30,6 +34,10 @@ export const getReviews = catchAsyncError(async (req, res, next) => {
   const reviews = await Review.find({ productId: req.params.productId })
     .populate("userId", "firstName lastName avatar")
     .sort({ createdAt: -1 });
+
+    if (!req.params.productId.match(/^[0-9a-fA-F]{24}$/)) {
+  return next(new ErrorHandler("Invalid product ID", 400));
+}
 
   res.status(200).json({
     success: true,
@@ -67,6 +75,10 @@ export const deleteReviews = catchAsyncError(async (req, res, next) => {
 
 export const getUserReviews = catchAsyncError(async (req, res, next) => {
   const userId = req.params.id;
+
+   if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
+    return next(new ErrorHandler("Invalid user ID", 400));
+  }
 
   const reviews = await Review.find({ userId })
     .populate("productId", "name price image")
@@ -147,4 +159,29 @@ export const toggleHelpful = catchAsyncError(async (req, res, next) => {
   success: true,
   helpful: review.helpful,
 });
+});
+
+export const getReviewStats = catchAsyncError(async (req, res) => {
+  const stats = await Review.aggregate([
+    {
+      $group: {
+        _id: "$productId",
+        count: { $sum: 1 },
+        avgRating: { $avg: "$rating" },
+      },
+    },
+  ]);
+
+  const formatted = {};
+  stats.forEach((s) => {
+    formatted[s._id.toString()] = {
+      count: s.count,
+      avgRating: Math.round(s.avgRating || 0),
+    };
+  });
+
+  res.status(200).json({
+    success: true,
+    stats: formatted,
+  });
 });

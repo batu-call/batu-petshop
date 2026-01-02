@@ -63,7 +63,7 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
     { text: "Fish", href: "/Fish", imgSrc: "/fish.png" },
     { text: "Reptile", href: "/Reptile", imgSrc: "/reptile.png" },
     { text: "Rabbit", href: "/Rabbit", imgSrc: "/rabbit2.png" },
-    { text: "Horse", href: "/Horse", imgSrc: "/Horse.png" },
+    { text: "Horse", href: "/Horse", imgSrc: "/horse.png" },
   ];
 
    const general: MenuItem[] = [

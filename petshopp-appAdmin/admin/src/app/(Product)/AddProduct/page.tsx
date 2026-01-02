@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import TextField from "@mui/material/TextField";
@@ -12,6 +12,8 @@ import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import MenuItem from "@mui/material/MenuItem";
 import CloseIcon from "@mui/icons-material/Close";
+import CircularText from "@/components/CircularText";
+import { useConfirm } from "@/app/Context/confirmContext";
 
 type Features = {
   name: string;
@@ -21,7 +23,7 @@ type Features = {
 type ProductFormData = {
   product_name: string;
   description: string;
-  price: string; 
+  price: string;
   category: string;
   productFeatures: Features[];
   stock: number;
@@ -30,7 +32,10 @@ type ProductFormData = {
 };
 
 const AddProduct = () => {
-  const [feature, setFeature] = useState<Features>({ name: "", description: "" });
+  const [feature, setFeature] = useState<Features>({
+    name: "",
+    description: "",
+  });
   const [formData, setFormData] = useState<ProductFormData>({
     product_name: "",
     description: "",
@@ -42,6 +47,8 @@ const AddProduct = () => {
     isFeatured: false,
   });
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { confirm } = useConfirm();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.name as keyof ProductFormData;
@@ -78,7 +85,7 @@ const AddProduct = () => {
       if (file) data.append("image", file);
 
       const res = await axios.post(
-        "http://localhost:5000/api/v1/product/products",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products`,
         data,
         { withCredentials: true }
       );
@@ -108,13 +115,46 @@ const AddProduct = () => {
     }
   };
 
+  const handleDeleteFeature = async (index: number) => {
+    const ok = await confirm({
+      title: "Delete Feature",
+      description: "Are you sure you want to delete this feature?",
+      confirmText: "Yes, Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+    });
+
+    if (!ok) return;
+
+    const updated = formData.productFeatures.filter((_, i) => i !== index);
+    setFormData({ ...formData, productFeatures: updated });
+    toast.success("Feature removed");
+  };
+
+  useEffect(() => {
+    setLoading(true);
+
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="bg-primary min-h-screen">
-      <AdminGuard>
-        <Navbar />
-        <Sidebar />
-
-        <div className="flex flex-col lg:flex-row gap-6 bg-white shadow-2xl ml-60 mt-20 p-8 rounded-2xl max-w-[1600px] mx-auto">
+      <Navbar />
+      <Sidebar />
+      {loading ? (
+        <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
+          <CircularText
+            text="LOADING"
+            spinDuration={20}
+            className="text-white text-4xl"
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col lg:flex-row gap-6 bg-white shadow-2xl md:ml-24 lg:ml-60 lg:mt-20 p-8 rounded-2xl max-w-[1600px] mx-auto">
           {/* LEFT SIDE - FORM */}
           <div className="flex-1">
             <h2 className="text-color text-2xl mb-4 text-jost font-semibold">
@@ -130,9 +170,10 @@ const AddProduct = () => {
               sx={{
                 mb: 2,
                 "& .MuiInputLabel-root.Mui-focused": { color: "#B1CBBB" },
-                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#B1CBBB",
-                },
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: "#B1CBBB",
+                  },
               }}
             />
             <TextField
@@ -145,9 +186,10 @@ const AddProduct = () => {
               sx={{
                 mb: 2,
                 "& .MuiInputLabel-root.Mui-focused": { color: "#B1CBBB" },
-                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#B1CBBB",
-                },
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: "#B1CBBB",
+                  },
               }}
             />
             <TextField
@@ -159,9 +201,10 @@ const AddProduct = () => {
               sx={{
                 mb: 2,
                 "& .MuiInputLabel-root.Mui-focused": { color: "#B1CBBB" },
-                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#B1CBBB",
-                },
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: "#B1CBBB",
+                  },
               }}
             />
             <TextField
@@ -174,9 +217,10 @@ const AddProduct = () => {
               sx={{
                 mb: 2,
                 "& .MuiInputLabel-root.Mui-focused": { color: "#B1CBBB" },
-                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#B1CBBB",
-                },
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: "#B1CBBB",
+                  },
                 "& .MuiSelect-select": { color: "#393E46" },
               }}
               SelectProps={{
@@ -219,9 +263,10 @@ const AddProduct = () => {
               sx={{
                 mb: 2,
                 "& .MuiInputLabel-root.Mui-focused": { color: "#B1CBBB" },
-                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#B1CBBB",
-                },
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: "#B1CBBB",
+                  },
               }}
             />
 
@@ -290,7 +335,9 @@ const AddProduct = () => {
                   className="object-cover"
                 />
               ) : (
-                <p className="text-color2 text-center mt-32">No image selected</p>
+                <p className="text-color2 text-center mt-32">
+                  No image selected
+                </p>
               )}
             </div>
             <Button
@@ -339,16 +386,11 @@ const AddProduct = () => {
                   className="border p-2 rounded w-2/3"
                 />
                 <button
-                  onClick={() => {
-                    if (confirm("Are you sure you want to delete this feature?")) {
-                      const updated = formData.productFeatures.filter(
-                        (_, i) => i !== index
-                      );
-                      setFormData({ ...formData, productFeatures: updated });
-                      toast.success("Feature removed");
-                    }
-                  }}
-                  className="absolute top-2 right-2 text-color cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                  onClick={() => handleDeleteFeature(index)}
+                  className="absolute top-2 right-2
+  text-color cursor-pointer
+  opacity-100 lg:opacity-0 lg:group-hover:opacity-100
+  transition-all duration-300 hover:scale-110"
                 >
                   <CloseIcon fontSize="small" />
                 </button>
@@ -359,7 +401,9 @@ const AddProduct = () => {
               <input
                 placeholder="Feature name"
                 value={feature.name}
-                onChange={(e) => setFeature({ ...feature, name: e.target.value })}
+                onChange={(e) =>
+                  setFeature({ ...feature, name: e.target.value })
+                }
                 className="border p-2 rounded flex-1"
               />
               <input
@@ -376,7 +420,10 @@ const AddProduct = () => {
                   backgroundColor: "#B1CBBB",
                   color: "#393E46",
                   fontWeight: 600,
-                  "&:hover": { backgroundColor: "#A3C3AA", transform: "scale(1.05)" },
+                  "&:hover": {
+                    backgroundColor: "#A3C3AA",
+                    transform: "scale(1.05)",
+                  },
                 }}
               >
                 Add Feature
@@ -384,7 +431,7 @@ const AddProduct = () => {
             </div>
           </div>
         </div>
-      </AdminGuard>
+      )}
     </div>
   );
 };

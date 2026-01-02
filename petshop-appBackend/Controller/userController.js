@@ -5,6 +5,8 @@ import { Session } from "../Models/sessionSchema.js";
 import { User } from "../Models/userSchema.js";
 import generateToken from "../utils/jwt.js";
 import cloudinary from "cloudinary";
+import { sendAutoMail } from "./mailController.js";
+import crypto from "crypto"
 
 export const UserRegister = catchAsyncError(async (req, res, next) => {
   const { firstName, lastName, email, phone, password, role } =
@@ -15,7 +17,7 @@ export const UserRegister = catchAsyncError(async (req, res, next) => {
     !lastName ||
     !email ||
     !phone ||
-    !password |
+    !password ||
     !role
   ) {
     return next(new ErrorHandler("Please Fill Full Form!", 400));
@@ -44,6 +46,18 @@ export const UserRegister = catchAsyncError(async (req, res, next) => {
     role,
     avatar: avatarUrl,
   });
+  try {
+  await sendAutoMail({
+    to: user.email,
+    subject: "Welcome to Petshop 🐾",
+    html: `
+      <h3>Welcome ${user.firstName}!</h3>
+      <p>Your account has been created successfully.</p>
+    `,
+  });
+} catch (err) {
+  console.error("Welcome mail failed:", err.message);
+}
 
   generateToken(user, "User Registered Successfully!", 200, res);
 });
@@ -133,6 +147,16 @@ export const newAdmin = catchAsyncError(async (req, res, next) => {
     avatar: avatarUrl,
     role: "Admin",
   });
+  try {
+  await sendAutoMail({
+    to: admin.email,
+    subject: "Admin Account Created",
+    html: `<p>You have been added as an admin.</p>`,
+  });
+} catch (err) {
+  console.error("Admin mail failed");
+}
+
 
   res.status(201).json({
     success: true,
@@ -200,16 +224,44 @@ export const AdminLogout = catchAsyncError(async (req, res, next) => {
       message: "Admin Logout Out Successfully!",
     });
 });
-
 export const getAllUser = catchAsyncError(async (req, res, next) => {
-  const getUser = await User.find({ role: "User" })
-    .select("-password")
-    .sort({ createdAt: -1 });
+  const users = await User.aggregate([
+    {
+      $match: { role: "User" },
+    },
+
+    {
+      $lookup: {
+        from: "orders",
+        localField: "_id",
+        foreignField: "user",
+        as: "orders",
+      },
+    },
+
+    {
+      $addFields: {
+        orderCount: { $size: "$orders" },
+        lastOrderAt: { $max: "$orders.createdAt" },
+      },
+    },
+
+    {
+      $project: {
+        password: 0,
+        orders: 0,
+      },
+    },
+
+    {
+      $sort: { createdAt: -1 },
+    },
+  ]);
 
   res.status(200).json({
     success: true,
-    count: getUser.length,
-    getUser,
+    count: users.length,
+    users,
   });
 });
 
@@ -358,13 +410,12 @@ export const updatePassword = catchAsyncError(async(req,res,next) => {
   })
 })
 
-// Fargot Password
-export const forgotPassword = async (req, res) => {
+
+export const forgotPassword = catchAsyncError(async (req, res, next) => {
   const { email } = req.body;
 
   const user = await User.findOne({ email });
 
-  // 🔒 Security: always return success
   if (!user) {
     return res.status(200).json({
       success: true,
@@ -373,26 +424,24 @@ export const forgotPassword = async (req, res) => {
     });
   }
 
-  // 🔥 Generate reset token (schema method)
   const resetToken = user.getResetPasswordToken();
   await user.save({ validateBeforeSave: false });
 
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-  const message = `
-You requested a password reset.
-
-Click the link below:
-${resetUrl}
-
-This link will expire in 15 minutes.
-`;
-
   try {
-    await sendEmail({
-      email: user.email,
-      subject: "Password Reset Request",
-      message,
+    await sendAutoMail({
+      to: user.email,
+      subject: "Password Reset Request 🔐",
+      html: `
+        <h3>Password Reset Request</h3>
+        <p>You requested a password reset.</p>
+        <p>Click the link below:</p>
+        <a href="${resetUrl}">${resetUrl}</a>
+        <p>This link will expire in 15 minutes.</p>
+        <br/>
+        <p>If you did not request this, please ignore this email.</p>
+      `,
     });
 
     res.status(200).json({
@@ -405,22 +454,22 @@ This link will expire in 15 minutes.
     user.resetPasswordExpire = undefined;
     await user.save({ validateBeforeSave: false });
 
-    res.status(500).json({
-      success: false,
-      message: "Email could not be sent.",
-    });
+    return next(new ErrorHandler("Email could not be sent.", 500));
   }
-};
+});
 
-export const resetPassword = async (req, res) => {
+export const resetPassword = catchAsyncError(async (req, res, next) => {
   const { token } = req.params;
   const { password } = req.body;
+
+  if (!password || password.length < 6) {
+    return next(new ErrorHandler("Password must be at least 6 characters.", 400));
+  }
 
   const hashedToken = crypto
     .createHash("sha256")
     .update(token)
     .digest("hex");
-
 
   const user = await User.findOne({
     resetPasswordToken: hashedToken,
@@ -428,12 +477,10 @@ export const resetPassword = async (req, res) => {
   }).select("+password");
 
   if (!user) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid or expired reset token.",
-    });
+    return next(new ErrorHandler("Invalid or expired reset token.", 400));
   }
 
+  
   user.password = password;
 
 
@@ -442,11 +489,5 @@ export const resetPassword = async (req, res) => {
 
   await user.save();
 
- 
-  generateToken(
-    user,
-    "Password reset successful.",
-    200,
-    res
-  );
-};
+  generateToken(user, "Password reset successful.", 200, res);
+});

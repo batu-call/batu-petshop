@@ -12,6 +12,9 @@ import analyticsRouter from "./Router/analyticsRouter.js";
 import reviewsRouter from "./Router/reviewsRouter.js";
 import favoriteRouter from "./Router/favoriteRouter.js";
 import couponRouter from "./Router/couponRoutes.js";
+import shippingRouter from "./Router/shippingRouter.js";
+import messageRouter from "./Router/messageRouter.js";
+import mailRouter from "./Router/mailRouter.js";
 
 const app = express();
 
@@ -20,15 +23,14 @@ config({ path: "./Config/config.env" });
 
 // Middleware
 const allowedOrigins = [
-  "https://batu-petshop-app.vercel.app",
-  "https://batu-petshop-admin.vercel.app",
+   "https://batu-petshop-app.vercel.app",
+   "https://batu-petshop-admin.vercel.app",
   process.env.FRONTEND_URL,
   process.env.ADMIN_URL,
 ].filter(Boolean);
 
 const corsOptions = {
   origin: function (origin, callback) {
-    console.log("Request origin:", origin);
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -63,5 +65,8 @@ app.use("/api/v1/analytics", analyticsRouter);
 app.use("/api/v1/reviews", reviewsRouter);
 app.use("/api/v1/favorite", favoriteRouter);
 app.use("/api/v1/coupon", couponRouter);
+app.use("/api/v1/shipping", shippingRouter);
+app.use("/api/v1/message", messageRouter);
+app.use("/api/v1/mail", mailRouter);
 
 export default app;

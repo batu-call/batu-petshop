@@ -210,16 +210,16 @@ const UserDetails = () => {
     <div>
       <Navbar />
       <Sidebar />
-      <div className="md:flex">
+      <div className="md:ml-24 lg:ml-40 lg:flex border-b">
         {/* User */}
-        <div className="md:ml-40 p-6 mx-auto bg-white rounded-xl shadow-lg mt-8 md:w-1/4 w-full">
+        <div className="p-6 mx-auto bg-white rounded-xl shadow-lg mt-8 lg:w-1/4 w-full">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-24 h-24 sm:w-30 sm:h-30 md:w-36 md:h-36 lg:w-40 lg:h-40 relative">
+            <div className="w-full h-50 lg:w-20 lg:h-20 relative shrink-0">
               <Image
                 src={user?.avatar || "/default-avatar.png"}
                 alt="avatar"
                 fill
-                className="rounded-full object-cover"
+                className="rounded-full object-contain lg:object-cover"
               />
             </div>
             <h1 className="text-2xl font-bold text-color">
@@ -227,14 +227,13 @@ const UserDetails = () => {
             </h1>
             <p className="text-gray-600">{user.role}</p>
           </div>
-
           <div className="mt-6 space-y-2 text-lg">
-            <div>
+            <div className="break-all text-sm sm:text-base">
               <strong className="text-color">Email: </strong>
               {user.email}
             </div>
-            <div>
-              <strong className="text-color">Phone:</strong>{" "}
+            <div className="w-full ">
+              <strong className="text-color break-all text-sm sm:text-base">Phone:</strong>{" "}
               <div>
                 <PhoneInput
                   country={"us"}
@@ -256,14 +255,14 @@ const UserDetails = () => {
             </div>
             <div className="w-full">
               <strong className="text-color block">Address:</strong>
-              <div className="overflow-hidden break-words">{user.address}</div>
+              <div className="overflow-hidden">{user.address}</div>
             </div>
           </div>
         </div>
         {/* Orders */}
-        <div className="w-full md:w-3/4 max-h-[500px] overflow-y-auto mt-8 pr-2 p-2">
+        <div className="w-full lg:w-3/4 max-h-[500px] overflow-y-auto mt-8 pr-2 p-2">
           {order.length === 0 ? (
-            <p className="text-bold text-2xl text-color mt-8">No Orders!</p>
+            <p className="text-bold text-2xl text-color mt-8 flex justify-center items-center">No Orders!</p>
           ) : (
             order.map((o) => (
               <div
@@ -311,10 +310,10 @@ const UserDetails = () => {
       </div>
 
       {/* Reviews */}
-      <div className="md:ml-40 mt-8">
+      <div className="md:ml-24 lg:ml-40 mt-8">
         <div>
           {reviews.length === 0 ? (
-            <p className="text-bold text-2xl text-color mt-8">No Reviews!</p>
+            <p className="text-bold text-2xl text-color mt-8 flex justify-center items-center">No Reviews!</p>
           ) : (
             reviews.map((r) => (
               <div

@@ -37,7 +37,7 @@ export default function AdminAnalyticsDashboard() {
       setLoading(true); 
       try {
         const response = await axios.get<{ success: boolean; data: AnalyticsData }>(
-          "http://localhost:5000/api/v1/analytics",
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/analytics`,
           { withCredentials: true }
         );
         setData(response.data.data);
@@ -84,7 +84,7 @@ export default function AdminAnalyticsDashboard() {
       <>
         <Navbar />
         <Sidebar />
-        <div className="ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
+        <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
           <CircularText
             text="LOADING"
             spinDuration={20}
@@ -103,7 +103,7 @@ export default function AdminAnalyticsDashboard() {
     <>
       <Navbar />
       <Sidebar />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 ml-40 mt-6 p-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 md:ml-24 lg:ml-40 mt-6 p-4">
 
         {/* Stat Cards */}
         <Card sx={{ backgroundColor: "#A8D1B5" }}>

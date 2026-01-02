@@ -6,14 +6,14 @@ import Box from "@mui/material/Box";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
-import Navbar from "../Navbar/page";
-import Sidebar from "../Sidebar/page";
 import Image from "next/image";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { AuthContext } from "../context/authContext";
 import CircularText from "@/components/CircularText";
 import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
+import { AuthContext } from "@/app/context/authContext";
+import Navbar from "@/app/Navbar/page";
+import Sidebar from "@/app/Sidebar/page";
 
 const Register = () => {
   const router = useRouter();

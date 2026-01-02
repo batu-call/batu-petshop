@@ -1,32 +1,67 @@
 "use client";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 import MobileMenu from "../components/mobile";
+import { useAdminAuth } from "../Context/AdminAuthContext";
 
 const Navbar = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const { setAdmin } = useAdminAuth();
+
+  const pageTitle = () => {
+    const staticTitles: Record<string, string> = {
+      "/": "Dashboard",
+      "/AddProduct": "Add Product",
+      "/AllProduct": "All Products",
+      "/ProductStats": "Product Statistics",
+      "/AllUsers": "All Users",
+      "/AllAdmin": "All Admins",
+      "/AddAdmin": "Add Admin",
+      "/UserActivity": "User Activity",
+      "/AllOrders": "All Orders",
+      "/ProcessingOrders": "Processing Orders",
+      "/CompletedOrders": "Completed Orders",
+      "/AllCoupon": "Pricing & Promotions",
+      "/OrderStats": "Order Statistics",
+      "/Contact": "Admin Contact",
+    };
+
+    if (staticTitles[pathname]) {
+      return staticTitles[pathname];
+    }
+
+    if (pathname.startsWith("/Cat")) return "Cat Products";
+    if (pathname.startsWith("/Dog")) return "Dog Products";
+    if (pathname.startsWith("/Bird")) return "Bird Products";
+    if (pathname.startsWith("/Fish")) return "Fish Products";
+    if (pathname.startsWith("/Reptile")) return "Reptile Products";
+    if (pathname.startsWith("/Rabbit")) return "Rabbit Products";
+    if (pathname.startsWith("/Horse")) return "Horse Products";
+
+    return "Admin Panel";
+  };
 
   const handleLogout = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/v1/admin/logout",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/admin/logout`,
         {
           withCredentials: true,
         }
       );
       if (response.data.success) {
         toast.success("Logged out successfully!");
+        setAdmin(null);
       }
-      sessionStorage.removeItem("adminToken");
-      localStorage.removeItem("adminToken");
       router.push("/");
     } catch (error) {
       console.log(error);
@@ -39,49 +74,46 @@ const Navbar = () => {
   };
 
   return (
-    <div className="w-full h-30 bg-primary shadow-md relative">
+    <div className="w-full h-14 sm:h-14 lg:h-18 bg-primary shadow-md relative">
       {/* Top Navbar */}
       <div>
-        <div className="absolute top-3 md:hidden">
-          <MobileMenu anchor="left" />
-        </div>
-        {/* Logo */}
-        <Link href="/main" className="fixed">
-          <Image
-            src="/logo.png"
-            alt="main-icon"
-            width={500}
-            height={500}
-            className="hidden md:flex justify-center items-center w-40 h-40"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        </Link>
+        <div className="flex items-center justify-between">
+          <div className="md:hidden">
+            <MobileMenu anchor="left" />
+          </div>
 
-        {/* Me */}
-        <h2 className="ml-40 absolute top-0 color-white opacity-20 hidden md:flex">
-          This website is a portfolio project created for demonstration purposes
-          only. All products shown are fictitious and not for sale. Designed and
-          developed by Batuhan Callioglu.
-        </h2>
+            {/* Page Name */}
+          <div className="hidden md:flex ml-44 items-center p-4">
+            <h1 className="text-xl font-bold text-white">{pageTitle()}</h1>
+          </div>
 
-        {/* Hamburger (Mobile) */}
-        <div
-          className="sm:hidden cursor-pointer ml-30"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? (
-            <div className="flex">
-              <span className="flex">Admin Panel <ChevronDown/> </span>
-            </div>
-          ) : (
-            <div className="flex">
-              <span className="flex">Admin Panel <ChevronDown/> </span>
-            </div>
-          )}
+          {/* Hamburger (Mobile) */}
+          <div
+            className="w-40 lg:hidden items-center justify-end inline-block text-color rounded-2xl mt-2 mr-2"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <Button className="bg-secondary hover:bg-secondary cursor-pointer flex items-center justify-between text-color mt-1 ml-4">
+              {menuOpen ? (
+                <div className="flex gap-3">
+                  <div className="w-full">Admin Panel</div>
+                  <div>
+                    <ChevronUp />
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <div className="w-full">Admin Panel</div>
+                  <div>
+                    <ChevronDown />
+                  </div>
+                </div>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Desktop Menu */}
-        <div className="hidden sm:flex md:flex gap-8 justify-center mb-12 mr-4 p-2 absolute  top-10 right-15">
+        <div className="hidden lg:flex md:ml-24 gap-8 justify-center mb-12 mr-4 p-2 absolute top-2 right-2 z-100">
           {/* Products */}
           <div className="relative group">
             <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-1 transition duration-300 ease-in-out hover:scale-105">
@@ -122,22 +154,22 @@ const Navbar = () => {
                 All Users
               </Link>
               <Link
-                href="/UserActivity"
-                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                User Activity
-              </Link>
-                <Link
                 href="/AllAdmin"
                 className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
               >
                 All Admin
               </Link>
               <Link
-                href="/register"
+                href="/AddAdmin"
                 className="px-4 py-2 hover:bg-gray-200 transition duration-300 ease-in-out hover:scale-105 rounded-xl"
               >
                 Add Admin
+              </Link>
+              <Link
+                href="/UserActivity"
+                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
+              >
+                User Activity
               </Link>
             </div>
           </div>
@@ -170,7 +202,7 @@ const Navbar = () => {
                 href="/AllCoupon"
                 className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
               >
-                Discount Code
+                Pricing & Promotions
               </Link>
               <Link
                 href="/OrderStats"
@@ -193,7 +225,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="sm:hidden flex flex-col gap-2 pb-4 bg-secondary border-t border-gray-700 relative z-50">
+        <div className="md:hidden flex flex-col pb-4 bg-secondary border-t border-gray-700 relative z-50 mt-3">
           {/* Products */}
           <div>
             <button
@@ -205,7 +237,7 @@ const Navbar = () => {
               </span>
             </button>
             {openDropdown === "products" && (
-              <div className="flex flex-col bg-primary rounded-md mx-4">
+              <div className="flex flex-col bg-primary rounded-md ">
                 <Link
                   href="/AddProduct"
                   className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
@@ -219,7 +251,7 @@ const Navbar = () => {
                   All Products
                 </Link>
                 <Link
-                  href="/"
+                  href="/ProductStats"
                   className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
                 >
                   Product Stats
@@ -239,7 +271,7 @@ const Navbar = () => {
               </span>
             </button>
             {openDropdown === "users" && (
-              <div className="flex flex-col bg-primary rounded-md mx-4">
+              <div className="flex flex-col bg-primary rounded-md">
                 <Link
                   href="/AllUsers"
                   className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
@@ -247,16 +279,22 @@ const Navbar = () => {
                   All Users
                 </Link>
                 <Link
-                  href="/"
+                  href="/AllAdmin"
                   className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
                 >
-                  User Activity
+                  All Admin
                 </Link>
                 <Link
-                  href="/register"
+                  href="/AddAdmin"
                   className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
                 >
                   Add Admin
+                </Link>
+                <Link
+                  href="/UserActivity"
+                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
+                >
+                  User Activity
                 </Link>
               </div>
             )}
@@ -273,7 +311,7 @@ const Navbar = () => {
               </span>
             </button>
             {openDropdown === "orders" && (
-              <div className="flex flex-col bg-primary rounded-md mx-4">
+              <div className="flex flex-col bg-primary rounded-md">
                 <Link
                   href="/AllOrders"
                   className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
@@ -293,6 +331,12 @@ const Navbar = () => {
                   Completed Orders
                 </Link>
                 <Link
+                  href="/AllCoupon"
+                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
+                >
+                  Pricing & Promotions
+                </Link>
+                <Link
                   href="/OrderStats"
                   className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
                 >
@@ -300,16 +344,6 @@ const Navbar = () => {
                 </Link>
               </div>
             )}
-          </div>
-
-          {/* Logout */}
-          <div className="flex justify-center mt-2">
-            <Button
-              onClick={handleLogout}
-              className="bg-secondary text-color w-40 text-base hover:bg-secondary"
-            >
-              Logout
-            </Button>
           </div>
         </div>
       )}

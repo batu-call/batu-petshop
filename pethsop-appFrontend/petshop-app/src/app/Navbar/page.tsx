@@ -11,7 +11,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AuthContext } from "../context/authContext";
 import { CartContext } from "../context/cartContext";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -30,6 +30,7 @@ import TextField from "@mui/material/TextField";
 import MobileMenu from "@/app/components/mobile";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { FavoriteContext } from "../context/favoriteContext";
+import RotatingText from "@/components/RotatingText";
 
 type ProductImage = {
   url: string;
@@ -47,6 +48,7 @@ type Product = {
 };
 
 const Navbar: React.FC = () => {
+  const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated, user, setUser, setIsAuthenticated } =
     useContext(AuthContext);
@@ -56,19 +58,48 @@ const Navbar: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const { favorites } = useContext(FavoriteContext);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const searchRef = useRef<HTMLDivElement | null>(null);
+  const filterRef = useRef<HTMLDivElement | null>(null);
+
+  const pageTitle = () => {
+    if (pathname === "/") return "Home";
+    if (pathname.startsWith("/Cat")) return "Cat Products";
+    if (pathname.startsWith("/Dog")) return "Dog Products";
+    if (pathname.startsWith("/Bird")) return "Bird Products";
+    if (pathname.startsWith("/Fish")) return "Fish Products";
+    if (pathname.startsWith("/Reptile")) return "Reptile Products";
+    if (pathname.startsWith("/Rabbit")) return "Rabbit Products";
+    if (pathname.startsWith("/Horse")) return "Horse Products";
+  };
+
+  const rotatingTexts: Record<string, string[]> = {
+    "Cat Products": ["Cats", "Are", "Awesome!", "Meow!"],
+    "Dog Products": ["Dogs", "Are", "Loyal!", "Woof!"],
+    "Bird Products": ["Birds", "Can", "Sing!", "Tweet!"],
+    "Fish Products": ["Fishes", "Swim", "Gracefully!", "Splash!"],
+    "Reptile Products": ["Reptiles", "Are", "Cold-Blooded!", "Hiss!"],
+    "Rabbit Products": ["Rabbits", "Are", "Cute!", "Hop!"],
+    "Horse Products": ["Horses", "Are", "Majestic!", "Neigh!"],
+  };
 
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
       ) {
         setIsSearchFocused(false);
         setSearchResults([]);
+      }
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node)
+      ) {
+        setIsFilterOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -121,152 +152,145 @@ const Navbar: React.FC = () => {
     }, 400);
   };
 
-  const handleFocusSearch = async () => {
-    setIsSearchFocused(true);
-
-    if (searchQuery.trim() && searchResults.length === 0) {
-      try {
-        setLoading(true);
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/search?query=${searchQuery}`
-        );
-        const data: Product[] = await res.json();
-        setSearchResults(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
   return (
     <div className="md:ml-24 lg:ml-40 relative z-50">
       <div className="w-full h-14 sm:h-16 lg:h-18 bg-primary relative flex items-center justify-between">
         {/* Mobile menu */}
-        <div className="absolute top-3 md:hidden flex items-center justify-center">
+        <div className="absolute top-2 md:hidden flex items-center justify-center">
           <MobileMenu anchor="left" />
         </div>
 
-        {/* Search & User & Cart & Logout */}
-        <div className="flex items-center gap-5 absolute right-5 md:right-2">
-          {/* Search */}
-          <div
-            ref={dropdownRef}
-            className="w-32 sm:w-40 md:w-56 lg:w-64 xl:w-72"
-          >
-            <div className="relative w-full max-w-md mx-auto">
-              <TextField
-                placeholder="Search..."
-                variant="outlined"
-                fullWidth
-                autoComplete="off"
-                value={searchQuery}
-                onChange={handleSearch}
-                onFocus={handleFocusSearch}
-                onBlur={() => {
-                  setTimeout(() => {
-                    setIsSearchFocused(false);
-                    setSearchResults([]);
-                  }, 150);
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <Search className="mr-2 opacity-70" size={18} />
-                  ),
-                }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    height: { xs: "36px", md: "40px", lg: "44px" },
-                    borderRadius: "12px",
+        {/* Category Filter */}
+        <div className="hidden md:flex ml-7">
+          {[
+            "Cat Products",
+            "Dog Products",
+            "Bird Products",
+            "Fish Products",
+            "Reptile Products",
+            "Rabbit Products",
+            "Horse Products",
+          ].includes(pageTitle()!) && (
+            <div className="relative flex items-center gap-3" ref={filterRef}>
+              <h1 className="text-xl sm:text-xl font-bold mb-4 text-white flex items-center mt-4">
+                <span>{pageTitle()}</span>
+              </h1>
 
-                    backgroundColor: "rgba(255,255,255,0.3)",
-                    backdropFilter: "blur(8px)",
-                    WebkitBackdropFilter: "blur(8px)",
-
-                    border: "1px solid rgba(255,255,255,0.4)",
-
-                    "& fieldset": {
-                      border: "none",
-                    },
-
-                    "&:hover": {
-                      backgroundColor: "rgba(255,255,255,0.35)",
-                    },
-
-                    "&.Mui-focused": {
-                      backgroundColor: "rgba(255,255,255,0.35)",
-                      boxShadow: "0 0 0 2px rgba(255,255,255,0.5)",
-                    },
-
-                    "& input": {
-                      color: "#1f2937",
-                      paddingLeft: "4px",
-                    },
-
-                    "& input::placeholder": {
-                      color: "#4b5563",
-                      opacity: 1,
-                    },
-                  },
-                }}
+              {/* Rotating Text */}
+              <RotatingText
+                texts={rotatingTexts[pageTitle()!] || ["Welcome"]}
+                mainClassName="hidden lg:block px-4 sm:px-6 md:px-8 py-1 sm:py-2 md:py-3 rounded-lg text-white font-bold text-lg sm:text-xl md:text-2xl bg-gradient-to-r from-[#97cba9] via-[#79bfa1] to-[#57b394] overflow-hidden flex justify-center items-center"
+                staggerFrom="last"
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "-120%" }}
+                staggerDuration={0.05}
+                splitLevelClassName="overflow-hidden"
+                transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                rotationInterval={3000}
               />
+            </div>
+          )}
+        </div>
 
-              {/* Dropdown results */}
-              {loading && isSearchFocused && (
-                <div className="absolute bg-white w-full shadow rounded mt-1 p-2 z-[9999]">
-                  Searching...
-                </div>
-              )}
-              {!loading &&
-                searchQuery &&
-                isSearchFocused &&
-                searchResults.length === 0 && (
-                  <div className="absolute bg-white w-full shadow rounded mt-1 p-2 z-[9999]">
-                    No results found
+        {/* Search & User & Cart & Logout */}
+        <div className="flex items-center gap-5 absolute right-2 md:right-2">
+{/* SEARCH */}
+<div
+  ref={searchRef}
+  className="relative w-32 sm:w-44 md:w-56 lg:w-64 xl:w-72"
+>
+  <TextField
+    placeholder="Search..."
+    variant="outlined"
+    fullWidth
+    autoComplete="off"
+    value={searchQuery}
+    onChange={handleSearch}
+    onFocus={() => setIsSearchFocused(true)}
+    InputProps={{
+      startAdornment: <Search className="mr-2 opacity-70" size={18} />,
+    }}
+    sx={{
+      "& .MuiOutlinedInput-root": {
+        height: { xs: "36px", md: "40px", lg: "44px" },
+        borderRadius: "12px",
+        backgroundColor: "rgba(255,255,255,0.3)",
+        backdropFilter: "blur(8px)",
+        border: "1px solid rgba(255,255,255,0.4)",
+        "& fieldset": { border: "none" },
+        "&:hover": { backgroundColor: "rgba(255,255,255,0.35)" },
+        "&.Mui-focused": {
+          backgroundColor: "rgba(255,255,255,0.35)",
+          boxShadow: "0 0 0 2px rgba(255,255,255,0.5)",
+        },
+        "& input": {
+          color: "#1f2937",
+          paddingLeft: "4px",
+        },
+      },
+    }}
+  />
+
+  {/* DROPDOWN */}
+  {isSearchFocused && (
+    <div className="absolute top-full left-0 w-56 md:w-full mt-1 z-50">
+      {loading && (
+        <div className="bg-white rounded shadow p-2 text-sm">
+          Searching...
+        </div>
+      )}
+
+      {!loading && searchQuery && searchResults.length === 0 && (
+        <div className="bg-white rounded shadow p-2 text-sm">
+          No results found
+        </div>
+      )}
+
+      {!loading && searchResults.length > 0 && (
+        <div className="bg-white shadow-lg rounded max-h-60 overflow-y-auto">
+          {searchResults.map((product) => (
+            <Link
+              key={product._id}
+              href={`/Products/${product.slug}`}
+              onClick={() => {
+                setIsSearchFocused(false);
+                setSearchResults([]);
+                setSearchQuery("");
+              }}
+              className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 transition border-b last:border-b-0"
+            >
+              <div className="relative w-10 h-10 shrink-0">
+                {product.image?.length ? (
+                  <Image
+                    src={product.image[0].url}
+                    alt={product.product_name}
+                    fill
+                    sizes="40px"
+                    className="rounded-md object-cover border"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs">
+                    N/A
                   </div>
                 )}
-              {!loading && isSearchFocused && searchResults.length > 0 && (
-                <div className="absolute top-full left-0 mt-1 bg-white w-50 md:w-full shadow-lg rounded z-[9999] max-h-96 overflow-y-auto">
-                  {searchResults.map((product) => (
-                    <Link
-                      key={product._id}
-                      href={`/Products/${product.slug}`}
-                      className="flex flex-row items-center gap-2 px-3 py-2 hover:bg-gray-100 w-50 md:w-full transition border border-[#D6EED6] shadow-md"
-                      onClick={() => {
-                        setSearchResults([]);
-                        setIsSearchFocused(false);
-                      }}
-                    >
-                      <div className="flex-shrink-0 w-8 h-8 xl:w-24 xl:h-24 relative">
-                        {product.image && product.image.length > 0 ? (
-                          <Image
-                            src={product.image[0].url}
-                            alt={product.product_name}
-                            fill
-                            sizes="96px"
-                            className="rounded-md object-cover border border-gray-200 shadow-sm"
-                          />
-                        ) : (
-                          <div className="w-20 h-20 flex items-center justify-center bg-gray-200 text-gray-500 rounded-md">
-                            No image
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col sm:flex-1 justify-between w-full">
-                        <h2 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-1">
-                          {product.product_name}
-                        </h2>
-                        <p className="text-sm sm:text-base font-semibold text-color md:text-md lg:text-sm xl:text-sm text-shadow-sm">
-                          {product.price},00$
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+              </div>
+
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-sm font-semibold truncate">
+                  {product.product_name}
+                </span>
+                <span className="text-sm font-bold text-color">
+                  {product.price},00$
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  )}
+</div>
           {/* Avatar */}
           <Dropdown>
             <DropdownButton>

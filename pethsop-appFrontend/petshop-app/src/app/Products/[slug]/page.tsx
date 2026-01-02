@@ -31,6 +31,13 @@ import {
 } from "@mui/icons-material";
 import { useConfirm } from "@/app/context/confirmContext";
 
+type ReviewStats = {
+  [productId: string]: {
+    count: number;
+    avgRating: number;
+  };
+};
+
 type Reviews = {
   _id: string;
   productId: string;
@@ -78,6 +85,7 @@ const ProductDetails = () => {
   const { favorites, addFavorite, removeFavorite, fetchFavorites } =
     useFavorite();
   const { confirm } = useConfirm();
+  const [reviewStats, setReviewStats] = useState<ReviewStats>({});
 
   useEffect(() => {
     if (!slug) return;
@@ -242,6 +250,7 @@ const ProductDetails = () => {
   };
 
   const handleHelpful = async (id: string) => {
+    if(!isAuthenticated) return toast("You need to log in to like this comment.");
     const res = await axios.put(
       `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/helpful/${id}`,
       {},
@@ -262,7 +271,6 @@ const ProductDetails = () => {
       router.push("/Login");
       return;
     }
-
     const isFav = favorites.some((f) => f._id === productId);
 
     if (isFav) {
@@ -271,6 +279,21 @@ const ProductDetails = () => {
       await addFavorite(productId);
     }
   };
+
+   useEffect(() => {
+    const fetchReviewStats = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/stats`
+        );
+        setReviewStats(response.data.stats);
+      } catch {
+        toast.error("Failed to load reviews");
+      }
+    };
+
+    fetchReviewStats();
+  }, []);
 
   const isFavorite = (productId: string) =>
     favorites.some((f) => f._id === productId);
@@ -376,15 +399,15 @@ const ProductDetails = () => {
         );
       case "reviews":
         return (
-          <main className="px-4 pb-24 pt-2 max-w-lg mx-auto font-sans bg-gray-50 dark:bg-[#0f1115] min-h-screen">
+          <main className="px-4 pb-24 pt-2 max-w-lg mx-auto font-sans bg-gray-50 min-h-screen">
             <h2 className="text-color2 text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
               Product Reviews
             </h2>
             {/* SUMMARY */}
-            <div className="flex items-center justify-between mb-6 bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 mt-2">
+            <div className="flex items-center justify-between mb-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100  mt-2">
               <div className="flex items-center gap-4">
                 <div className="text-center">
-                  <span className="block text-4xl font-bold text-gray-900 dark:text-white">
+                  <span className="block text-4xl font-bold text-gray-900">
                     {reviews.length
                       ? (
                           reviews.reduce((a, b) => a + b.rating, 0) /
@@ -392,12 +415,12 @@ const ProductDetails = () => {
                         ).toFixed(1)
                       : "0.0"}
                   </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                  <span className="text-xs text-gray-500">
                     {reviews.length} Review
                   </span>
                 </div>
 
-                <div className="h-12 w-px bg-gray-200 dark:bg-zinc-700"></div>
+                <div className="h-12 w-px bg-gray-200"></div>
 
                 <div className="flex flex-col">
                   <div className="flex text-yellow-500">
@@ -413,7 +436,7 @@ const ProductDetails = () => {
                       return <StarBorder key={i} fontSize="small" />;
                     })}
                   </div>
-                  <span className="text-sm text-gray-600 dark:text-gray-300 font-medium flex items-center gap-1">
+                  <span className="text-sm text-gray-600 font-medium flex items-center gap-1">
                     <VerifiedUser
                       className="text-green-500 text-xs"
                       sx={{ fontSize: 16 }}
@@ -426,17 +449,17 @@ const ProductDetails = () => {
 
             {/* ADD REVIEW */}
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-color dark:text-white mb-4 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-color mb-4 flex items-center gap-2">
                 <RateReview className="text-color2" />
                 Write a Review
               </h2>
 
               <form
                 onSubmit={handleAddReview}
-                className="bg-white dark:bg-zinc-900 rounded-2xl shadow-md p-6 border border-gray-100 dark:border-zinc-800"
+                className="bg-white rounded-2xl shadow-md p-6 border border-gray-100"
               >
                 <div className="flex flex-col items-center mb-6">
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+                  <label className="text-sm font-medium text-gray-500">
                     Your Rating
                   </label>
 
@@ -449,7 +472,7 @@ const ProductDetails = () => {
                         className={`transition-transform cursor-pointer ${
                           rating >= i
                             ? "text-yellow-500"
-                            : "text-gray-300 dark:text-zinc-700"
+                            : "text-gray-300"
                         } hover:scale-125`}
                       >
                         <Star sx={{ fontSize: 32 }} />
@@ -464,7 +487,7 @@ const ProductDetails = () => {
                   required
                   rows={4}
                   placeholder="Write your review..."
-                  className="w-full bg-gray-50 dark:bg-black/40 border border-[#97cba9] dark:border-zinc-700 rounded-xl p-4 text-sm focus:ring-2 focus:bg-[#D6EED6] outline-none resize-none mb-4"
+                  className="w-full bg-gray-50 border border-[#97cba9] rounded-xl p-4 text-sm focus:ring-2 focus:bg-[#D6EED6] outline-none resize-none mb-4"
                 />
 
                 <button
@@ -481,7 +504,7 @@ const ProductDetails = () => {
             {/* REVIEWS */}
             <section>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-color dark:text-white">
+                <h2 className="text-xl font-bold text-color ">
                   Latest Reviews
                 </h2>
                 <span className="text-xs text-color2 font-semibold cursor-pointer">
@@ -489,11 +512,11 @@ const ProductDetails = () => {
                 </span>
               </div>
 
-              <div className="space-y-4 max-h-[520px] overflow-y-auto pr-2">
+              <div className="space-y-4 max-h-130 overflow-y-auto pr-2">
                 {reviews.map((review) => (
                   <div
                     key={review._id}
-                    className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-zinc-800 relative"
+                    className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative"
                   >
                     <div className="absolute bottom-5 right-10 cursor-pointer">
                       {user?._id === review.userId?._id && (
@@ -532,8 +555,8 @@ const ProductDetails = () => {
                         </div>
 
                         <div>
-                          <h3 className="font-bold text-sm text-color dark:text-white">
-                            {review.userId?.firstName || "User"}{" "}
+                          <h3 className="font-bold text-sm text-color">
+                            {review.userId?.firstName || "User"}{" "}ar
                             {review.userId?.lastName?.[0]}
                           </h3>
                           <p className="text-[10px] text-gray-400">
@@ -549,7 +572,7 @@ const ProductDetails = () => {
                       </div>
                     </div>
 
-                    <p className="text-gray-600 dark:text-zinc-400 text-sm leading-relaxed break-words whitespace-pre-wrap overflow-hidden">
+                    <p className="text-gray-600 text-sm leading-relaxed break-words whitespace-pre-wrap overflow-hidden">
                       {review.comment}
                     </p>
 
@@ -565,7 +588,7 @@ const ProductDetails = () => {
                             `}
                       >
                         <ThumbUp sx={{ fontSize: 14 }} />
-                        Helpful ({review.helpful?.length || 0})
+                        Helpful ({review.helpful?.length ?? 0})
                       </button>
                     </div>
                   </div>
@@ -598,113 +621,126 @@ const ProductDetails = () => {
               breakpoints={{
                 320: { slidesPerView: 1, spaceBetween: 10 },
                 640: { slidesPerView: 2, spaceBetween: 15 },
-                768: { slidesPerView: 3, spaceBetween: 20 },
-                1024: { slidesPerView: 4, spaceBetween: 20 },
-                1280: { slidesPerView: 5, spaceBetween: 20 },
+                768: { slidesPerView: 2, spaceBetween: 20 },
+                1024: { slidesPerView: 3, spaceBetween: 20 },
+                1280: { slidesPerView: 4, spaceBetween: 10 },
+                1536: { slidesPerView: 5, spaceBetween: 10 },
               }}
               className="py-8 mt-7"
             >
-              {similar.map((item) => {
-                const discountPercent =
-                  item.salePrice && item.salePrice < item.price
-                    ? Math.round(
-                        ((item.price - item.salePrice) / item.price) * 100
-                      )
-                    : 0;
-                return (
-                  <SwiperSlide key={item._id}>
-                    <Link
-                      href={`/Products/${item.slug}`}
-                      className="flex items-center justify-center w-full"
-                    >
-                      <div className="bg-primary rounded-2xl shadow-md hover:shadow-xl grid overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative p-4 sm:p-4 sm:my-5 cursor-pointer">
-                        {/* DISCOUNT BADGE */}
-                        {discountPercent > 0 && (
-                          <span className="absolute top-2 left-2 bg-secondary text-color text-xs font-bold px-2 py-1 rounded-full z-10">
-                            %{discountPercent} OFF
-                          </span>
-                        )}
-                        {/* favorite */}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="p-2 rounded-full hover:bg-[#D6EED6] absolute top-0 right-0 cursor-pointer"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleFavorite(item._id);
-                          }}
-                        >
-                          {isFavorite(item._id) ? (
-                            <FavoriteIcon className="text-gray-400 w-3 h-3" />
-                          ) : (
-                            <Heart className="text-gray-400 w-5 h-5" />
-                          )}
-                        </Button>
-                        {/* IMAGE */}
-                        <div className="flex items-center justify-center p-4">
-                          {item.image && item.image.length > 0 ? (
-                            <Image
-                              src={item.image[0].url}
-                              alt={item.product_name}
-                              width={400}
-                              height={400}
-                              sizes="(max-width: 640px) 192px, 208px"
-                              className="rounded-full object-cover w-32 h-32 sm:w-60 sm:h-60 border-4 border-white shadow-2xl"
-                            />
-                          ) : (
-                            <p className="text-white text-sm">No image!</p>
-                          )}
-                        </div>
+          {similar.map((item) => {
+          const discountPercent =
+            item.salePrice && item.salePrice < item.price
+              ? Math.round(((item.price - item.salePrice) / item.price) * 100)
+              : 0;
 
-                        {/* Product Name */}
-                        <div className="px-4 py-2 text-center flex items-center justify-center">
-                          <h2 className="text-white text-lg truncate font-semibold text-center max-w-full mx-auto">
-                            {item.product_name}
-                          </h2>
-                        </div>
+          const stats = reviewStats[item._id];
+          return (
+            <SwiperSlide key={item._id}>
+              <Link
+                key={item._id}
+                href={`/Products/${item.slug}`}
+                className="bg-primary w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative h-110"
+              >
+                {/* DISCOUNT BADGE */}
+                {discountPercent > 0 && (
+                  <span className="absolute top-2 left-2 bg-secondary text-color text-xs font-bold px-2 py-1 rounded-full z-10">
+                    %{discountPercent} OFF
+                  </span>
+                )}
 
-                        {/* Description */}
-                        <div className="px-4 py-2 h-[70px] overflow-hidden">
-                          <p className="text-sm text-color font-semibold line-clamp-3 leading-snug">
-                            {item.description}
-                          </p>
-                        </div>
+                {/* favorite */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="p-2 rounded-full hover:bg-[#D6EED6] absolute top-0 right-0 cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleFavorite(item._id);
+                  }}
+                >
+                  {isFavorite(item._id) ? (
+                    <FavoriteIcon className="text-gray-400 w-3 h-3" />
+                  ) : (
+                    <Heart className="text-gray-400 w-5 h-5" />
+                  )}
+                </Button>
 
-                        {/* Price & Button */}
-                        <div className="flex gap-2 justify-between items-center mt-auto w-full">
-                          <div className="flex flex-col items-center mt-3">
-                            {item.salePrice && item.salePrice < item.price ? (
-                              <>
-                                <span className="line-through text-color text-xs opacity-55 font-bold">
-                                  {item.price},00$
-                                </span>
-                                <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
-                                  {item.salePrice},00$
-                                </span>
-                              </>
-                            ) : (
-                              <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
-                                {item.price},00$
-                              </span>
-                            )}
-                          </div>
-                          <Button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handlerSimilarAddCart(item);
-                            }}
-                            className="bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base m-2 flex-shrink"
-                          >
-                            Add To Cart
-                          </Button>
-                        </div>
-                      </div>
-                    </Link>
-                  </SwiperSlide>
-                );
-              })}
+                {/* image */}
+                <div className="flex items-center justify-center p-2 sm:p-4">
+                  {item.image && item.image.length > 0 ? (
+                    <Image
+                      src={item.image[0].url}
+                      alt={item.product_name}
+                      width={400}
+                      height={400}
+                      className="rounded-full w-40 h-40 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-48 lg:h-48 xl:w-44 xl:h-44 object-cover border-4 border-white shadow-2xl"
+                    />
+                  ) : (
+                    <p className="text-white text-sm">No image!</p>
+                  )}
+                </div>
+
+                <div className="px-2 sm:px-4 py-1 sm:py-2 text-center">
+                  <h2 className="text-white text-sm sm:text-base md:text-lg truncate font-semibold">
+                    {item.product_name}
+                  </h2>
+                </div>
+
+                {/* Review stars & count */}
+                {stats && stats.count > 0 && (
+                  <div className="flex items-center justify-center gap-1 text-gray-200 text-sm mt-1">
+                    <div className="flex text-yellow-500">
+                      {[...Array(Math.round(stats.avgRating))].map((_, i) => (
+                        <Star key={i} sx={{ fontSize: 16 }} />
+                      ))}
+                    </div>
+                    <span className="text-xs text-color3 font-semibold">
+                      ( {stats.count} )
+                    </span>
+                  </div>
+                )}
+
+                <div className="px-4 py-3 sm:px-4 sm:py-2 h-20 sm:h-24 md:h-24 overflow-hidden mt-1">
+                  <h2 className="text-xs sm:text-sm text-color font-semibold line-clamp-3 leading-snug">
+                    {item.description}
+                  </h2>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 justify-between items-center px-2 sm:px-4 py-2">
+                  <div className="flex flex-col items-center">
+                    {item.salePrice && item.salePrice < item.price ? (
+                      <>
+                        <span className="line-through text-color text-xs opacity-55 font-bold">
+                          {item.price},00$
+                        </span>
+                        <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
+                          {item.salePrice},00$
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
+                        {item.price},00$
+                      </span>
+                    )}
+                  </div>
+
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handlerSimilarAddCart(item);
+                    }}
+                    className="w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400"
+                  >
+                    Add To Cart
+                  </Button>
+                </div>
+              </Link>
+            </SwiperSlide>
+          );
+        })}
             </Swiper>
 
             {/* Custom Pagination */}

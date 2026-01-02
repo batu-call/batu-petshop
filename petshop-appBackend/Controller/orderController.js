@@ -278,3 +278,44 @@ export const getOrderByUserId = catchAsyncError(async (req, res, next) => {
     orders,
   });
 });
+
+export const getUserOrderStats = catchAsyncError(async (req, res, next) => {
+  const stats = await Order.aggregate([
+    {
+      $group: {
+        _id: "$user",
+        orderCount: { $sum: 1 },
+        lastOrderAt: { $max: "$createdAt" },
+        totalSpent: { $sum: "$totalAmount" },
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    { $unwind: "$user" },
+    {
+      $project: {
+        _id: 1,
+        orderCount: 1,
+        lastOrderAt: 1,
+        totalSpent: 1,
+        "user.firstName": 1,
+        "user.lastName": 1,
+        "user.email": 1,
+        "user.avatar": 1,
+        "user.createdAt": 1,
+      },
+    },
+    { $sort: { lastOrderAt: -1 } },
+  ]);
+
+  res.status(200).json({
+    success: true,
+    stats,
+  });
+});

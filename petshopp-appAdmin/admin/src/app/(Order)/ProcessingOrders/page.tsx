@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "@/app/Navbar/page";
 import Sidebar from "@/app/Sidebar/page";
 import axios from "axios";
+import CircularText from "@/components/CircularText";
 
 interface OrderItem {
   product: string;
@@ -36,7 +37,7 @@ const ProcessingOrders: React.FC = () => {
   const fetchOrders = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/v1/order/status/filter?status=pending",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/order/status/filter?status=pending`,
         { withCredentials: true }
       );
 
@@ -51,7 +52,7 @@ const ProcessingOrders: React.FC = () => {
   const updateStatus = async (id: string, status: string) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/v1/order/${id}/status`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/order/${id}/status`,
         { status },
         { withCredentials: true }
       );
@@ -71,12 +72,16 @@ const ProcessingOrders: React.FC = () => {
       <Navbar />
       <Sidebar />
 
-      <div className="ml-40 p-4">
+      <div className="md:ml-24 lg:ml-40 p-4">
         <h1 className="text-2xl font-bold mb-4 text-color">Processing Orders</h1>
         {loading ? (
-          <p>Loading...</p>
-        ) : orders.length === 0 ? (
-          <p className="text-color mt-4">No pending orders found.</p>
+          <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
+            <CircularText
+              text="LOADING"
+              spinDuration={20}
+              className="text-white text-4xl"
+            />
+          </div>
         ) : (
           <div className="space-y-4">
             {orders.map((order) => (
