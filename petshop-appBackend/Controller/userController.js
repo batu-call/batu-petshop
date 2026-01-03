@@ -90,7 +90,9 @@ export const Logout = catchAsyncError(async (req, res, next) => {
     .status(200)
     .cookie("UserToken", "", {
       httpOnly: true,
-      expires: new Date(Date.now()),
+      secure: true,
+      sameSite: "None",
+      expires: new Date(0),
     })
     .json({
       success: true,
@@ -168,37 +170,35 @@ export const newAdmin = catchAsyncError(async (req, res, next) => {
 export const adminLogin = catchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const admin = await User.findOne({ email, role: "Admin" }).select(
-    "+password"
-  );
+  const admin = await User.findOne({ email, role: "Admin" }).select("+password");
   if (!admin) return next(new ErrorHandler("Admin not found", 404));
 
-  // Compare password
   const isMatch = await admin.comparePassword(password);
   if (!isMatch) return next(new ErrorHandler("Incorrect password", 401));
+
   await LoginActivity.create({ userId: admin._id });
   await Session.create({ userId: admin._id, startedAt: new Date() });
 
-  // Generate JWT token
   const token = admin.generateJsonWebToken();
 
-  res.cookie("AdminToken", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-
-  res.status(200).json({
-    success: true,
-    message: "Admin login successful",
-    admin: {
-      id: admin._id,
-      firstName: admin.firstName,
-      lastName: admin.lastName,
-      email: admin.email,
-    },
-  });
+  res
+    .cookie("AdminToken", token, {
+      httpOnly: true,
+      secure: true,       
+      sameSite: "None",   
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .status(200)
+    .json({
+      success: true,
+      message: "Admin login successful",
+      admin: {
+        id: admin._id,
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        email: admin.email,
+      },
+    });
 });
 
 export const AdminLogout = catchAsyncError(async (req, res, next) => {
@@ -217,7 +217,9 @@ export const AdminLogout = catchAsyncError(async (req, res, next) => {
     .status(200)
     .cookie("AdminToken", "", {
       httpOnly: true,
-      expires: new Date(Date.now()),
+      secure: true,
+      sameSite: "None",
+      expires: new Date(0),
     })
     .json({
       success: true,
