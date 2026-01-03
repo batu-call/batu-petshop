@@ -154,12 +154,12 @@ const Deals = () => {
         preventClicks={true}
         preventClicksPropagation={false}
         breakpoints={{
-          320: { slidesPerView: 1, spaceBetween: 10 },
-          640: { slidesPerView: 2, spaceBetween: 15 },
-          768: { slidesPerView: 2, spaceBetween: 20 },
-          1024: { slidesPerView: 3, spaceBetween: 20 },
-          1280: { slidesPerView: 4, spaceBetween: 10 },
-          1600: { slidesPerView: 5, spaceBetween: 10 },
+          320: { slidesPerView: 1, spaceBetween: 5 },
+          640: { slidesPerView: 2, spaceBetween: 5 },
+          768: { slidesPerView: 2, spaceBetween: 5 },
+          1024: { slidesPerView: 3, spaceBetween: 5 },
+          1280: { slidesPerView: 4, spaceBetween: 5 },
+          1600: { slidesPerView: 5, spaceBetween: 5 },
         }}
         className="py-8 mt-2 lg:mt-14 custom-swiper"
       >
@@ -171,7 +171,7 @@ const Deals = () => {
 
           const stats = reviewStats[p._id];
           return (
-            <SwiperSlide key={p._id}>
+            <SwiperSlide key={p._id} className="p-2">
               <Link
                 key={p._id}
                 href={`/Products/${p.slug}`}

@@ -147,12 +147,12 @@ const NewArrivals = () => {
           } as React.CSSProperties
         }
         breakpoints={{
-          320: { slidesPerView: 1, spaceBetween: 10 },
-          640: { slidesPerView: 2, spaceBetween: 15 },
-          768: { slidesPerView: 2, spaceBetween: 20 },
-          1024: { slidesPerView: 3, spaceBetween: 20 },
-          1280: { slidesPerView: 4, spaceBetween: 10 },
-          1600: { slidesPerView: 5, spaceBetween: 10 },
+          320: { slidesPerView: 1, spaceBetween: 5 },
+          640: { slidesPerView: 2, spaceBetween: 5 },
+          768: { slidesPerView: 2, spaceBetween: 5 },
+          1024: { slidesPerView: 3, spaceBetween: 5 },
+          1280: { slidesPerView: 4, spaceBetween: 5 },
+          1600: { slidesPerView: 5, spaceBetween: 5 },
         }}
         loop
         modules={[Autoplay, Navigation]}
@@ -160,7 +160,7 @@ const NewArrivals = () => {
         navigation
         preventClicks={true}
         preventClicksPropagation={false}
-        className="py-8 mt-2 lg:mt-12 custom-swiper"
+        className="py-8 mt-2 lg:mt-12 custom-swiper items-center"
       >
         {product.map((p) => {
           const discountPercent =
@@ -170,7 +170,7 @@ const NewArrivals = () => {
 
           const stats = reviewStats[p._id];
           return (
-            <SwiperSlide key={p._id}>
+            <SwiperSlide key={p._id} className="p-2">
               <Link
                 key={p._id}
                 href={`/Products/${p.slug}`}

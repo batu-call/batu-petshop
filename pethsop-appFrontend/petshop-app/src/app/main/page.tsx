@@ -1,183 +1,142 @@
-"use client"
-import React, { useEffect, useState } from 'react'
-import Navbar from '../Navbar/page'
-import Sidebar from '../Sidebar/page'
-import Image from 'next/image'
-import NewArrivals from '../NewArrivals/page'
-import { Sniglet } from 'next/font/google'
-import { Button } from '@mui/material'
-import BlurText from "../../components/BlurText";
-import Link from 'next/link'
-import Deals from '../Deals/page'
-import Footer from '../Footer/page'
-import { UserGuard } from '../context/UserGuard'
-import CircularText from '@/components/CircularText'
+"use client";
 
-
-const sniglet = Sniglet({
-  subsets: ['latin'],
-  weight: ['400','800'],
-});
-
+import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import Navbar from "../Navbar/page";
+import Sidebar from "../Sidebar/page";
+import NewArrivals from "../NewArrivals/page";
+import Deals from "../Deals/page";
+import Footer from "../Footer/page";
+import Link from "next/link";
+import { Button } from "@mui/material";
+import BlurText from "@/components/BlurText";
+import CircularText from "@/components/CircularText";
 
 const Main = () => {
 
-  const [loading,setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-   useEffect(() => {
-      const timer = setTimeout(() => setLoading(false), 1500);
-      return () => clearTimeout(timer);
-    }, []);
-  
+    useEffect(() => {
+    const id = requestAnimationFrame(() => setLoading(false));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+
   return (
-    <div className='min-h-screen flex flex-col'>
-    <Navbar />
-    <Sidebar/>
-    {loading ? (
-        <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
-          <CircularText
-            text="LOADING"
-            spinDuration={20}
-            className="text-white text-4xl"
-          />
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <Sidebar />
+       {loading ? (
+        <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
+          <CircularText text="LOADING" spinDuration={20} className="text-white text-4xl" />
         </div>
       ) : (
-    <div className='ml-0 md:ml-24 lg:ml-40 flex gap-120 h-full'>
-  <div className="w-full relative aspect-[16/7] min-h-[200px]">
-     <Image
-    src="/Yellow Cute Pet Shop Banner (6).png"
-    alt="main-banner-image"
-    fill 
-    priority
-    className="object-cover"
-  /> 
+      <main className="ml-0 md:ml-24 lg:ml-40">
 
-  {/* main text */}
-  <div className='absolute right-1 md:absolute md:right-1 lg:absolute lg:top-2 lg:right-30 xl:absolute xl:top-20 xl:right-40'>
-<div>
-  <BlurText
-  text="Pet Shop"
-  delay={150}
-  animateBy="words"
-  direction="top"
-  
-  className="mb-2 xl:mb-8 text-color text-jost text-2xl sm:text-6xl xl:text-7xl flex items-center justify-center font-bold" 
-/>
+        <section
+          className="relative w-full"
+          style={{ height: "calc(100vh - 64px)" }}
+        >
+     
+          <Image
+            src="/Yellow Cute Pet Shop Banner (6).png"
+            alt="Pet Shop Banner"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
 
-  <BlurText
-  text="Whether it's a cat, dog, bird, fish, or reptile — we offer all the care and essential products your pets need, all in one place."
-  delay={50}
-  animateBy="words"
-  direction="top"
-  className="mb-8 text-color text-jost text-[8px] md:text-sm xl:text-xl flex items-center justify-center font-bold w-60 sm:w-70 xl:w-120" 
-/>
-</div>
-</div>
+       
+          <div className="absolute inset-0 grid grid-cols-1 lg:grid-cols-2 items-center px-4 sm:px-10 lg:px-20">
+            <div />
+           
+            <div className="flex flex-col gap-6 lg:gap-10">
+           
+              <BlurText
+                text="Pet Shop"
+                animateBy="words"
+                direction="top"
+                className="
+                  text-color font-bold
+                  text-3xl sm:text-5xl lg:text-6xl xl:text-7xl
+                "
+              />
 
-<div className='absolute top-19 right-2 md:absolute md:top-31 md:right-8 lg:absolute lg:top-44 lg:right-42 xl:absolute xl:top-70 xl:right-80'> 
-<div className='flex flex-col lg:gap-8 xl:gap-2 mt-5 text-[7px] md:text-xs xl:text-xl text-color font-bold py-2 px-3'>
-  <div className="flex items-center gap-5">
-  <div className="relative 
-  w-8 h-8 
-  sm:w-10 sm:h-10 
-  md:w-12 md:h-12 
-  lg:w-14 lg:h-14 
-  xl:w-18 xl:h-18 
-  2xl:w-20 2xl:h-20">
-    <Image
-      src="/banner-icon2.png"
-      alt="banner-icon"
-      fill
-      className="object-contain"
-    />
-  </div>
+        
+              <BlurText
+                text="Whether it's a cat, dog, bird, fish, or reptile — we offer all the care and essential products your pets need."
+                animateBy="words"
+                direction="top"
+                className="
+                  text-color font-semibold
+                  text-xs sm:text-sm lg:text-lg
+                  max-w-md xl:max-w-xl
+                "
+              />
 
-  <h2 className="text-[10px] sm:text-sm xl:text-xl font-bold text-color">
-    Pet wellness and grooming
-  </h2>
-</div>
+         
+              <div className="flex flex-col gap-4">
+                {[
+                  "Pet wellness and grooming",
+                  "Best affordable pet accessories",
+                  "Best quality organic pet food",
+                ].map((text, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <div
+                      className="
+                        relative
+                        w-8 h-8
+                        sm:w-10 sm:h-10
+                        lg:w-14 lg:h-14
+                      "
+                    >
+                      <Image
+                        src="/banner-icon2.png"
+                        alt="icon"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    <p
+                      className="
+                        text-color font-bold
+                        text-xs sm:text-sm lg:text-lg
+                      "
+                    >
+                      {text}
+                    </p>
+                  </div>
+                ))}
+              </div>
 
- <div className="flex items-center gap-2">
-  <div className="relative  w-8 h-8 
-  sm:w-10 sm:h-10 
-  md:w-12 md:h-12 
-  lg:w-14 lg:h-14 
-  xl:w-18 xl:h-18 
-  2xl:w-20 2xl:h-20">
-    <Image
-      src="/banner-icon2.png"
-      alt="banner-icon"
-      fill
-      className="object-contain"
-    />
-  </div>
-
-  <h2 className="text-[10px] sm:text-sm xl:text-xl font-bold text-color">
-    Best affordable pet accessories
-  </h2>
-</div>
-
- <div className="flex items-center gap-2">
-  <div className="relative  w-8 h-8 
-  sm:w-10 sm:h-10 
-  md:w-12 md:h-12 
-  lg:w-14 lg:h-14 
-  xl:w-18 xl:h-18 
-  2xl:w-20 2xl:h-20">
-    <Image
-      src="/banner-icon2.png"
-      alt="banner-icon"
-      fill
-      className="object-contain"
-    />
-  </div>
-
-  <h2 className="text-[10px] sm:text-sm xl:text-xl font-bold text-color">
-    Best quality organic pet food
-  </h2>
-</div>
-</div>
-  </div>
-
-{/* Button */}
-  <div className='flex flex-col gap-20 px-2 py-3 mt-8 absolute right-5 bottom-0 lg:absolute lg:top-74 lg:right-5 xl:absolute xl:top-130 xl:right-40 2xl:absolute 2xl:top-130 2xl:right-40'>
-    <ul className='flex gap-6'>
-      <li>
-        <Link href={"/AllProduct"}><Button
-      className={sniglet.className}
-      sx={{
-       width: {xs: "2rem", sm: "16rem", md: "12rem",lg:"20rem" },
-        height: {xs: "1.5rem", sm: "2rem", md: "2rem",lg:"3.5rem" },
-        borderRadius: "1.5rem",
-        bgcolor: "white",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        cursor: "pointer",
-        fontSize: {xs: "0.5rem", sm:"1rem" , md:"1rem" ,lg:"1.75rem"},   
-        fontWeight:800,
-        color:"#393E46",
-        transition: "all 0.3s ease-in-out",
-        "&:hover": {
-          transform: "scale(1.05)",
-        },
-      }}
-    >
-          Shop Now
-    </Button></Link></li>
-    </ul>
-  </div>
-</div>
-
-
-    </div>
+              <Link href="/AllProduct" className="w-fit">
+                <Button
+                  sx={{
+                    width: { xs: "10rem", lg: "18rem" },
+                    height: { xs: "2.5rem", lg: "3.5rem" },
+                    borderRadius: "2rem",
+                    bgcolor: "white",
+                    fontWeight: 800,
+                    fontSize: { xs: "0.9rem", lg: "1.6rem" },
+                    color: "#393E46",
+                    "&:hover": { transform: "scale(1.05)" },
+                  }}
+                >
+                  Shop Now
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
       )}
-        <NewArrivals/>
-        <Deals />
-        <Footer />
+
+      <NewArrivals />
+      <Deals />
+      <Footer />
     </div>
+  );
+};
 
-  )
-}
-
-export default Main
+export default Main;
