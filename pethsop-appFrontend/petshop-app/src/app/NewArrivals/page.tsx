@@ -152,7 +152,7 @@ const NewArrivals = () => {
           768: { slidesPerView: 2, spaceBetween: 20 },
           1024: { slidesPerView: 3, spaceBetween: 20 },
           1280: { slidesPerView: 4, spaceBetween: 10 },
-          1536: { slidesPerView: 5, spaceBetween: 10 },
+          1600: { slidesPerView: 5, spaceBetween: 10 },
         }}
         loop
         modules={[Autoplay, Navigation]}

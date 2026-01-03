@@ -11,7 +11,7 @@ import AddLocationIcon from "@mui/icons-material/AddLocation";
 import AddCallIcon from "@mui/icons-material/AddCall";
 import EmailIcon from "@mui/icons-material/Email";
 
-// Dynamic import to prevent SSR issues with map
+
 const StoreMap = dynamic(() => import("../components/StoreMap"), { ssr: false });
 
 const Contact = () => {

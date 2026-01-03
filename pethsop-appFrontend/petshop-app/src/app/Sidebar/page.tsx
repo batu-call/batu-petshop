@@ -9,7 +9,7 @@ const Sidebar = () => {
 
   return (
     <div className="hidden md:block absolute top-0">
-      <div className="md:w-24 lg:w-40 h-screen bg-white fixed">
+      <div className="md:w-24 lg:w-40 h-screen bg-white fixed overflow-y-auto">
         <div className="mt-0">
         {/* Logo */}
         <Link href="/main" className="hidden md:flex justify-center">
@@ -23,8 +23,7 @@ const Sidebar = () => {
       object-contain
       w-20 h-auto
       md:w-24
-      lg:w-32
-      xl:w-40
+      shrink-0
     "
     sizes="
       (max-width: 768px) 96px,
@@ -40,7 +39,7 @@ const Sidebar = () => {
         {/* Cat */}
         <Link href={"/Cat"}>
           <div
-            className={`group inline-block p-2 items-center md:mt-24 lg:mt-12 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
+            className={`group inline-block p-2 items-center md:mt-24 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
               pathname === "/Cat" ? "bg-[#DDEEDD]" : "bg-primary"
             }`}
           >
@@ -246,6 +245,7 @@ const Sidebar = () => {
             </div>
           </div>
         </Link>
+
       </div>
     </div>
   );

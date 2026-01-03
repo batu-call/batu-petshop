@@ -23,7 +23,7 @@ const Footer = () => {
       const screenWidth = window.innerWidth;
       const center = screenWidth / 2;
 
-      // Ball horizontal movement
+     
       gsap.fromTo(
         ballRef.current,
         { x: center },

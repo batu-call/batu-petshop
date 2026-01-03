@@ -153,13 +153,13 @@ const Deals = () => {
         navigation
         preventClicks={true}
         preventClicksPropagation={false}
-         breakpoints={{
+        breakpoints={{
           320: { slidesPerView: 1, spaceBetween: 10 },
           640: { slidesPerView: 2, spaceBetween: 15 },
           768: { slidesPerView: 2, spaceBetween: 20 },
           1024: { slidesPerView: 3, spaceBetween: 20 },
           1280: { slidesPerView: 4, spaceBetween: 10 },
-          1536: { slidesPerView: 5, spaceBetween: 10 },
+          1600: { slidesPerView: 5, spaceBetween: 10 },
         }}
         className="py-8 mt-2 lg:mt-14 custom-swiper"
       >
@@ -172,7 +172,7 @@ const Deals = () => {
           const stats = reviewStats[p._id];
           return (
             <SwiperSlide key={p._id}>
-                <Link
+              <Link
                 key={p._id}
                 href={`/Products/${p.slug}`}
                 className="bg-primary w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative h-110"
