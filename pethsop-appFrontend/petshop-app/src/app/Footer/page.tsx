@@ -59,7 +59,7 @@ const Footer = () => {
 
   return (
     <div className="md:ml-24 lg:ml-40">
-      <div className="w-full flex relative overflow-hidden h-[200px] mb-4">
+      <div className="w-full flex relative overflow-hidden h-[200px] mb-4 border-b">
         {/* Ball */}
         <div
           ref={ballRef}
@@ -88,10 +88,9 @@ const Footer = () => {
         </div>
       </div>
 
-      <hr className="my-4" />
 
       {/* Footer links */}
-      <div className="lg:flex lg:flex-row flex flex-col space-y-2 w-full">
+      <div className="lg:flex lg:flex-row flex flex-col space-y-2 w-full overflow-hidden p-2">
         <div className="h-10 sm:h-32 flex px-4 sm:px-20 lg:px-10">
           <ul className="flex gap-10 sm:gap-20 md:gap-15 lg:gap-16 xl:gap-30 2xl:gap-60 justify-center items-center text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-jost text-color font-bold">
             <Link href={"/Contact"}>
