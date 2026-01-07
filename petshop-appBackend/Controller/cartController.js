@@ -3,135 +3,219 @@ import ErrorHandler from "../Middlewares/errorMiddleware.js";
 import { Cart } from "../Models/CartSchema.js";
 import { Product } from "../Models/ProductSchema.js";
 
-export const addToCart = catchAsyncError(async (req, res, next) => {
-  const { productId, quantity } = req.body;
 
-  const product = await Product.findById(productId)
+const calculateCartTotals = (cart) => {
+  const subtotal = cart.items.reduce((acc, item) => {
+    const price =
+      item.product?.salePrice ?? item.product?.price ?? 0;
+
+    return acc + price * item.quantity;
+  }, 0);
+
+  let discountAmount = 0;
+
+  if (cart.appliedCoupon?.percent > 0) {
+    discountAmount = (subtotal * cart.appliedCoupon.percent) / 100;
+  }
+
+  return {
+    subtotal,
+    discountAmount,
+    total: subtotal - discountAmount,
+  };
+};
+
+
+export const addToCart = catchAsyncError(async (req, res, next) => {
+  const { productId, quantity = 1 } = req.body;
+
+  if (quantity < 1) {
+    return next(new ErrorHandler("Invalid quantity", 400));
+  }
+
+  const product = await Product.findById(productId);
   if (!product) {
-    return next(new ErrorHandler("Product not found!", 404));
+    return next(new ErrorHandler("Product not found", 404));
   }
 
   let cart = await Cart.findOne({ user: req.user._id });
 
   if (!cart) {
-    cart = new Cart({
+    cart = await Cart.create({
       user: req.user._id,
       items: [],
-      discountCode: null,
-      discountAmount: 0,
-      shippingFee: 0,
+      appliedCoupon: null,
     });
   }
 
   const itemIndex = cart.items.findIndex(
-    (i) => i.product.toString() === productId
+    (item) => item.product.toString() === productId
   );
 
   if (itemIndex > -1) {
-    cart.items[itemIndex].quantity += quantity || 1;
+    cart.items[itemIndex].quantity += quantity;
   } else {
     cart.items.push({
       product: product._id,
-      name: product.product_name,
-      description: product.description, 
-      price: product.price,
-      quantity: quantity || 1,
-      image: product.image?.[0]?.url || "",
-      slug: product.slug,
-    }); 
+      quantity,
+    });
   }
-
 
   await cart.save();
 
-  res.status(200).json({ success: true, cart });
+  await cart.populate(
+    "items.product",
+    "product_name price salePrice image slug"
+  );
+
+  const totals = calculateCartTotals(cart);
+
+  res.status(200).json({
+    success: true,
+    cart,
+    subtotal: totals.subtotal,
+    discountAmount: totals.discountAmount,
+    total: totals.total,
+  });
 });
 
 
-  export const getCart = catchAsyncError(async(req,res,next) => {
-    
-    let cart = await Cart.findOne({user: req.user._id}).populate("items.product", "product_name price image slug description");
+export const getCart = catchAsyncError(async (req, res) => {
+  let cart = await Cart.findOne({ user: req.user._id })
+    .populate("items.product", "product_name price salePrice image slug");
 
-    if(!cart) {
-      cart = await Cart.create({user: req.user._id});
-    }
+  if (!cart) {
+    cart = await Cart.create({
+      user: req.user._id,
+      items: [],
+      appliedCoupon: null,
+    });
+  }
 
-    res.status(200).json({
-      success:true,
-      cart
-    })
+  const totals = calculateCartTotals(cart);
+
+  res.status(200).json({
+    success: true,
+    cart,
+    subtotal: totals.subtotal,
+    discountAmount: totals.discountAmount,
+    total: totals.total,
   });
+});
 
 
-  export const removeFromCart = catchAsyncError(async(req,res,next) => {
-    const {productId} = req.params;
-    
-    const cart = await Cart.findOne({user: req.user._id});
+export const updateQuantity = catchAsyncError(async (req, res, next) => {
+  const { productId, quantity } = req.body;
 
-    if(!cart) {
-      return next(new ErrorHandler("Cart Not Found!",404));
-    }
+  if (quantity < 1) {
+    return next(new ErrorHandler("Invalid quantity", 400));
+  }
 
-    cart.items = cart.items.filter(item => item.product.toString() !== productId);
+  const cart = await Cart.findOne({ user: req.user._id })
+    .populate("items.product", "price salePrice");
 
-    await cart.save();
+  if (!cart) {
+    return next(new ErrorHandler("Cart not found", 404));
+  }
 
-    res.status(200).json({
-      success:true,
-      cart
-    })
-  })
+  const item = cart.items.find(
+    (item) => item.product._id.toString() === productId
+  );
 
+  if (!item) {
+    return next(new ErrorHandler("Product not in cart", 404));
+  }
 
+  item.quantity = quantity;
+  await cart.save();
 
+  const totals = calculateCartTotals(cart);
 
-
-  export const removeAllCart = catchAsyncError(async(req,res,next) => {
-
-    const cart = await Cart.findOne({user: req.user._id});
-
-
-    if(!cart) {
-      return next(new ErrorHandler('Cart Not Found!',400));
-    }
-
-      cart.items = [];
-
-      await cart.save();
-
-      res.status(200).json({
-        success:true,
-        message: "Cart cleared successfully!",
-        cart
-      })
-
-  })
+  res.status(200).json({
+    success: true,
+    cart,
+    subtotal: totals.subtotal,
+    discountAmount: totals.discountAmount,
+    total: totals.total,
+  });
+});
 
 
-  export const updateQuantity = catchAsyncError(async(req,res,next) => {
-    const {productId , quantity} = req.body;
+export const removeFromCart = catchAsyncError(async (req, res, next) => {
+  const { productId } = req.params;
 
-    if(!quantity || quantity <= 0)  {
-      return next(new ErrorHandler(`Invalid Quantity!`,400))
-    }
+  const cart = await Cart.findOne({ user: req.user._id })
+    .populate("items.product", "price salePrice");
 
-    const cart = await Cart.findOne({user: req.user._id});
+  if (!cart) {
+    return next(new ErrorHandler("Cart not found", 404));
+  }
 
-    if(!cart){
-      return next(new ErrorHandler(`Cart Not Found!`,400));
-    }
+  cart.items = cart.items.filter(
+    (item) => item.product._id.toString() !== productId
+  );
 
-    const item = cart.items.find((i) => i.product.toString() === productId);
-    
-    if(!item ) {
-      return next(new ErrorHandler(`Product no in cart!`,400))
-    }
+  if (cart.items.length === 0) {
+    cart.appliedCoupon = null;
+  }
 
-    item.quantity = quantity;
-    await cart.save();
+  await cart.save();
 
-    res.status(200).json({
-      success:true,
-      cart
-    })
-  })
+  const totals = calculateCartTotals(cart);
+
+  res.status(200).json({
+    success: true,
+    cart,
+    subtotal: totals.subtotal,
+    discountAmount: totals.discountAmount,
+    total: totals.total,
+  });
+});
+
+
+export const clearCart = catchAsyncError(async (req, res, next) => {
+  const cart = await Cart.findOne({ user: req.user._id });
+
+  if (!cart) {
+    return next(new ErrorHandler("Cart not found", 404));
+  }
+
+  cart.items = [];
+  cart.appliedCoupon = null;
+  await cart.save();
+
+  res.status(200).json({
+    success: true,
+    cart,
+    subtotal: 0,
+    discountAmount: 0,
+    total: 0,
+  });
+});
+
+
+export const removeCoupon = catchAsyncError(async (req, res, next) => {
+  const cart = await Cart.findOne({ user: req.user._id })
+    .populate("items.product", "price salePrice");
+
+  if (!cart) {
+    return next(new ErrorHandler("Cart not found", 404));
+  }
+
+  if (!cart.appliedCoupon) {
+    return next(new ErrorHandler("No coupon applied", 400));
+  }
+
+  cart.appliedCoupon = null;
+  await cart.save();
+
+  const totals = calculateCartTotals(cart);
+
+  res.status(200).json({
+    success: true,
+    cart,
+    subtotal: totals.subtotal,
+    discountAmount: totals.discountAmount,
+    total: totals.total,
+  });
+});

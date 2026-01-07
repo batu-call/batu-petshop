@@ -9,20 +9,9 @@ import { TextField } from "@mui/material";
 import StripePay from "../StripePay";
 import { useRouter } from "next/navigation";
 import CircularText from "@/components/CircularText";
-
-type Items = {
-  _id: string;
-  product:
-    | string
-    | { _id: string; product_name: string; image: { url: string } };
-  image: string;
-  name: string;
-  price: number;
-  quantity: number;
-};
+import { useCart } from "../context/cartContext";
 
 const Order = () => {
-  const [items, setItems] = useState<Items[]>([]);
   const [postalCode, setPostalCode] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,52 +19,24 @@ const Order = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [shippingFee, setShippingFee] = useState(0);
   const [freeOver, setFreeOver] = useState(0);
   const [shippingLoading, setShippingLoading] = useState(true);
+  const { cart, subtotal, discountAmount, total, clearCart } = useCart();
 
-  const subtotal = items.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
-
-  const itemlength = items.length;
+  const safeSubtotal = subtotal ?? 0;
+  const safeDiscount = discountAmount ?? 0;
+  const itemlength = cart.length;
 
   const calculatedShippingFee =
-    freeOver > 0 && subtotal >= freeOver ? 0 : shippingFee;
+    freeOver > 0 && safeSubtotal >= freeOver ? 0 : shippingFee;
 
-  const totalAmount = subtotal + calculatedShippingFee;
-
-  useEffect(() => {
-    setLoading(true);
-    const fetchCart = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/getCart`,
-          { withCredentials: true }
-        );
-        if (response.data.success) {
-          setItems(response.data.cart.items);
-        }
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error) && error.response) {
-          toast.error(error.response.data.message);
-        } else if (error instanceof Error) {
-          toast.error(error.message);
-        } else {
-          toast.error("An unknown error occurred while fetching the cart.");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCart();
-  }, []);
+  const finalTotal = Math.max(total + calculatedShippingFee, 0);
 
   const orderCreate = useCallback(
     async (paymentIntentId?: string | null) => {
-      if (!items.length) {
+      if (!cart.length) {
         toast.error("The cart is empty, the order cannot be created!");
         return null;
       }
@@ -84,22 +45,17 @@ const Order = () => {
         return null;
       }
 
-      const orderItems = items.map((item) => ({
-        product:
-          typeof item.product === "string"
-            ? item.product
-            : item.product && "_id" in item.product
-            ? item.product._id
-            : item._id,
-        name: item.name,
-        price: item.price,
+      const orderItems = cart.map((item) => ({
+        product: item.product._id,
+        name: item.product.product_name,
+        price: item.product.salePrice ?? item.product.price,
         quantity: item.quantity,
-        image: item.image,
+        image: item.product.image?.[0]?.url ?? "",
       }));
 
       const payload = {
         items: orderItems,
-        totalAmount,
+        total: finalTotal,
         shippingFee: calculatedShippingFee,
         shippingAddress: {
           fullName,
@@ -136,8 +92,8 @@ const Order = () => {
       }
     },
     [
-      items,
-      totalAmount,
+      cart,
+      finalTotal,
       shippingFee,
       fullName,
       email,
@@ -151,7 +107,7 @@ const Order = () => {
   const handlerPaymentSuccess = async (paymentIntentId?: string | null) => {
     const order = await orderCreate(paymentIntentId);
     if (order) {
-      setItems([]);
+      await clearCart();
       router.push(`/Success?orderId=${order._id}`);
     }
   };
@@ -178,6 +134,13 @@ const Order = () => {
     fetchShippingSettings();
   }, []);
 
+  const stripeItems = cart.map((item) => ({
+    _id: item.product._id,
+    name: item.product.product_name,
+    price: item.product.salePrice ?? item.product.price,
+    quantity: item.quantity,
+  }));
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
@@ -197,15 +160,15 @@ const Order = () => {
               <h2 className="text-xl font-bold text-color p-2 border-b">
                 Order Items ({itemlength})
               </h2>
-              {items.map((c) => (
+              {cart.map((c) => (
                 <div
                   key={c._id}
                   className="flex items-center border border-gray-100 rounded-lg p-2 transition duration-200 hover:bg-gray-50"
                 >
                   <div className="w-[80px] h-[80px] relative flex-shrink-0">
                     <Image
-                      src={c.image}
-                      alt="product-image"
+                      src={c.product.image?.[0]?.url || "/placeholder.png"}
+                      alt={c.product.product_name}
                       fill
                       className="object-cover rounded-md p-1"
                     />
@@ -213,7 +176,7 @@ const Order = () => {
 
                   <div className="flex-1 min-w-0 px-2 sm:px-4">
                     <p className="text-sm sm:text-base text-color font-semibold truncate">
-                      {c.name}
+                      {c.product.product_name}
                     </p>
                   </div>
 
@@ -225,12 +188,15 @@ const Order = () => {
 
                   <div className="w-24 sm:w-32 flex justify-end items-center flex-shrink-0">
                     <p className="text-sm sm:text-base text-color font-bold">
-                      ${(c.price * c.quantity).toFixed(2)}
+                      $
+                      {(
+                        (c.product.salePrice ?? c.product.price) * c.quantity
+                      ).toFixed(2)}
                     </p>
                   </div>
                 </div>
               ))}
-              {items.length === 0 && (
+              {cart.length === 0 && (
                 <div className="text-center text-gray-500 py-10">
                   Your cart is empty.
                 </div>
@@ -250,12 +216,14 @@ const Order = () => {
                     {itemlength}
                   </span>
                 </div>
+
                 <div className="flex justify-between items-center">
                   <p className="text-color text-lg font-semibold">Sub Total</p>
                   <span className="text-color text-lg font-bold bg-gray-100 px-4 py-1 rounded">
-                    ${subtotal.toFixed(2)}
+                    ${safeSubtotal.toFixed(2)}
                   </span>
                 </div>
+
                 <div className="flex justify-between items-center border-b pb-3">
                   <p className="text-color text-lg font-semibold">
                     Shipping Fee
@@ -266,12 +234,24 @@ const Order = () => {
                       : `$${calculatedShippingFee.toFixed(2)}`}
                   </span>
                 </div>
+
+                {safeDiscount > 0 && (
+                  <div className="flex justify-between items-center border-b pb-3">
+                    <p className="text-color text-lg font-semibold">
+                      Discount Amount
+                    </p>
+                    <span className="text-color text-lg font-bold bg-gray-100 px-4 py-1 rounded">
+                      - ${safeDiscount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center pt-2">
                   <p className="text-color text-2xl font-extrabold">
                     Total Amount
                   </p>
                   <span className="text-white text-2xl font-extrabold bg-primary px-6 py-2 rounded-lg shadow-lg">
-                    ${totalAmount.toFixed(2)}
+                    ${finalTotal.toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -464,19 +444,21 @@ const Order = () => {
             </div>
 
             <div className="w-full border border-[#A8D1B5] p-4 sm:p-6 rounded-lg shadow-md bg-white flex justify-center items-center">
-              <StripePay
-                totalAmount={totalAmount}
-                items={items}
-                fullName={fullName}
-                email={email}
-                city={city}
-                phoneNumber={phoneNumber}
-                address={address}
-                postalCode={postalCode}
-                onPaymentSuccess={(paymentIntentId?: string) =>
-                  handlerPaymentSuccess(paymentIntentId)
-                }
-              />
+              {finalTotal > 0 && !shippingLoading && (
+                <StripePay
+                  totalAmount={Number(finalTotal.toFixed(2))}
+                  items={stripeItems}
+                  fullName={fullName}
+                  email={email}
+                  city={city}
+                  phoneNumber={phoneNumber}
+                  address={address}
+                  postalCode={postalCode}
+                  onPaymentSuccess={(paymentIntentId?: string) =>
+                    handlerPaymentSuccess(paymentIntentId)
+                  }
+                />
+              )}
             </div>
           </div>
         </div>

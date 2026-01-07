@@ -13,6 +13,8 @@ const couponSchema = new mongoose.Schema(
     percent: {
       type: Number,
       required: true,
+      min: 1,
+      max: 100,
     },
 
     minAmount: {

@@ -6,19 +6,18 @@ import { Toaster } from "react-hot-toast";
 import { CartProvider } from "./context/cartContext";
 import { FavoriteProvider } from "./context/favoriteContext";
 import { ConfirmProvider } from "./context/confirmContext";
-
-
+import ToastProvider from "@/components/ToastProvider";
 
 const jost = Jost({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
 });
-  
+
 export const metadata: Metadata = {
   title: "Batu Petshop",
   description: "Next.js Petshop App",
   icons: {
-    icon: '/favicon.ico',
+    icon: "/favicon.ico",
   },
 };
 
@@ -32,14 +31,13 @@ export default function RootLayout({
       <body className={`antialiased ${jost.className}`}>
         <AuthProvider>
           <CartProvider>
-          <FavoriteProvider>
-           <ConfirmProvider>
-          {children}
-        </ConfirmProvider>
-        </FavoriteProvider>
+            <FavoriteProvider>
+              <ConfirmProvider>{children}</ConfirmProvider>
+            </FavoriteProvider>
           </CartProvider>
         </AuthProvider>
-          <Toaster position="top-right" reverseOrder={false} />
+
+        <ToastProvider />
       </body>
     </html>
   );

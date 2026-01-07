@@ -14,38 +14,43 @@ import { Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "../context/cartContext";
 import CircularText from "@/components/CircularText";
+import { useConfirm } from "../context/confirmContext";
+import { useRouter } from "next/navigation";
 
-type Product = {
+export type CartItem = {
   _id: string;
-  product_name: string;
-  description: string;
-  price: number;
-  image: { url: string }[];
-  slug: string;
-};
-
-type CartItem = {
-  _id: string;
-  product: Product;
+  product: {
+    _id: string;
+    product_name: string;
+    price: number;
+    salePrice?: number | null;
+    image?: { url: string }[];
+    slug?: string;
+  };
   quantity: number;
 };
 
 const Cart = () => {
   const [discountCode, setDiscountCode] = useState("");
-  const [discountAmount, setDiscountAmount] = useState(0);
-  const [appliedPercent, setAppliedPercent] = useState(0);
+
   const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
-  const { cart, setCart, removeFromCart, fetchCart, clearCart } = useCart();
+  const {
+    cart,
+    removeFromCart,
+    fetchCart,
+    clearCart,
+    applyCoupon,
+    coupon,
+    subtotal,
+    discountAmount,
+    total,
+    removeCoupon,
+  } = useCart();
+  const { confirm } = useConfirm();
   const [loading, setLoading] = useState(true);
-  const [totalAmount, setTotalAmount] = useState(0);
   const [shippingFee, setShippingFee] = useState(0);
   const [freeOver, setFreeOver] = useState(0);
-  const [shippingLoading, setShippingLoading] = useState(true);
-
-  const subtotal = cart.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
+  const router = useRouter();
 
   useEffect(() => {
     const loadCart = async () => {
@@ -61,31 +66,12 @@ const Cart = () => {
     loadCart();
   }, [fetchCart]);
 
-  const applyCoupon = async () => {
-    if (!discountCode.trim()) {
-      toast.error("Please enter a code!");
-      return;
-    }
-
+  const handleApplyCoupon = async () => {
     try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/coupon/apply`,
-        { code: discountCode, subtotal },
-        { withCredentials: true }
-      );
-
-      setDiscountAmount(res.data.discountAmount);
-      setAppliedPercent(res.data.percent);
-
-      toast.success(`Coupon applied! -${res.data.percent}%`);
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(error.response.data.message || "Invalid coupon!");
-      } else if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error("An unknown error occurred while fetching the cart.");
-      }
+      await applyCoupon(discountCode);
+      setDiscountCode("");
+    } catch (err) {
+      toast.error("Invalid or expired coupon");
     }
   };
 
@@ -102,8 +88,6 @@ const Cart = () => {
       }
     } catch (err) {
       toast.error("Failed to load shipping settings");
-    } finally {
-      setShippingLoading(false);
     }
   };
   const calculatedShippingFee =
@@ -112,10 +96,6 @@ const Cart = () => {
   useEffect(() => {
     fetchShippingSettings();
   }, []);
-
-  useEffect(() => {
-    setTotalAmount(subtotal - discountAmount + calculatedShippingFee);
-  }, [subtotal, discountAmount, calculatedShippingFee]);
 
   const handleQuantityChange = async (
     product: string | { _id: string },
@@ -138,7 +118,7 @@ const Cart = () => {
         { withCredentials: true }
       );
       if (response.data.success) {
-        setCart(response.data.cart.items);
+        await fetchCart();
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
@@ -160,6 +140,7 @@ const Cart = () => {
   const removeAllCart = async () => {
     try {
       clearCart();
+      router.push("/main");
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
         toast.error(error.response.data.message || "Unexpected error");
@@ -170,23 +151,6 @@ const Cart = () => {
       }
     }
   };
-
-  useEffect(() => {
-    const savedCode = localStorage.getItem("discountCode");
-    const savedAmount = localStorage.getItem("discountAmount");
-    const savedPercent = localStorage.getItem("appliedPercent");
-
-    if (savedCode) setDiscountCode(savedCode);
-    if (savedAmount) setDiscountAmount(Number(savedAmount));
-    if (savedPercent) setAppliedPercent(Number(savedPercent));
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("discountCode", discountCode);
-    localStorage.setItem("discountAmount", discountAmount.toString());
-    localStorage.setItem("appliedPercent", appliedPercent.toString());
-  }, [discountCode, discountAmount, appliedPercent]);
-
   return (
     <>
       <Navbar />
@@ -216,8 +180,17 @@ const Cart = () => {
               </p>
             </div>
             <button
-              onClick={() => {
-                if (confirm("Are you sure you want to clear the cart?")) {
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const ok = await confirm({
+                  title: "Delete Cart",
+                  description: "Are you sure you want to delete this cart?",
+                  confirmText: "Yes, Delete",
+                  cancelText: "Cancel",
+                  variant: "destructive",
+                });
+                if (ok) {
                   removeAllCart();
                 }
               }}
@@ -230,18 +203,27 @@ const Cart = () => {
 
           <div
             className={`mt-2 sm:mt-4 md:mt-2 lg:mt-12 lg:ml-40 flex flex-col gap-2 w-full lg:w-3/4 p-2 sm:p-5 bg-white shadow-2xl pr-4 
-  lg:max-h-[calc(100vh-7.5rem)] 
-  lg:overflow-y-auto 
-  lg:scrollbar-thin lg:scrollbar-thumb-gray-400 lg:scrollbar-track-gray-100
-  rounded-lg transition-all duration-300 ${
-    selectedItem ? "opacity-40 pointer-events-none" : "opacity-100"
-  }`}
+    lg:max-h-[calc(100vh-7.5rem)] 
+    lg:overflow-y-auto 
+    lg:scrollbar-thin lg:scrollbar-thumb-gray-400 lg:scrollbar-track-gray-100
+    rounded-lg transition-all duration-300 ${
+      selectedItem ? "opacity-40 pointer-events-none" : "opacity-100"
+    }`}
           >
             {cart.length > 0 && (
               <div className="flex justify-end p-2 lg:hidden">
                 <button
-                  onClick={() => {
-                    if (confirm("Are you sure you want to clear the cart?")) {
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const ok = await confirm({
+                      title: "Delete Cart",
+                      description: "Are you sure you want to clear the cart?",
+                      confirmText: "Yes, Delete",
+                      cancelText: "Cancel",
+                      variant: "destructive",
+                    });
+                    if (ok) {
                       removeAllCart();
                     }
                   }}
@@ -258,13 +240,13 @@ const Cart = () => {
                 <div
                   key={c._id}
                   onClick={() => setSelectedItem(c as unknown as CartItem)}
-                  className="bg-primary min-h-[120px] w-full flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-md text-jost cursor-pointer hover:opacity-80 transition relative"
+                  className="bg-primary min-h-30 w-full flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-md text-jost cursor-pointer hover:opacity-80 transition relative"
                 >
                   <div className="flex items-center w-full sm:w-1/3 mb-2 sm:mb-0">
-                    <div className="h-20 w-20 relative rounded-md flex-shrink-0">
-                      {c.image && (
+                    <div className="h-20 w-20 relative rounded-md shrink-0">
+                      {c.product.image && (
                         <Image
-                          src={c.image}
+                          src={c.product.image[0]?.url}
                           alt="cart-image"
                           fill
                           className="object-cover rounded-md"
@@ -272,7 +254,7 @@ const Cart = () => {
                       )}
                     </div>
                     <div className="text-base sm:text-lg text-color font-medium ml-4 truncate max-w-[calc(100%-6rem)]">
-                      {c.name}
+                      {c.product.product_name}
                     </div>
                   </div>
 
@@ -308,26 +290,37 @@ const Cart = () => {
                         <span className="font-semibold mr-1 lg:hidden">
                           Price:
                         </span>
-                        {c.price}$
+                        {(c.product.salePrice ?? c.product.price).toFixed(2)}$
                       </div>
+
                       <div className="text-base font-bold text-color w-1/2 flex justify-start sm:justify-center">
                         <span className="font-semibold mr-1 lg:hidden">
                           Total:
                         </span>
-                        {(c.price * c.quantity).toFixed(2)}$
+                        {(
+                          (c.product.salePrice ?? c.product.price) * c.quantity
+                        ).toFixed(2)}
+                        $
                       </div>
                     </div>
                   </div>
 
                   <ClearIcon
                     className="text-color text-md absolute top-1 right-1 cursor-pointer hover:scale-110 transform transition duration-200 hover:text-zinc-950"
-                    onClick={(e) => {
+                    onClick={async (e) => {
+                      e.preventDefault();
                       e.stopPropagation();
-                      if (
-                        confirm(
-                          "Are you sure you want to remove this item from your cart?"
-                        )
-                      ) {
+
+                      const ok = await confirm({
+                        title: "Remove Item",
+                        description:
+                          "Are you sure you want to remove this item from your cart?",
+                        confirmText: "Yes, Remove",
+                        cancelText: "Cancel",
+                        variant: "destructive",
+                      });
+
+                      if (ok) {
                         handlerRemoveCart(
                           typeof c.product === "string"
                             ? c.product
@@ -347,14 +340,14 @@ const Cart = () => {
           {/* Cart Summary */}
           <div
             className="bg-white w-full lg:w-1/4 
-    shadow-2xl 
-    mt-4 lg:mt-3 xl:mt-16
-    p-3 sm:p-4 lg:p-4 
-    rounded-lg 
-    flex flex-col gap-3 lg:gap-4
-    sticky bottom-0 
-    lg:sticky lg:top-24
-    right-0 self-start"
+      shadow-2xl 
+      mt-4 lg:mt-3 xl:mt-16
+      p-3 sm:p-4 lg:p-4 
+      rounded-lg 
+      flex flex-col gap-3 lg:gap-4
+      sticky bottom-0 
+      lg:sticky lg:top-24
+      right-0 self-start"
           >
             <h2 className="text-2xl font-bold text-color mb-2 border-b pb-2">
               Cart Summary
@@ -376,10 +369,10 @@ const Cart = () => {
                   `${calculatedShippingFee.toFixed(2)}$`
                 )}
                 {freeOver > 0 && (
-  <p className="text-sm text-gray-500">
-    Free shipping over {freeOver}$
-  </p>
-)}
+                  <p className="text-sm text-gray-500">
+                    Free shipping over {freeOver}$
+                  </p>
+                )}
               </div>
             </div>
 
@@ -403,31 +396,56 @@ const Cart = () => {
                 }}
               />
               <button
-                onClick={applyCoupon}
-                className="bg-primary text-white py-2 rounded-md hover:opacity-70 transition"
+                onClick={handleApplyCoupon}
+                className="bg-primary text-white py-2 rounded-md hover:opacity-70 transition cursor-pointer"
               >
                 Apply Code
               </button>
               <div>
-                {appliedPercent > 0 && (
-                  <div className="mt-3 p-3 bg-green-100 text-color rounded-md">
+                {coupon && (
+                  <div className="mt-3 p-3 bg-green-100 rounded-md flex flex-col gap-2 text-color">
                     <div>
-                      <strong>Discount Code:</strong> {discountCode}
+                      <strong>Code:</strong> {coupon.code}
                     </div>
                     <div>
-                      <strong>Applied Percent:</strong> %{appliedPercent}
+                      <strong>Percent:</strong> %{coupon.percent}
                     </div>
                     <div>
-                      <strong>Discount Amount:</strong> {discountAmount}$
+                      <strong>Discount:</strong> {discountAmount}$
                     </div>
+
+                    <button
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const ok = await confirm({
+                          title: "Remove Coupon",
+                          description:
+                            "Are you sure you want to remove the applied coupon?",
+                          confirmText: "Yes, Remove",
+                          cancelText: "Cancel",
+                          variant: "destructive",
+                        });
+
+                        if (ok) {
+                          removeCoupon();
+                        }
+                      }}
+                      className="mt-2 bg-white text-color py-1 rounded-md hover:opacity-80 transition cursor-pointer"
+                    >
+                      Remove Coupon
+                    </button>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="flex justify-between items-center text-xl font-bold border-t pt-1 md:pt-4 mt-2">
+            <div className="flex justify-between items-center text-xl font-bold border-t pt-4 mt-2">
               <h3 className="text-color">Total Amount:</h3>
-              <div className="text-color">{totalAmount.toFixed(2)}$</div>
+              <div className="text-color">
+                {(total + calculatedShippingFee).toFixed(2)}$
+              </div>
             </div>
 
             <div className="w-full flex items-center justify-center mt-2 md:mt-5">
@@ -459,37 +477,43 @@ const Cart = () => {
                 </button>
 
                 <div className="flex flex-col items-center">
-                  {selectedItem.product.image && (
+                  {selectedItem.product.image?.[0]?.url && (
                     <Image
-                      src={selectedItem.product.image?.[0]?.url}
+                      src={selectedItem.product.image[0].url}
                       alt={selectedItem.product.product_name}
                       width={300}
                       height={300}
                       className="rounded-md object-cover max-h-60 w-auto"
                     />
                   )}
+
                   <h2 className="text-2xl font-semibold mt-4 text-gray-800 text-center">
                     {selectedItem.product.product_name}
                   </h2>
-                  <p className="text-gray-600 text-center mt-2 text-sm max-h-24 overflow-y-auto">
-                    {selectedItem.product.description}
-                  </p>
+
                   <div className="text-xl font-bold mt-4 text-gray-900">
-                    {selectedItem.product.price.toFixed(2)}$ ×{" "}
-                    {selectedItem.quantity} ={" "}
                     {(
-                      selectedItem.product.price * selectedItem.quantity
+                      selectedItem.product.salePrice ??
+                      selectedItem.product.price
+                    ).toFixed(2)}
+                    $ × {selectedItem.quantity} ={" "}
+                    {(
+                      (selectedItem.product.salePrice ??
+                        selectedItem.product.price) * selectedItem.quantity
                     ).toFixed(2)}
                     $
                   </div>
-                  <Link href={`/Products/${selectedItem.product.slug}`}>
-                    <Button
-                      className="mt-4 bg-primary hover:bg-[#D6EED6] text-gray-900 font-semibold cursor-pointer transition duration-300 ease-in-out hover:scale-105"
-                      onClick={() => setSelectedItem(null)}
-                    >
-                      View Full Details
-                    </Button>
-                  </Link>
+
+                  {selectedItem.product.slug && (
+                    <Link href={`/Products/${selectedItem.product.slug}`}>
+                      <Button
+                        className="mt-4 bg-primary hover:bg-[#D6EED6] text-gray-900 font-semibold cursor-pointer transition duration-300 ease-in-out hover:scale-105"
+                        onClick={() => setSelectedItem(null)}
+                      >
+                        View Full Details
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
