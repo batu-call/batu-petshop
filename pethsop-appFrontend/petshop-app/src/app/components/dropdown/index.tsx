@@ -2,9 +2,7 @@
 import React, { useState, useRef, useEffect, createContext, useContext, ReactNode } from "react";
 import Link from "next/link";
 
-// -------------------
-// Types
-// -------------------
+
 interface DropdownProps {
   children: ReactNode;
 }
@@ -20,9 +18,6 @@ interface DropdownLabelProps {
   children: ReactNode;
 }
 
-// -------------------
-// Context
-// -------------------
 interface DropdownContextType {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -31,9 +26,7 @@ interface DropdownContextType {
 
 const DropdownContext = createContext<DropdownContextType | undefined>(undefined);
 
-// -------------------
-// Components
-// -------------------
+
 export const Dropdown = ({ children }: DropdownProps) => (
   <DropdownProvider>
     <div className="relative inline-block text-left">{children}</div>
@@ -96,9 +89,7 @@ export const DropdownLabel = ({ children }: DropdownLabelProps) => (
   <div className="px-4 py-2 text-xs text-gray-400 uppercase">{children}</div>
 );
 
-// -------------------
-// Provider
-// -------------------
+
 const DropdownProvider = ({ children }: DropdownProps) => {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

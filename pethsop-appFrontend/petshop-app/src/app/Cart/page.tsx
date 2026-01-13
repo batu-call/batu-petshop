@@ -45,11 +45,13 @@ const Cart = () => {
     discountAmount,
     total,
     removeCoupon,
+    updateQuantity
   } = useCart();
   const { confirm } = useConfirm();
   const [loading, setLoading] = useState(true);
   const [shippingFee, setShippingFee] = useState(0);
   const [freeOver, setFreeOver] = useState(0);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -97,38 +99,6 @@ const Cart = () => {
     fetchShippingSettings();
   }, []);
 
-  const handleQuantityChange = async (
-    product: string | { _id: string },
-    delta: number
-  ) => {
-    const productId = typeof product === "string" ? product : product._id;
-    const item = cart.find(
-      (c) =>
-        (typeof c.product === "string" ? c.product : c.product._id) ===
-        productId
-    );
-    if (!item) return null;
-
-    const newQuantity = Math.max(1, item.quantity + delta);
-
-    try {
-      const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/updateQuantity`,
-        { productId, quantity: newQuantity },
-        { withCredentials: true }
-      );
-      if (response.data.success) {
-        await fetchCart();
-      }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error("Something went wrong while updating quantity!");
-      }
-    }
-  };
-
   const handlerRemoveCart = async (productId: string) => {
     try {
       await removeFromCart(productId);
@@ -167,16 +137,20 @@ const Cart = () => {
         </div>
       ) : (
         <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4.5rem)] md:ml-24 lg:ml-5">
-          <div className="hidden lg:flex lg:ml-40 justify-between items-center bg-white shadow-2xl border-2 fixed rounded-sm w-[610px] xl:w-[1260px] 2xl:w-[1263px] h-12 lg:h-12">
-            <p className="text-center lg:ml-20 sm:ml-28 sm:text-left text-color lg:text-md 2xl:text-lg font-semibold">
+          {/* Table Header */}
+          <div className="hidden lg:flex lg:ml-40 justify-between items-center bg-white shadow-2xl border-2 fixed rounded-sm w-3/4 h-12 lg:h-12">
+            <p className="text-center lg:ml-20 sm:ml-28 sm:text-left text-color lg:text-md 2xl:text-lg font-semibold ">
               Product Name
             </p>
-            <div className="flex xl:w-170 2xl:w-[270px] p-2">
-              <p className="text-color lg:text-md 2xl:text-lg font-semibold text-center lg:w-1/2 xl:w-1/4 flex justify-center">
+            <div className="flex p-2">
+              <p className="text-color lg:text-md 2xl:text-lg font-semibold text-center flex justify-center lg:ml-8 xl:ml-7 2xl:ml-42">
                 Quantity
               </p>
-              <p className="text-color lg:text-md 2xl:text-lg font-semibold text-center lg:w-1/2 xl:w-1/4 flex justify-center lg:ml-20 xl:ml-7 2xl:ml-56">
+              <p className="text-color lg:text-md 2xl:text-lg font-semibold text-center  flex justify-center lg:ml-24 xl:ml-48 2xl:ml-52">
                 Price
+              </p>
+              <p className="lg:hidden xl:block text-color lg:text-md 2xl:text-lg font-semibold text-center  flex justify-center lg:ml-32 xl:ml-48 2xl:ml-52">
+                Total Price
               </p>
             </div>
             <button
@@ -200,16 +174,17 @@ const Cart = () => {
               Clear Cart
             </button>
           </div>
-
+          {/* Products */}
           <div
             className={`mt-2 sm:mt-4 md:mt-2 lg:mt-12 lg:ml-40 flex flex-col gap-2 w-full lg:w-3/4 p-2 sm:p-5 bg-white shadow-2xl pr-4 
     lg:max-h-[calc(100vh-7.5rem)] 
     lg:overflow-y-auto 
-    lg:scrollbar-thin lg:scrollbar-thumb-gray-400 lg:scrollbar-track-gray-100
+    lg:scrollbar-thin lg:scrollbar-thumb-gray-400 lg:scrollbar-track-gray-100 pb-32 sm:pb-36 lg:pb-0
     rounded-lg transition-all duration-300 ${
       selectedItem ? "opacity-40 pointer-events-none" : "opacity-100"
     }`}
           >
+            {/* Mobil Clear Cart*/}
             {cart.length > 0 && (
               <div className="flex justify-end p-2 lg:hidden">
                 <button
@@ -259,29 +234,35 @@ const Cart = () => {
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-start sm:items-center w-full sm:w-2/3 justify-between">
-                    <div className="flex items-center gap-2 mb-2 sm:mb-0 w-full sm:w-1/3 justify-start sm:justify-center">
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleQuantityChange(c.product, -1);
-                        }}
-                        className="cursor-pointer w-8 h-8 flex items-center justify-center rounded text-color"
-                      >
-                        <RemoveCircleOutlineIcon />
-                      </div>
+                    <div className="col-span-3 flex justify-center">
+                      <div className="flex items-center bg-white rounded-xl border border-slate-200 p-1 shadow-sm">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                           updateQuantity(c.product._id, -1);
+                          }}
+                          className="w-8 h-8 flex items-center justify-center text-color hover:text-primary transition-colors cursor-pointer"
+                        >
+                          <span className="material-icons-outlined text-lg">
+                            <RemoveCircleOutlineIcon />
+                          </span>
+                        </button>
 
-                      <span className="text-base font-sm text-color bg-white p-2 w-10 h-10 flex justify-center items-center shadow-inner rounded-md">
-                        {c.quantity}
-                      </span>
+                        <span className="w-8 text-center font-bold">
+                          {c.quantity}
+                        </span>
 
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleQuantityChange(c.product, 1);
-                        }}
-                        className="cursor-pointer w-8 h-8 flex items-center justify-center rounded text-color"
-                      >
-                        <AddCircleOutlineIcon />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateQuantity(c.product._id, 1);
+                          }}
+                          className="w-8 h-8 flex items-center justify-center text-color hover:text-primary transition-colors cursor-pointer"
+                        >
+                          <span className="material-icons-outlined text-lg">
+                            <AddCircleOutlineIcon />
+                          </span>
+                        </button>
                       </div>
                     </div>
 
@@ -339,71 +320,88 @@ const Cart = () => {
           </div>
           {/* Cart Summary */}
           <div
-            className="bg-white w-full lg:w-1/4 
-      shadow-2xl 
-      mt-4 lg:mt-3 xl:mt-16
-      p-3 sm:p-4 lg:p-4 
-      rounded-lg 
-      flex flex-col gap-3 lg:gap-4
-      sticky bottom-0 
-      lg:sticky lg:top-24
-      right-0 self-start"
+            className={`bg-white w-full lg:w-1/4 
+  shadow-2xl 
+  mt-4 lg:mt-3 xl:mt-16
+  p-3 sm:p-4 lg:p-4 
+  rounded-t-lg lg:rounded-lg 
+  flex flex-col gap-3 lg:gap-4
+  fixed bottom-0 left-0 z-40
+  lg:static lg:sticky lg:top-24
+  right-0 self-start`}
           >
-            <h2 className="text-2xl font-bold text-color mb-2 border-b pb-2">
-              Cart Summary
-            </h2>
+            <div
+              className="flex items-center justify-between border-b pb-2 cursor-pointer lg:cursor-default"
+              onClick={() => setSummaryOpen((prev) => !prev)}
+            >
+              <h2 className="text-2xl font-bold text-color">Cart Summary</h2>
 
-            <div className="flex justify-between items-center text-lg">
-              <h3 className="text-color">Sub Total:</h3>
-              <div className="font-semibold text-color">
-                {subtotal.toFixed(2)}$
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center text-lg">
-              <h3 className="text-color">Shipping Fee:</h3>
-              <div className="font-semibold text-color text-end">
-                {calculatedShippingFee === 0 ? (
-                  <span className="text-green-600 font-semibold">Free</span>
-                ) : (
-                  `${calculatedShippingFee.toFixed(2)}$`
-                )}
-                {freeOver > 0 && (
-                  <p className="text-sm text-gray-500">
-                    Free shipping over {freeOver}$
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1 md:gap-2">
-              <h3 className="text-color text-lg">Discount Code:</h3>
-              <TextField
-                value={discountCode}
-                onChange={(e) => setDiscountCode(e.target.value)}
-                variant="outlined"
-                size="small"
-                fullWidth
-                placeholder="Enter code"
-                autoComplete="off"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "#ccc" },
-                    "&:hover fieldset": { borderColor: "#000" },
-                    "&.Mui-focused fieldset": { borderColor: "#000" },
-                  },
-                  "& input": { color: "#000", padding: "10px 12px" },
-                }}
-              />
-              <button
-                onClick={handleApplyCoupon}
-                className="bg-primary text-white py-2 rounded-md hover:opacity-70 transition cursor-pointer"
-              >
-                Apply Code
+              <button className="lg:hidden text-sm font-semibold text-color">
+                <div className="flex gap-2">
+                  <span className={summaryOpen ? "hidden" : "block"}>
+                    {(total + calculatedShippingFee).toFixed(2)}$
+                  </span>
+                  {summaryOpen ? "Hide" : "Show"}
+                </div>
               </button>
-              <div>
+            </div>
+
+            <div
+              className={`transition-all duration-300 overflow-hidden
+    ${summaryOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"}
+    lg:max-h-full lg:opacity-100`}
+            >
+              <div className="flex justify-between items-center text-lg mt-3">
+                <h3 className="text-color">Sub Total:</h3>
+                <div className="font-semibold text-color">
+                  {subtotal.toFixed(2)}$
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center text-lg">
+                <h3 className="text-color">Shipping Fee:</h3>
+                <div className="font-semibold text-color text-end">
+                  {calculatedShippingFee === 0 ? (
+                    <span className="text-green-600 font-semibold">Free</span>
+                  ) : (
+                    `${calculatedShippingFee.toFixed(2)}$`
+                  )}
+                  {freeOver > 0 && (
+                    <p className="text-sm text-gray-500">
+                      Free shipping over {freeOver}$
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <h3 className="text-color text-lg">Discount Code:</h3>
+                <TextField
+                  value={discountCode}
+                  onChange={(e) => setDiscountCode(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  placeholder="Enter code"
+                  autoComplete="off"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#ccc" },
+                      "&:hover fieldset": { borderColor: "#000" },
+                      "&.Mui-focused fieldset": { borderColor: "#000" },
+                    },
+                    "& input": { color: "#000", padding: "10px 12px" },
+                  }}
+                />
+                <button
+                  onClick={handleApplyCoupon}
+                  className="bg-primary text-white py-2 rounded-md hover:opacity-70 transition cursor-pointer"
+                >
+                  Apply Code
+                </button>
+
                 {coupon && (
-                  <div className="mt-3 p-3 bg-green-100 rounded-md flex flex-col gap-2 text-color">
+                  <div className="mt-2 p-3 bg-green-100 rounded-md flex flex-col gap-2 text-color">
                     <div>
                       <strong>Code:</strong> {coupon.code}
                     </div>
@@ -418,7 +416,6 @@ const Cart = () => {
                       onClick={async (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-
                         const ok = await confirm({
                           title: "Remove Coupon",
                           description:
@@ -427,39 +424,40 @@ const Cart = () => {
                           cancelText: "Cancel",
                           variant: "destructive",
                         });
-
-                        if (ok) {
-                          removeCoupon();
-                        }
+                        if (ok) removeCoupon();
                       }}
-                      className="mt-2 bg-white text-color py-1 rounded-md hover:opacity-80 transition cursor-pointer"
+                      className="bg-white text-color py-1 rounded-md hover:opacity-80 transition cursor-pointer"
                     >
                       Remove Coupon
                     </button>
                   </div>
                 )}
               </div>
-            </div>
 
-            <div className="flex justify-between items-center text-xl font-bold border-t pt-4 mt-2">
-              <h3 className="text-color">Total Amount:</h3>
-              <div className="text-color">
-                {(total + calculatedShippingFee).toFixed(2)}$
+              <div className="flex justify-between items-center text-xl font-bold border-t pt-4 mt-3">
+                <h3 className="text-color">Total Amount:</h3>
+                <div className="text-color">
+                  {(total + calculatedShippingFee).toFixed(2)}$
+                </div>
               </div>
-            </div>
 
-            <div className="w-full flex items-center justify-center mt-2 md:mt-5">
-              <Link href={cart.length > 0 ? "/Order" : "#"} className="w-full">
-                <Button
-                  className="w-full bg-primary h-12 cursor-pointer hover:bg-[#D6EED6] hover:text-[#393E46] text-lg font-semibold transition duration-300 ease-in-out lg:hover:scale-105"
-                  disabled={cart.length === 0}
+              <div className="w-full mt-3">
+                <Link
+                  href={cart.length > 0 ? "/Order" : "#"}
+                  className="w-full"
                 >
-                  Place Order
-                </Button>
-              </Link>
+                  <Button
+                    className="w-full bg-primary h-12 hover:bg-[#D6EED6] hover:text-[#393E46] text-lg font-semibold transition lg:hover:scale-105 cursor-pointer"
+                    disabled={cart.length === 0}
+                  >
+                    Place Order
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
 
+          {/* SelectedItem */}
           {selectedItem && (
             <div
               onClick={() => setSelectedItem(null)}

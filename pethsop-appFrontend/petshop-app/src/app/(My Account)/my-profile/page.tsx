@@ -2,14 +2,16 @@
 import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../context/authContext";
 import Image from "next/image";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, TextField, Typography } from "@mui/material";
 import axios, { AxiosError } from "axios";
+import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import Navbar from "@/app/Navbar/page";
 import Sidebar from "@/app/Sidebar/page";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import CircularText from "@/components/CircularText";
+import Footer from "@/app/Footer/page";
 
 type FormDataType = {
   firstName: string;
@@ -42,7 +44,6 @@ const MyProfil = () => {
       setLoading(false);
     }
   }, [user]);
-
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.name as keyof FormDataType;
@@ -89,7 +90,7 @@ const MyProfil = () => {
   };
 
   return (
-    <div className="bg-primary min-h-screen w-full relative">
+    <div className="bg-[#f6f7f9] min-h-screen w-full relative">
       <Navbar />
       <Sidebar />
       {loading ? (
@@ -101,17 +102,8 @@ const MyProfil = () => {
           />
         </div>
       ) : (
-        <div className="md:ml-25 lg:ml-40 flex items-center justify-center p-4 md:p-8 mt-12">
+        <div className="h-full md:ml-25 lg:ml-40 flex items-center justify-center p-4 md:p-8">
           <div className="bg-white w-full xl:w-2/4 p-6 sm:p-10 shadow-2xl rounded-2xl">
-            <Typography
-              variant="h5"
-              textAlign="center"
-              mb={3}
-              className="text-color"
-            >
-              My Profile
-            </Typography>
-
             {/* Avatar Upload */}
             <Box
               display="flex"
@@ -140,16 +132,17 @@ const MyProfil = () => {
               </div>
 
               <Button
-                variant="contained"
-                component="label"
-                sx={{
-                  mt: { xs: 2, sm: 0 },
-                  textTransform: "none",
-                  backgroundColor: "#B1CBBB",
-                }}
+                asChild
+                className="bg-primary hover:bg-[#A8D1B5] text-color font-semibold px-6 transition duration-300 ease-in-out hover:scale-105 cursor-pointer"
               >
-                Change Avatar
-                <input type="file" hidden onChange={handleFileChange} />
+                <label className="cursor-pointer flex items-center">
+                  Change Avatar
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </label>
               </Button>
             </Box>
 
@@ -161,11 +154,24 @@ const MyProfil = () => {
                 value={formData.firstName}
                 onChange={handleChange}
                 variant="standard"
-                sx={{
-                  "& .MuiInput-underline:after": {
-                    borderBottomColor: "#B1CBBB",
-                  },
-                }}
+                slotProps={{
+                      inputLabel: {
+                        sx: {
+                          color: "#B1CBBB",
+                          "&.Mui-focused": {
+                            color: "#ffffff",
+                            backgroundColor: "#B1CBBB",
+                            padding: 0.4,
+                            borderRadius: 1,
+                          },
+                        },
+                      },
+                    }}
+                    sx={{
+                      "& .MuiInput-underline:after": {
+                        borderBottomColor: "#B1CBBB",
+                      },
+                    }}
               />
               <TextField
                 label="Last Name"
@@ -173,11 +179,24 @@ const MyProfil = () => {
                 value={formData.lastName}
                 onChange={handleChange}
                 variant="standard"
-                sx={{
-                  "& .MuiInput-underline:after": {
-                    borderBottomColor: "#B1CBBB",
-                  },
-                }}
+                slotProps={{
+                      inputLabel: {
+                        sx: {
+                          color: "#B1CBBB",
+                          "&.Mui-focused": {
+                            color: "#ffffff",
+                            backgroundColor: "#B1CBBB",
+                            padding: 0.4,
+                            borderRadius: 1,
+                          },
+                        },
+                      },
+                    }}
+                    sx={{
+                      "& .MuiInput-underline:after": {
+                        borderBottomColor: "#B1CBBB",
+                      },
+                    }}
               />
               <TextField
                 label="Email"
@@ -185,14 +204,29 @@ const MyProfil = () => {
                 value={formData.email}
                 onChange={handleChange}
                 variant="standard"
-                sx={{
-                  "& .MuiInput-underline:after": {
-                    borderBottomColor: "#B1CBBB",
-                  },
-                }}
+                slotProps={{
+                      inputLabel: {
+                        sx: {
+                          color: "#B1CBBB",
+                          "&.Mui-focused": {
+                            color: "#ffffff",
+                            backgroundColor: "#B1CBBB",
+                            padding: 0.4,
+                            borderRadius: 1,
+                          },
+                        },
+                      },
+                    }}
+                    sx={{
+                      "& .MuiInput-underline:after": {
+                        borderBottomColor: "#B1CBBB",
+                      },
+                    }}
               />
               <Box>
-                <Typography sx={{ color: "#B1CBBB", mb: 0.5 }}>Phone</Typography>
+                <Typography sx={{ color: "#B1CBBB", mb: 0.5 }}>
+                  Phone
+                </Typography>
                 <PhoneInput
                   country={"us"}
                   value={formData.phone}
@@ -219,10 +253,8 @@ const MyProfil = () => {
               </Box>
 
               <Button
-                variant="contained"
-                fullWidth
+                className="mt-2 w-full bg-primary hover:bg-[#A8D1B5] text-color font-semibold px-6 transition duration-300 ease-in-out hover:scale-105 cursor-pointer"
                 onClick={handleSubmit}
-                sx={{ mt: 2, backgroundColor: "#B1CBBB" }}
               >
                 Save Changes
               </Button>
@@ -230,6 +262,7 @@ const MyProfil = () => {
           </div>
         </div>
       )}
+    <Footer/>
     </div>
   );
 };

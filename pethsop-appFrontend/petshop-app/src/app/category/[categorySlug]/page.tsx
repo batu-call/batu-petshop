@@ -1,28 +1,35 @@
 "use client";
+
 import React, { useContext, useEffect, useState } from "react";
-import Navbar from "../Navbar/page";
-import Sidebar from "../Sidebar/page";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { AuthContext } from "../context/authContext";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+
+import Navbar from "@/app/Navbar/page";
+import Sidebar from "@/app/Sidebar/page";
+import Footer from "@/app/Footer/page";
+
+import { Button } from "@/components/ui/button";
 import CircularText from "@/components/CircularText";
+
+import { AuthContext } from "@/app/context/authContext";
+import { useCart } from "@/app/context/cartContext";
+import { useFavorite } from "@/app/context/favoriteContext";
+
 import { Heart } from "lucide-react";
-import { useCart } from "../context/cartContext";
-import { useFavorite } from "../context/favoriteContext";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import { Star } from "@mui/icons-material";
+
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
-  PaginationPrevious,
   PaginationNext,
+  PaginationPrevious,
 } from "@/components/ui/pagination";
-import Footer from "../Footer/page";
 
 type ReviewStats = {
   [productId: string]: {
@@ -43,55 +50,57 @@ type Product = {
   description: string;
   price: number;
   salePrice?: number | null;
-  stock: string;
   image: ProductImage[];
   slug: string;
 };
 
-const AllProduct = () => {
+const CategoryPage = () => {
+  const { categorySlug } = useParams<{ categorySlug: string }>();
   const router = useRouter();
-  const [product, setProduct] = useState<Product[]>([]);
-  const { user, isAuthenticated } = useContext(AuthContext);
-  const { addToCart } = useCart();
+  const searchParams = useSearchParams();
+
+  const page = Number(searchParams.get("page")) || 1;
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [reviewStats, setReviewStats] = useState<ReviewStats>({});
+
+  const { isAuthenticated } = useContext(AuthContext);
+  const { addToCart } = useCart();
   const { favorites, addFavorite, removeFavorite, fetchFavorites } =
     useFavorite();
-  const [reviewStats, setReviewStats] = useState<ReviewStats>({});
-  // Pagination
-  const searchParams = useSearchParams();
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const [page, setPage] = useState(pageFromUrl);
-  const [totalPages, setTotalPages] = useState(1);
 
+  // 🔹 FETCH PRODUCTS
   useEffect(() => {
-    router.push(`?page=${page}`);
-  }, [page, router]);
+    if (!categorySlug) return;
 
-  useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProducts = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products?page=${page}`,
-          { withCredentials: true }
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products`,
+          {
+            params: {
+              category: categorySlug,
+              page,
+            },
+          }
         );
-        if (response.data.success) {
-          setProduct(response.data.products);
-          setTotalPages(response.data.totalPages);
-        }
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error) && error.response) {
-          toast.error(error.response.data.message);
-        } else {
-          toast.error("Something went wrong!");
-        }
+
+        setProducts(res.data.products || []);
+        setTotalPages(res.data.totalPages || 1);
+      } catch {
+        toast.error("Products could not be loaded");
       } finally {
         setLoading(false);
       }
     };
-    fetchProduct();
-  }, [page]);
 
+    fetchProducts();
+  }, [categorySlug, page]);
+
+  //  FETCH REVIEWS
   useEffect(() => {
     const fetchReviewStats = async () => {
       try {
@@ -108,7 +117,7 @@ const AllProduct = () => {
   }, []);
 
   const handlerAddToCart = async (product: Product) => {
-    if (!user && !isAuthenticated) return router.push("/Login");
+    if (!isAuthenticated) return router.push("/Login");
 
     try {
       await addToCart(product._id);
@@ -117,9 +126,10 @@ const AllProduct = () => {
     }
   };
 
+  //  FAVORITES
   useEffect(() => {
     fetchFavorites();
-  }, [fetchFavorites]);
+  }, []);
 
   const handleFavorite = async (productId: string) => {
     if (!isAuthenticated) {
@@ -139,17 +149,14 @@ const AllProduct = () => {
   const isFavorite = (productId: string) =>
     favorites.some((f) => f._id === productId);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [page]);
-
   return (
     <>
       <Navbar />
       <Sidebar />
-      <div className="md:ml-25 lg:ml-40 flex-1 min-h-screen bg-white p-6">
+
+      <div className="ml-0 md:ml-24 lg:ml-40 min-h-screen px-4 md:px-20 lg:px-4 py-10">
         {loading ? (
-          <div className="md:ml-25 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
+          <div className="fixed inset-0 flex items-center justify-center bg-primary z-50">
             <CircularText
               text="LOADING"
               spinDuration={20}
@@ -158,8 +165,26 @@ const AllProduct = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 md:gap-6 lg:gap-8 sm:p-0">
-              {product.map((p) => {
+            {/* EMPTY STATE */}
+            {products.length === 0 && (
+              <div className="text-center text-gray-500 mt-24">
+                No products found in this category.
+              </div>
+            )}
+
+            {/* PRODUCTS */}
+            <div
+              className="
+  grid
+  grid-cols-1
+  sm:grid-cols-2
+  lg:grid-cols-3
+  xl:grid-cols-4
+  2xl:grid-cols-5
+  gap-4 sm:gap-6 lg:gap-8
+"
+            >
+              {products.map((p) => {
                 const discountPercent =
                   p.salePrice && p.salePrice < p.price
                     ? Math.round(((p.price - p.salePrice) / p.price) * 100)
@@ -191,11 +216,11 @@ const AllProduct = () => {
                       }}
                     >
                       <Heart
-                          className={`w-3 h-3 transition-colors duration-300 ${
-                            isFavorite(p._id) ? "text-gray-600": "text-gray-400"
-                          }`}
-                          fill={isFavorite(p._id) ? "currentColor" : "none"}
-                        />
+                        className={`w-3 h-3 transition-colors duration-300 ${
+                          isFavorite(p._id) ? "text-gray-600" : "text-gray-400"
+                        }`}
+                        fill={isFavorite(p._id) ? "currentColor" : "none"}
+                      />
                     </Button>
 
                     {/* image */}
@@ -281,7 +306,12 @@ const AllProduct = () => {
                 <PaginationContent>
                   <PaginationItem className="text-color cursor-pointer">
                     <PaginationPrevious
-                      onClick={() => page > 1 && setPage(page - 1)}
+                      onClick={() =>
+                        page > 1 &&
+                        router.push(
+                          `/category/${categorySlug}?page=${page - 1}`
+                        )
+                      }
                       className={
                         page === 1 ? "opacity-50 pointer-events-none" : ""
                       }
@@ -292,7 +322,12 @@ const AllProduct = () => {
                     <PaginationItem key={i} className="cursor-pointer">
                       <PaginationLink
                         isActive={page === i + 1}
-                        onClick={() => setPage(i + 1)}
+                        onClick={() =>
+                          router.push(
+                            `/category/${categorySlug}?page=${i + 1}`,
+                            { scroll: true }
+                          )
+                        }
                       >
                         {i + 1}
                       </PaginationLink>
@@ -301,7 +336,12 @@ const AllProduct = () => {
 
                   <PaginationItem className="text-color cursor-pointer">
                     <PaginationNext
-                      onClick={() => page < totalPages && setPage(page + 1)}
+                      onClick={() =>
+                        page < totalPages &&
+                        router.push(
+                          `/category/${categorySlug}?page=${page + 1}`
+                        )
+                      }
                       className={
                         page === totalPages
                           ? "opacity-50 pointer-events-none"
@@ -315,9 +355,9 @@ const AllProduct = () => {
           </>
         )}
       </div>
-      <Footer/>
+      <Footer />
     </>
   );
 };
 
-export default AllProduct;
+export default CategoryPage;

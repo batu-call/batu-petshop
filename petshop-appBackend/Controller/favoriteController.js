@@ -6,6 +6,7 @@ export const addFavorite = catchAsyncError(async (req, res, next) => {
   const userId = req.user._id;
   const { productId } = req.body;
 
+
   const exist = await Favorite.findOne({ userId, productId });
   if (exist) {
     return next(new ErrorHandler("Already favorited", 400));
@@ -46,7 +47,7 @@ export const getFavorite = catchAsyncError(async (req, res, next) => {
         { isActive: { $exists: false } },
       ],
     },
-    select: "product_name price description image slug",
+    select: "product_name price salePrice description image slug",
   });
 
   const favoriteProducts = favorites

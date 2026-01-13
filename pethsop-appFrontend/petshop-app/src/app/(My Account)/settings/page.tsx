@@ -1,11 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Box, TextField, Button, Typography } from "@mui/material";
+import { Box, TextField, Typography } from "@mui/material";
+import { Button } from "@/components/ui/button";
 import axios from "axios";
 import Navbar from "@/app/Navbar/page";
 import Sidebar from "@/app/Sidebar/page";
 import toast from "react-hot-toast";
 import CircularText from "@/components/CircularText";
+import Footer from "@/app/Footer/page";
 
 const Settings = () => {
   const [loading, setLoading] = useState(true);
@@ -88,7 +90,7 @@ const Settings = () => {
       <Navbar />
       <Sidebar />
       {loading ? (
-        <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
+        <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50 ">
           <CircularText
             text="LOADING"
             spinDuration={20}
@@ -96,7 +98,7 @@ const Settings = () => {
           />
         </div>
       ) : (
-        <div className="md:ml-24 lg:ml-40 bg-primary h-auto md:min-h-[calc(100vh-4.5rem)] flex items-center justify-center p-2">
+        <div className="md:ml-24 lg:ml-40 bg-[#f6f7f9] h-auto md:min-h-[calc(100vh-4.5rem)] flex items-center justify-center p-2">
           <div className="w-full md:w-2/3 bg-white md:h-2/3 rounded-2xl p-10 flex flex-col md:flex md:flex-row gap-6">
             <div className="w-full md:w-1/2">
               <Typography
@@ -119,7 +121,7 @@ const Settings = () => {
                         sx: {
                           color: "#B1CBBB",
                           "&.Mui-focused": {
-                            color: "#393E46",
+                            color: "#ffffff",
                             backgroundColor: "#B1CBBB",
                             padding: 0.4,
                             borderRadius: 1,
@@ -146,7 +148,7 @@ const Settings = () => {
                         sx: {
                           color: "#B1CBBB",
                           "&.Mui-focused": {
-                            color: "#393E46",
+                            color: "#ffffff",
                             backgroundColor: "#B1CBBB",
                             padding: 0.4,
                             borderRadius: 1,
@@ -173,7 +175,7 @@ const Settings = () => {
                         sx: {
                           color: "#B1CBBB",
                           "&.Mui-focused": {
-                            color: "#393E46",
+                            color: "#ffffff",
                             backgroundColor: "#B1CBBB",
                             padding: 0.4,
                             borderRadius: 1,
@@ -188,13 +190,13 @@ const Settings = () => {
                     }}
                   />
 
+
                   <Button
-                    variant="contained"
-                    onClick={handleSubmit}
-                    sx={{ mt: 2, backgroundColor: "#B1CBBB" }}
-                  >
-                    Update Password
-                  </Button>
+                className="mt-2 w-full bg-primary hover:bg-[#A8D1B5] text-color font-semibold px-6 transition duration-300 ease-in-out hover:scale-105 cursor-pointer"
+                onClick={handleSubmit}
+              >
+                Update Password
+              </Button>
                 </Box>
               </div>
             </div>
@@ -259,6 +261,7 @@ const Settings = () => {
           </div>
         </div>
       )}
+      <Footer/>
     </div>
   );
 };

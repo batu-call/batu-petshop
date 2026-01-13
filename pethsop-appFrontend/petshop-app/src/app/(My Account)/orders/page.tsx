@@ -9,6 +9,7 @@ import Sidebar from '@/app/Sidebar/page'
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import CircularText from '@/components/CircularText'
+import Footer from '@/app/Footer/page'
 
 type OrderItems = {
   product:
@@ -83,6 +84,7 @@ const Orders = () => {
   }
 
   return (
+    <>
     <div className='bg-[#f6f7f9] min-h-screen'>
       <Navbar />
       <Sidebar />
@@ -96,20 +98,13 @@ const Orders = () => {
         </div>
       ) : (
       <Box ml={{ xs: 0, sm: 24 }} mt={5} mr={{ xs: 0, md: 5 }} p={{ xs: 2, md: 0 }}>
-        <Typography
-          variant="h4"
-          gutterBottom
-          sx={{
-            fontWeight: 700,
-            mb: 3,
-            color: "#222",
-          }}
-        >
-          Order History
-        </Typography>
-
-        {orders.length === 0 ? (
-          <Typography color="text.secondary">No orders found.</Typography>
+        {
+          orders.length === 0 ? (
+          <div className="mt-20 flex flex-col items-center justify-center w-full">
+            <p className="text-gray-500 text-lg font-semibold mb-4">
+              No orders found.
+            </p>
+          </div>
         ) : (
           orders.map(order => (
             <Accordion
@@ -257,6 +252,8 @@ const Orders = () => {
       </Box>
       )}
     </div>
+      <Footer/>
+    </>
   )
 }
 

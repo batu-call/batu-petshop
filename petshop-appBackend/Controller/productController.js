@@ -103,7 +103,9 @@ export const deleteProduct = catchAsyncError(async (req, res, next) => {
 });
 
 export const getAllProduct = catchAsyncError(async (req, res, next) => {
-  const { category } = req.query;
+  const { category,page=1 } = req.query;
+  const limit  = 15;
+  const skip = (Number(page) - 1) * limit;
 
   let filter = { isActive: true };
 
@@ -111,7 +113,11 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
     filter.category = category;
   }
 
-  const products = await Product.find(filter).sort({ createdAt: -1 });
+  const totalProducts = await Product.countDocuments(filter);
+  const products = await Product.find(filter)
+  .sort({ createdAt: -1 })
+  .skip(skip)
+  .limit(limit);
 
   const updatedProducts = products.map((p) => ({
     ...p._doc,
@@ -121,6 +127,8 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
   res.status(200).json({
     success: true,
     products: updatedProducts,
+    totalPages: Math.ceil(totalProducts / limit),
+    currentPage: Number(page),
   });
 });
 

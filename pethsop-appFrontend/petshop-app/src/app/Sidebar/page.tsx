@@ -1,26 +1,25 @@
 "use client";
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-const menuItems = [
-  { href: "/Cat", label: "Cat", icon: "/cat_7721779.png" },
-  { href: "/Dog", label: "Dog", icon: "/dog.png" },
-  { href: "/Bird", label: "Bird", icon: "/bird.png" },
-  { href: "/Fish", label: "Fish", icon: "/fish.png" },
-  { href: "/Reptile", label: "Reptile", icon: "/reptile.png" },
-  { href: "/Rabbit", label: "Rabbit", icon: "/rabbit2.png" },
-  { href: "/Horse", label: "Horse", icon: "/horse.png" },
+const categories = [
+  { slug: "Cat", label: "Cat", icon: "/cat_7721779.png" },
+  { slug: "Dog", label: "Dog", icon: "/dog.png" },
+  { slug: "Bird", label: "Bird", icon: "/bird.png" },
+  { slug: "Fish", label: "Fish", icon: "/fish.png" },
+  { slug: "Reptile", label: "Reptile", icon: "/reptile.png" },
+  { slug: "Rabbit", label: "Rabbit", icon: "/rabbit2.png" },
+  { slug: "Horse", label: "Horse", icon: "/horse.png" },
 ];
 
 const Sidebar = () => {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:flex-col bg-white
-      md:w-24 lg:w-40 z-40">
-
+    <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:flex-col bg-white md:w-24 lg:w-40 z-40">
       {/* LOGO */}
       <div className="flex justify-center py-4 shrink-0">
         <Link href="/main">
@@ -35,15 +34,18 @@ const Sidebar = () => {
         </Link>
       </div>
 
-      {/* MENU */}
+      {/* CATEGORY MENU */}
       <nav className="flex-1 overflow-y-auto px-2">
         <ul className="flex flex-col gap-3 py-4">
-          {menuItems.map((item) => {
-            const active = pathname === item.href;
+          {categories.map((cat) => {
+           const href = `/category/${cat.slug}`;
+
+     
+            const active = pathname.startsWith(href);
 
             return (
-              <li key={item.href}>
-                <Link href={item.href}>
+              <li key={cat.slug}>
+                <Link href={href}>
                   <div
                     className={`flex items-center justify-center lg:justify-start
                     gap-3 px-3 py-2 rounded-2xl transition-all
@@ -52,15 +54,15 @@ const Sidebar = () => {
                   >
                     <div className="relative w-6 h-6 lg:w-8 lg:h-8 shrink-0">
                       <Image
-                        src={item.icon}
-                        alt={item.label}
+                        src={cat.icon}
+                        alt={cat.label}
                         fill
                         className="object-contain"
                       />
                     </div>
 
                     <span className="hidden lg:block text-white text-lg font-semibold">
-                      {item.label}
+                      {cat.label}
                     </span>
                   </div>
                 </Link>
@@ -78,9 +80,7 @@ const Sidebar = () => {
             transition-all hover:scale-105
             ${pathname === "/Contact" ? "bg-[#DDEEDD]" : "bg-primary"}`}
           >
-            <span className="text-white text-lg font-semibold">
-              Contact
-            </span>
+            <span className="text-white text-lg font-semibold">Contact</span>
           </div>
         </Link>
       </div>

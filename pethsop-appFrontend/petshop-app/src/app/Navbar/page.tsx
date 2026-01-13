@@ -53,26 +53,38 @@ const Navbar: React.FC = () => {
   const { isAuthenticated, user, setUser, setIsAuthenticated } =
     useContext(AuthContext);
   const { cart, setCart } = useContext(CartContext);
+  const { favorites } = useContext(FavoriteContext);
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const { favorites } = useContext(FavoriteContext);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const filterRef = useRef<HTMLDivElement | null>(null);
 
   const pageTitle = () => {
+    const staticTitles: Record<string, string> = {
+      "/my-profile": "My Profile",
+      "/favorite": "Favorite",
+      "/orders": "My Orders",
+      "/Cart": "Shopping Cart",
+      "/Order": "All Users",
+      "/Contact": "Contact Us",
+      "/settings": "Setting",
+    };
+
+    if (staticTitles[pathname]) return staticTitles[pathname];
+
     if (pathname === "/") return "Home";
-    if (pathname.startsWith("/Cat")) return "Cat Products";
-    if (pathname.startsWith("/Dog")) return "Dog Products";
-    if (pathname.startsWith("/Bird")) return "Bird Products";
-    if (pathname.startsWith("/Fish")) return "Fish Products";
-    if (pathname.startsWith("/Reptile")) return "Reptile Products";
-    if (pathname.startsWith("/Rabbit")) return "Rabbit Products";
-    if (pathname.startsWith("/Horse")) return "Horse Products";
+    if (pathname.startsWith("/category/Cat")) return "Cat Products";
+    if (pathname.startsWith("/category/Dog")) return "Dog Products";
+    if (pathname.startsWith("/category/Bird")) return "Bird Products";
+    if (pathname.startsWith("/category/Fish")) return "Fish Products";
+    if (pathname.startsWith("/category/Reptile")) return "Reptile Products";
+    if (pathname.startsWith("/category/Rabbit")) return "Rabbit Products";
+    if (pathname.startsWith("/category/Horse")) return "Horse Products";
+    if (pathname.startsWith("/favorite")) return "Favorite";
   };
 
   const rotatingTexts: Record<string, string[]> = {
@@ -85,7 +97,6 @@ const Navbar: React.FC = () => {
     "Horse Products": ["Horses", "Are", "Majestic!", "Neigh!"],
   };
 
-  // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -99,7 +110,6 @@ const Navbar: React.FC = () => {
         filterRef.current &&
         !filterRef.current.contains(event.target as Node)
       ) {
-        setIsFilterOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -160,138 +170,135 @@ const Navbar: React.FC = () => {
           <MobileMenu anchor="left" />
         </div>
 
-        {/* Category Filter */}
+        {/* Page Title & Rotating Text */}
         <div className="hidden md:flex ml-7">
-          {[
-            "Cat Products",
-            "Dog Products",
-            "Bird Products",
-            "Fish Products",
-            "Reptile Products",
-            "Rabbit Products",
-            "Horse Products",
-          ].includes(pageTitle()!) && (
+          {pageTitle() && (
             <div className="relative flex items-center gap-3" ref={filterRef}>
               <h1 className="text-xl sm:text-xl font-bold mb-4 text-white flex items-center mt-4">
-                <span>{pageTitle()}</span>
+                {pageTitle()}
               </h1>
 
-              {/* Rotating Text */}
-              <RotatingText
-                texts={rotatingTexts[pageTitle()!] || ["Welcome"]}
-                mainClassName="hidden lg:block px-4 sm:px-6 md:px-8 py-1 sm:py-2 md:py-3 rounded-lg text-white font-bold text-lg sm:text-xl md:text-2xl bg-gradient-to-r from-[#97cba9] via-[#79bfa1] to-[#57b394] overflow-hidden flex justify-center items-center"
-                staggerFrom="last"
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "-120%" }}
-                staggerDuration={0.05}
-                splitLevelClassName="overflow-hidden"
-                transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                rotationInterval={3000}
-              />
+              {[
+                "Cat Products",
+                "Dog Products",
+                "Bird Products",
+                "Fish Products",
+                "Reptile Products",
+                "Rabbit Products",
+                "Horse Products",
+              ].includes(pageTitle()!) && (
+                <RotatingText
+                  texts={rotatingTexts[pageTitle()!] || ["Welcome"]}
+                  mainClassName="hidden lg:block px-4 sm:px-6 md:px-8 py-1 sm:py-2 md:py-3 rounded-lg text-white font-bold text-lg sm:text-xl md:text-2xl bg-gradient-to-r from-[#97cba9] via-[#79bfa1] to-[#57b394] overflow-hidden flex justify-center items-center"
+                  staggerFrom="last"
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "-120%" }}
+                  staggerDuration={0.05}
+                  splitLevelClassName="overflow-hidden"
+                  transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                  rotationInterval={3000}
+                />
+              )}
             </div>
           )}
         </div>
 
         {/* Search & User & Cart & Logout */}
         <div className="flex items-center gap-5 absolute right-2 md:right-2">
-{/* SEARCH */}
-<div
-  ref={searchRef}
-  className="relative w-32 sm:w-44 md:w-56 lg:w-64 xl:w-72"
->
-  <TextField
-    placeholder="Search..."
-    variant="outlined"
-    fullWidth
-    autoComplete="off"
-    value={searchQuery}
-    onChange={handleSearch}
-    onFocus={() => setIsSearchFocused(true)}
-    InputProps={{
-      startAdornment: <Search className="mr-2 opacity-70" size={18} />,
-    }}
-    sx={{
-      "& .MuiOutlinedInput-root": {
-        height: { xs: "36px", md: "40px", lg: "44px" },
-        borderRadius: "12px",
-        backgroundColor: "rgba(255,255,255,0.3)",
-        backdropFilter: "blur(8px)",
-        border: "1px solid rgba(255,255,255,0.4)",
-        "& fieldset": { border: "none" },
-        "&:hover": { backgroundColor: "rgba(255,255,255,0.35)" },
-        "&.Mui-focused": {
-          backgroundColor: "rgba(255,255,255,0.35)",
-          boxShadow: "0 0 0 2px rgba(255,255,255,0.5)",
-        },
-        "& input": {
-          color: "#1f2937",
-          paddingLeft: "4px",
-        },
-      },
-    }}
-  />
-
-  {/* DROPDOWN */}
-  {isSearchFocused && (
-    <div className="absolute top-full left-0 w-56 md:w-full mt-1 z-50">
-      {loading && (
-        <div className="bg-white rounded shadow p-2 text-sm">
-          Searching...
-        </div>
-      )}
-
-      {!loading && searchQuery && searchResults.length === 0 && (
-        <div className="bg-white rounded shadow p-2 text-sm">
-          No results found
-        </div>
-      )}
-
-      {!loading && searchResults.length > 0 && (
-        <div className="bg-white shadow-lg rounded max-h-60 overflow-y-auto">
-          {searchResults.map((product) => (
-            <Link
-              key={product._id}
-              href={`/Products/${product.slug}`}
-              onClick={() => {
-                setIsSearchFocused(false);
-                setSearchResults([]);
-                setSearchQuery("");
+          {/* SEARCH */}
+          <div
+            ref={searchRef}
+            className="relative w-32 sm:w-44 md:w-56 lg:w-64 xl:w-72"
+          >
+            <TextField
+              placeholder="Search..."
+              variant="outlined"
+              fullWidth
+              autoComplete="off"
+              value={searchQuery}
+              onChange={handleSearch}
+              onFocus={() => setIsSearchFocused(true)}
+              InputProps={{
+                startAdornment: (
+                  <Search className="mr-2 opacity-70" size={18} />
+                ),
               }}
-              className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 transition border-b last:border-b-0"
-            >
-              <div className="relative w-10 h-10 shrink-0">
-                {product.image?.length ? (
-                  <Image
-                    src={product.image[0].url}
-                    alt={product.product_name}
-                    fill
-                    sizes="40px"
-                    className="rounded-md object-cover border"
-                  />
-                ) : (
-                  <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs">
-                    N/A
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  height: { xs: "36px", md: "40px", lg: "44px" },
+                  borderRadius: "12px",
+                  backgroundColor: "rgba(255,255,255,0.3)",
+                  backdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255,255,255,0.4)",
+                  "& fieldset": { border: "none" },
+                  "&:hover": { backgroundColor: "rgba(255,255,255,0.35)" },
+                  "&.Mui-focused": {
+                    backgroundColor: "rgba(255,255,255,0.35)",
+                    boxShadow: "0 0 0 2px rgba(255,255,255,0.5)",
+                  },
+                  "& input": { color: "#1f2937", paddingLeft: "4px" },
+                },
+              }}
+            />
+            {/* Search dropdown */}
+            {isSearchFocused && (
+              <div className="absolute top-full left-0 w-56 md:w-full mt-1 z-50">
+                {loading && (
+                  <div className="bg-white rounded shadow p-2 text-sm">
+                    Searching...
+                  </div>
+                )}
+                {!loading && searchQuery && searchResults.length === 0 && (
+                  <div className="bg-white rounded shadow p-2 text-sm">
+                    No results found
+                  </div>
+                )}
+                {!loading && searchResults.length > 0 && (
+                  <div className="bg-white shadow-lg rounded max-h-60 overflow-y-auto">
+                    {searchResults.map((product) => (
+                      <Link
+                        key={product._id}
+                        href={`/Products/${product.slug}`}
+                        onClick={() => {
+                          setIsSearchFocused(false);
+                          setSearchResults([]);
+                          setSearchQuery("");
+                        }}
+                        className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 transition border-b last:border-b-0"
+                      >
+                        <div className="relative w-10 h-10 shrink-0">
+                          {product.image?.length ? (
+                            <Image
+                              src={product.image[0].url}
+                              alt={product.product_name}
+                              fill
+                              sizes="40px"
+                              className="rounded-md object-cover border"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs">
+                              N/A
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="text-sm font-semibold truncate">
+                            {product.product_name}
+                          </span>
+                          <span className="text-sm font-bold text-color">
+                            {product.price},00$
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 )}
               </div>
+            )}
+          </div>
 
-              <div className="flex flex-col flex-1 min-w-0">
-                <span className="text-sm font-semibold truncate">
-                  {product.product_name}
-                </span>
-                <span className="text-sm font-bold text-color">
-                  {product.price},00$
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  )}
-</div>
-          {/* Avatar */}
+          {/* Avatar Dropdown */}
           <Dropdown>
             <DropdownButton>
               <div className="relative w-7 h-7 lg:w-10 lg:h-10 cursor-pointer">
@@ -312,10 +319,11 @@ const Navbar: React.FC = () => {
                 </DropdownItem>
                 <DropdownItem href="/favorite">
                   <FavoriteBorderIcon sx={{ color: "#A8D1B5", mr: 1 }} />{" "}
-                  Favorite ({" "}
+                  Favorite (
                   <span className="text-md text-color2 font-semibold">
-                    {favorites.length}
-                  </span>{" "}
+                    {" "}
+                    {favorites.length}{" "}
+                  </span>
                   )
                 </DropdownItem>
                 <DropdownItem href="/orders">
@@ -332,7 +340,7 @@ const Navbar: React.FC = () => {
           <div className="relative">
             {isAuthenticated ? (
               <Link href="/Cart">
-                <div className="relative w-7 h-7 lg:w-12 lg:h-12 items-center justify-center flex transition duration-300 ease-in-out hover:scale-105">
+                <div className="relative w-7 h-7 lg:w-12 lg:h-12 flex items-center justify-center transition duration-300 ease-in-out hover:scale-105">
                   <ShoppingCartIcon
                     className="text-color"
                     sx={{ fontSize: { xs: 24, md: 32 } }}
@@ -350,7 +358,8 @@ const Navbar: React.FC = () => {
               </div>
             )}
           </div>
-          {/* Button */}
+
+          {/* Login/Logout Button */}
           <div className="hidden md:flex items-center justify-center transition duration-300 ease-in-out hover:scale-105">
             {isAuthenticated ? (
               <Button

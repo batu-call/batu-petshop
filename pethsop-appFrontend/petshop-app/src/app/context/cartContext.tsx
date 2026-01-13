@@ -127,7 +127,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const addToCart = async (productId: string) => {
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`,
+        `/api/v1/cart/addCart`,
         { productId },
         { withCredentials: true }
       );
@@ -149,7 +149,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const removeFromCart = async (productId: string) => {
     try {
       const response = await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/removeCart/${productId}`,
+        `/api/v1/cart/removeCart/${productId}`,
         { withCredentials: true }
       );
 
@@ -163,37 +163,37 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // quantity
-  const updateQuantity = async (productId: string, delta: number) => {
-    const item = cart.find(
-      (i) =>
-        (typeof i.product === "string" ? i.product : i.product._id) ===
-        productId
+ const updateQuantity = async (productId: string, delta: number) => {
+  const item = cart.find((i) => i.product._id === productId);
+  if (!item) return;
+
+  const newQuantity = Math.max(1, item.quantity + delta);
+
+  // Optimistic UI
+  setCart(prevCart =>
+    prevCart.map(c => c.product._id === productId ? { ...c, quantity: newQuantity } : c)
+  );
+
+  try {
+    await axios.put(
+      `/api/v1/cart/updateQuantity`,
+      { productId, quantity: newQuantity },
+      { withCredentials: true }
     );
-
-    if (!item) return;
-
-    const newQuantity = Math.max(1, item.quantity + delta);
-
-    try {
-      const res = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/updateQuantity`,
-        { productId, quantity: newQuantity },
-        { withCredentials: true }
-      );
-
-      if (res.data.success) {
-        await fetchCart();
-      }
-    } catch {
-      toast.error("Failed to update quantity!");
-    }
-  };
+  } catch (error) {
+    toast.error("Failed to update quantity!");
+    // Rollback
+    setCart(prevCart =>
+      prevCart.map(c => c.product._id === productId ? { ...c, quantity: item.quantity } : c)
+    );
+  }
+};
 
   // AllCartClear
   const clearCart = async () => {
     try {
       const response = await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/removeAllCart`,
+        `/api/v1/cart/removeAllCart`,
         { withCredentials: true }
       );
 
@@ -215,7 +215,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/coupon/apply`,
+        `/api/v1/coupon/apply`,
         { code: code.trim() },
         { withCredentials: true }
       );
@@ -237,20 +237,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // removeCoupon
- const removeCoupon = async () => {
-  try {
-    await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/remove-coupon`,
-      {},
-      { withCredentials: true }
-    );
+  const removeCoupon = async () => {
+    try {
+      await axios.post(
+        `/api/v1/cart/remove-coupon`,
+        {},
+        { withCredentials: true }
+      );
 
-    await fetchCart();
-    toast.success("Coupon removed!");
-  } catch {
-    toast.error("Failed to remove coupon!");
-  }
-};
+      await fetchCart();
+      toast.success("Coupon removed!");
+    } catch {
+      toast.error("Failed to remove coupon!");
+    }
+  };
   return (
     <CartContext.Provider
       value={{

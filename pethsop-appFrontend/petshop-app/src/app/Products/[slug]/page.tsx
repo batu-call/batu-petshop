@@ -18,7 +18,6 @@ import CircularText from "@/components/CircularText";
 import Link from "next/link";
 import type { Swiper as SwiperType } from "swiper";
 import { Heart, StarHalf } from "lucide-react";
-import FavoriteIcon from "@mui/icons-material/Favorite";
 import { useCart } from "@/app/context/cartContext";
 import { useFavorite } from "@/app/context/favoriteContext";
 import {
@@ -599,8 +598,8 @@ const ProductDetails = () => {
         );
       case "similar":
         return (
-          <div className="p-6">
-            <h2 className="text-color2 text-2xl sm:text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
+          <div className="p-4">
+            <h2 className="text-color2 text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
               Similar Products
             </h2>
             <Swiper
@@ -636,7 +635,7 @@ const ProductDetails = () => {
 
           const stats = reviewStats[item._id];
           return (
-            <SwiperSlide key={item._id}>
+            <SwiperSlide key={item._id} className="p-2">
               <Link
                 key={item._id}
                 href={`/Products/${item.slug}`}
@@ -660,11 +659,12 @@ const ProductDetails = () => {
                     handleFavorite(item._id);
                   }}
                 >
-                  {isFavorite(item._id) ? (
-                    <FavoriteIcon className="text-gray-400 w-3 h-3" />
-                  ) : (
-                    <Heart className="text-gray-400 w-5 h-5" />
-                  )}
+                  <Heart
+                      className={`w-3 h-3 transition-colors duration-300 ${
+                        isFavorite(item._id) ? "text-gray-600": "text-gray-400"
+                      }`}
+                      fill={isFavorite(item._id) ? "currentColor" : "none"}
+                    />
                 </Button>
 
                 {/* image */}
@@ -814,11 +814,12 @@ const ProductDetails = () => {
                         handleFavorite(product._id);
                       }}
                     >
-                      {isFavorite(product._id) ? (
-                        <FavoriteIcon className="text-gray-400 w-3 h-3" />
-                      ) : (
-                        <Heart className="text-gray-400 w-5 h-5" />
-                      )}
+                      <Heart
+                          className={`w-3 h-3 transition-colors duration-300 ${
+                            isFavorite(product._id) ? "text-gray-600": "text-gray-400"
+                          }`}
+                          fill={isFavorite(product._id) ? "currentColor" : "none"}
+                        />
                     </Button>
                   </div>
                   <h1 className="text-4xl font-bold text-color flex justify-center items-center">

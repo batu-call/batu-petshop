@@ -23,7 +23,7 @@ const Main = () => {
 
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
       <Sidebar />
        {loading ? (
@@ -31,27 +31,25 @@ const Main = () => {
           <CircularText text="LOADING" spinDuration={20} className="text-white text-4xl" />
         </div>
       ) : (
-      <main className="ml-0 md:ml-24 lg:ml-40">
+      <main className="ml-0 md:ml-24 lg:ml-40 h-[70vh] sm:h-[85vh] lg:h-[calc(100vh-64px)] bg-primary">
 
-        <section
-          className="relative w-full"
-          style={{ height: "calc(100vh - 64px)" }}
-        >
-     
-          <Image
-            src="/Yellow Cute Pet Shop Banner (6).png"
-            alt="Pet Shop Banner"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-          />
+      <section
+  className="relative w-full h-[70vh] sm:h-[85vh] lg:h-[calc(100vh-64px)]"
+>
+  <Image
+    src="/Yellow Cute Pet Shop Banner (6).png"
+    alt="Pet Shop Banner"
+    fill
+    priority
+    sizes="100vw"
+    className="object-contain lg:object-cover object-top"
+  />
 
        
           <div className="absolute inset-0 grid grid-cols-1 lg:grid-cols-2 items-center px-4 sm:px-10 lg:px-20">
             <div />
            
-            <div className="flex flex-col gap-6 lg:gap-10">
+            <div className="flex flex-col gap-6 lg:gap-10 mt-20 lg:mt-0">
            
               <BlurText
                 text="Pet Shop"

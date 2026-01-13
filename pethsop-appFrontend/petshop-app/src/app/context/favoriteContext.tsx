@@ -4,13 +4,20 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { AuthContext } from "./authContext";
 
+type ProductImage = {
+  url: string;
+  publicId?: string;
+  _id?: string;
+};
+
+
 type Product = {
   _id: string;
   product_name: string;
   description: string;
   price: number;
-  stock:string
-  image: { url: string }[];
+  salePrice?: number | null;
+  image: ProductImage[];
   slug: string;
 };
 
@@ -35,6 +42,7 @@ export const FavoriteContext = createContext<FavoriteContextType>(defaultContext
 export const FavoriteProvider = ({ children }: { children: ReactNode }) => {
   const [favorites, setFavorites] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingFav, setLoadingFav] = useState<{ [key: string]: boolean }>({});
   const { isAuthenticated } = useContext(AuthContext);
 
   // Fetch favorites
@@ -59,30 +67,47 @@ export const FavoriteProvider = ({ children }: { children: ReactNode }) => {
 }, [isAuthenticated]);
 
   // Add favorite
-  const addFavorite = async (productId: string) => {
-    try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/add`, { productId }, { withCredentials: true });
-      if (res.data.success) {
-        await fetchFavorites();
-        toast.success("Added to favorites!");
-      }
-    } catch {
+ const addFavorite = async (productId: string) => {
+  if (loadingFav[productId]) return; 
+
+  setLoadingFav((prev) => ({ ...prev, [productId]: true }));
+
+  try {
+    await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/add`,
+      { productId },
+      { withCredentials: true }
+    );
+    await fetchFavorites();
+    toast.success("Added to favorites!");
+  } catch (err: any) {
+    if (err.response?.data?.message !== "Already favorited") {
       toast.error("Failed to add favorite!");
     }
-  };
+  } finally {
+    setLoadingFav((prev) => ({ ...prev, [productId]: false }));
+  }
+};
 
   // Remove favorite
   const removeFavorite = async (productId: string) => {
-    try {
-      const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/remove/${productId}`, { withCredentials: true });
-      if (res.data.success) {
-        setFavorites((prev) => prev.filter((p) => p._id !== productId));
-        toast.success("Removed from favorites!");
-      }
-    } catch {
-      toast.error("Failed to remove favorite!");
-    }
-  };
+  if (loadingFav[productId]) return;
+
+  setLoadingFav((prev) => ({ ...prev, [productId]: true }));
+
+  try {
+    await axios.delete(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/remove/${productId}`,
+      { withCredentials: true }
+    );
+    setFavorites((prev) => prev.filter((p) => p._id !== productId));
+    toast.success("Removed from favorites!");
+  } catch {
+    toast.error("Failed to remove favorite!");
+  } finally {
+    setLoadingFav((prev) => ({ ...prev, [productId]: false }));
+  }
+};
 
 useEffect(() => {
   if (!isAuthenticated) {

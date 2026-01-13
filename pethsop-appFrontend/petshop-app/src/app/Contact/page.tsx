@@ -10,9 +10,12 @@ import Sidebar from "../Sidebar/page";
 import AddLocationIcon from "@mui/icons-material/AddLocation";
 import AddCallIcon from "@mui/icons-material/AddCall";
 import EmailIcon from "@mui/icons-material/Email";
+import CircularText from "@/components/CircularText";
+import Footer from "../Footer/page";
 
-
-const StoreMap = dynamic(() => import("../components/StoreMap"), { ssr: false });
+const StoreMap = dynamic(() => import("../components/StoreMap"), {
+  ssr: false,
+});
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -23,7 +26,11 @@ const Contact = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -32,13 +39,20 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/message/add`, formData, {
-        withCredentials: true,
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/message/add`,
+        formData,
+        { withCredentials: true }
+      );
 
       if (res.data.success) {
         toast.success("Message sent successfully!");
-        setFormData({ name: "", email: "", subject: "General Inquiry", message: "" });
+        setFormData({
+          name: "",
+          email: "",
+          subject: "General Inquiry",
+          message: "",
+        });
       } else {
         toast.error(res.data.error || "Something went wrong!");
       }
@@ -60,19 +74,26 @@ const Contact = () => {
       <Navbar />
       <Sidebar />
 
-      <div className="ml-0 md:ml-24 lg:ml-40 flex-1 flex flex-col items-center justify-center md:items-start md:justify-start min-h-screen bg-[#fafafa] p-6 mt-3 md:mt-0">
-        {loading && (
-          <div className="fixed inset-0 flex justify-center items-center bg-primary z-50">
-            <p className="text-white text-2xl">Sending...</p>
-          </div>
-        )}
+      {loading && (
+        <div className="md:ml-24 lg:ml-40 fixed inset-0 z-50 flex items-center justify-center bg-primary">
+          <CircularText
+            text="LOADING"
+            spinDuration={20}
+            className="text-white text-4xl"
+          />
+        </div>
+      )}
 
-        <div className="max-w-[1000px] w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+      <div className="ml-0 md:ml-24 lg:ml-40 flex-1 flex flex-col items-center md:items-center min-h-screen bg-[#fafafa] px-4 md:px-20 lg:px-40 py-10">
+        <div className="max-w-250 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           {/* LEFT - Contact Form */}
           <div className="flex flex-col gap-8">
-            <h1 className="text-4xl lg:text-5xl font-extrabold text-color">Get in Touch</h1>
+            <h1 className="text-4xl lg:text-5xl font-extrabold text-color">
+              Get in Touch
+            </h1>
             <p className="text-slate-600 text-lg">
-              Have a question about a puppy or need grooming advice? Drop us a message below!
+              Have a question about a puppy or need grooming advice? Drop us a
+              message below!
             </p>
 
             <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
@@ -82,38 +103,41 @@ const Contact = () => {
                 placeholder="Your Full Name"
                 value={formData.name}
                 onChange={handleChange}
-                className="h-14 px-4 rounded-xl border border-gray-300 bg-white text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                className="h-14 px-4 rounded-xl border border-gray-300 bg-white"
               />
+
               <input
                 type="email"
                 name="email"
                 placeholder="you@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                className="h-14 px-4 rounded-xl border border-gray-300 bg-white text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                className="h-14 px-4 rounded-xl border border-gray-300 bg-white"
               />
+
               <select
                 name="subject"
                 value={formData.subject}
                 onChange={handleChange}
-                className="h-14 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary/50 appearance-none cursor-pointer"
+                className="h-14 px-4 rounded-xl border border-gray-300 bg-white"
               >
                 <option>General Inquiry</option>
                 <option>Adoption</option>
                 <option>Grooming Services</option>
                 <option>Vet Consultation</option>
               </select>
+
               <textarea
                 name="message"
                 placeholder="How can we help you and your furry friend?"
                 value={formData.message}
                 onChange={handleChange}
-                className="min-h-35 px-4 py-3 rounded-xl border border-gray-300 bg-white text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none"
+                className="min-h-35 px-4 py-3 rounded-xl border border-gray-300 bg-white resize-none"
               />
 
               <button
                 type="submit"
-                className="mt-4 h-14 bg-primary text-background-dark font-bold rounded-full shadow-lg shadow-primary/20 hover:bg-[#D6EED6] hover:scale-[1.02] transition-all cursor-pointer"
+                className="mt-4 h-14 bg-primary text-background-dark font-bold rounded-full shadow-lg hover:scale-[1.02] transition-all"
               >
                 Send Message
               </button>
@@ -123,29 +147,51 @@ const Contact = () => {
           {/* RIGHT - Info + Map */}
           <div className="flex flex-col gap-8">
             <div className="grid gap-4">
-              <InfoCard icon={<AddLocationIcon />} title="Visit Us" value="123 Puppy Lane, Barksville" />
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <InfoCard icon={<AddCallIcon />} title="Call Us" value="(555) 867‑5309" />
-                <InfoCard icon={<EmailIcon />} title="Email Us" value="contact@pawzone-demo.com" />
+              <InfoCard
+                icon={<AddLocationIcon />}
+                title="Visit Us"
+                value="123 Puppy Lane, Barksville"
+              />
+              <div className="grid grid-row md:grid-cols-2 gap-4 text-sm">
+                <InfoCard
+                  icon={<AddCallIcon />}
+                  title="Call Us"
+                  value="(555) 867-5309"
+                />
+                <InfoCard
+                  icon={<EmailIcon />}
+                  title="Email Us"
+                  value="contact@pawzone-demo.com"
+                />
               </div>
             </div>
 
-            <div className="relative w-full min-h-100 rounded-3xl overflow-hidden shadow-xl border">
+
+            <div className="relative w-full h-[400px] rounded-3xl overflow-hidden shadow-xl border">
               <StoreMap />
             </div>
           </div>
         </div>
       </div>
+      <Footer/>
     </>
   );
 };
 
 export default Contact;
 
-// InfoCard component
-const InfoCard = ({ icon, title, value }: { icon: React.ReactNode; title: string; value: string }) => (
-  <div className="flex items-center gap-4 p-5 rounded-2xl bg-white border border-gray-200 shadow-sm transition-all hover:scale-[1.01]">
-    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 text-primary">{icon}</div>
+/* InfoCard */
+const InfoCard = ({
+  icon,
+  title,
+  value,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+}) => (
+  <div className="flex items-center gap-4 p-5 rounded-2xl bg-white border shadow-sm">
+    <div className="p-3 bg-[#97cba9] rounded-full text-color">{icon}</div>
     <div>
       <p className="text-sm text-slate-500">{title}</p>
       <p className="font-bold text-slate-900">{value}</p>

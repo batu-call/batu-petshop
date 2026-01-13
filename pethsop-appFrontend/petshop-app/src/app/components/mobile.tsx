@@ -57,13 +57,13 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
   };
 
   const categories: MenuItem[] = [
-    { text: "Cat", href: "/Cat", imgSrc: "/cat_7721779.png" },
-    { text: "Dog", href: "/Dog", imgSrc: "/dog.png" },
-    { text: "Bird", href: "/Bird", imgSrc: "/bird.png" },
-    { text: "Fish", href: "/Fish", imgSrc: "/fish.png" },
-    { text: "Reptile", href: "/Reptile", imgSrc: "/reptile.png" },
-    { text: "Rabbit", href: "/Rabbit", imgSrc: "/rabbit2.png" },
-    { text: "Horse", href: "/Horse", imgSrc: "/horse.png" },
+    { text: "Cat", href: "/category/Cat", imgSrc: "/cat_7721779.png" },
+    { text: "Dog", href: "/category/Dog", imgSrc: "/dog.png" },
+    { text: "Bird", href: "/category/Bird", imgSrc: "/bird.png" },
+    { text: "Fish", href: "/category/Fish", imgSrc: "/fish.png" },
+    { text: "Reptile", href: "/category/Reptile", imgSrc: "/reptile.png" },
+    { text: "Rabbit", href: "/category/Rabbit", imgSrc: "/rabbit2.png" },
+    { text: "Horse", href: "/category/Horse", imgSrc: "/horse.png" },
   ];
 
    const general: MenuItem[] = [
@@ -76,7 +76,6 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
         { text: "Profile", href: "/my-profile", icon: <AccountCircleIcon sx={{ color: "#A8D1B5" }} /> },
         { text: "Favorite", href: "/favorite", icon: <FavoriteBorderIcon sx={{ color: "#A8D1B5" }} /> },
         { text: "Orders", href: "/orders", icon: <ReceiptIcon sx={{ color: "#A8D1B5" }} />, },
-        { text: "Billing", href: "/billing", icon: <CreditCardIcon sx={{ color: "#A8D1B5" }} /> },
         { text: "Settings", href: "/settings", icon: <SettingsIcon sx={{ color: "#A8D1B5" }} /> },
       ]
     : [];
@@ -144,7 +143,7 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
           ) : (
             <Link href="/Login" className="w-full">
               <ListItemButton>
-                <ListItemIcon><LoginIcon sx={{ color: "#32CD32" }} /></ListItemIcon>
+                <ListItemIcon><LoginIcon sx={{ color: "#97cba9" }} /></ListItemIcon>
                 <ListItemText primary="Login" primaryTypographyProps={{ className: "text-[#32CD32] font-bold" }} />
               </ListItemButton>
             </Link>
