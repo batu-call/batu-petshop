@@ -86,7 +86,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const fetchCart = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/getCart`,
+        "/api/v1/cart/getCart",
         { withCredentials: true }
       );
       if (response.data.success) {
@@ -127,7 +127,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const addToCart = async (productId: string) => {
     try {
       const response = await axios.post(
-        `/api/v1/cart/addCart`,
+        "/api/v1/cart/addCart",
         { productId },
         { withCredentials: true }
       );
@@ -176,7 +176,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   try {
     await axios.put(
-      `/api/v1/cart/updateQuantity`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/updateQuantity`,
       { productId, quantity: newQuantity },
       { withCredentials: true }
     );
@@ -193,7 +193,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const clearCart = async () => {
     try {
       const response = await axios.delete(
-        `/api/v1/cart/removeAllCart`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/removeAllCart`,
         { withCredentials: true }
       );
 
@@ -215,7 +215,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const response = await axios.post(
-        `/api/v1/coupon/apply`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/coupon/apply`,
         { code: code.trim() },
         { withCredentials: true }
       );
@@ -240,7 +240,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const removeCoupon = async () => {
     try {
       await axios.post(
-        `/api/v1/cart/remove-coupon`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/remove-coupon`,
         {},
         { withCredentials: true }
       );

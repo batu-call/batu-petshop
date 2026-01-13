@@ -67,7 +67,7 @@ const Login = () => {
         </div>
       ) : (
         <div className="md:ml-24 lg:ml-40 p-4 flex items-center justify-center h-full">
-          <div className="w-full max-w-5xl bg-background-light dark:bg-background-dark rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row">
+          <div className="w-full max-w-5xl bg-background-light rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row">
             {/* LEFT IMAGE */}
             <div className="hidden md:block w-1/2 relative bg-gray-100">
               <div
@@ -87,12 +87,12 @@ const Login = () => {
             </div>
 
             {/* RIGHT FORM */}
-            <div className="w-full md:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col justify-center bg-white dark:bg-[#1a211d]">
+            <div className="w-full md:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col justify-center bg-white">
               <div className="mb-12">
                 <h2 className="text-3xl font-bold mb-2 text-color text-start">
                   Login
                 </h2>
-                <p className="text-color dark:text-gray-400 mt-3">
+                <p className="text-color mt-3">
                   Enter your details to access your account.
                 </p>
               </div>
@@ -153,7 +153,7 @@ const Login = () => {
                       type="checkbox"
                       className="h-5 w-5 rounded border-[#d7e0da] text-primary focus:ring-primary"
                     />
-                    <span className="text-xs lg:text-sm font-medium text-[#121714] dark:text-gray-300">
+                    <span className="text-xs lg:text-sm font-medium text-[#121714]">
                       Remember Me
                     </span>
                   </label>

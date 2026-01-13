@@ -52,7 +52,7 @@ export const FavoriteProvider = ({ children }: { children: ReactNode }) => {
   setLoading(true);
   try {
     const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/`,
+      `/api/v1/favorite/`,
       { withCredentials: true }
     );
 
@@ -74,7 +74,7 @@ export const FavoriteProvider = ({ children }: { children: ReactNode }) => {
 
   try {
     await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/add`,
+      `/api/v1/favorite/add`,
       { productId },
       { withCredentials: true }
     );
@@ -97,7 +97,7 @@ export const FavoriteProvider = ({ children }: { children: ReactNode }) => {
 
   try {
     await axios.delete(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/remove/${productId}`,
+      `/api/v1/favorite/remove/${productId}`,
       { withCredentials: true }
     );
     setFavorites((prev) => prev.filter((p) => p._id !== productId));
