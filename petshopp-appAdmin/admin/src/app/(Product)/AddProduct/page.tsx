@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
 import Navbar from "@/app/Navbar/page";
 import Sidebar from "@/app/Sidebar/page";
 import { AdminGuard } from "@/app/Context/AdminGuard";
@@ -14,6 +13,8 @@ import MenuItem from "@mui/material/MenuItem";
 import CloseIcon from "@mui/icons-material/Close";
 import CircularText from "@/components/CircularText";
 import { useConfirm } from "@/app/Context/confirmContext";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
 type Features = {
   name: string;
@@ -46,7 +47,8 @@ const AddProduct = () => {
     isActive: true,
     isFeatured: false,
   });
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const { confirm } = useConfirm();
 
@@ -58,8 +60,41 @@ const AddProduct = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+      const newFiles = Array.from(e.target.files);
+      
+      // Maksimum 6 resim kontrolü
+      if (files.length + newFiles.length > 6) {
+        toast.error("Maximum 6 images allowed!");
+        return;
+      }
+
+      setFiles((prev) => [...prev, ...newFiles]);
+      
+      // Preview oluştur
+      newFiles.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreviews((prev) => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
     }
+  };
+
+  const removeImage = async (index: number) => {
+    const ok = await confirm({
+      title: "Remove Image",
+      description: "Are you sure you want to remove this image?",
+      confirmText: "Yes, Remove",
+      cancelText: "Cancel",
+      variant: "destructive",
+    });
+
+    if (!ok) return;
+
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+    toast.success("Image removed");
   };
 
   const handleAddFeature = () => {
@@ -74,6 +109,10 @@ const AddProduct = () => {
 
   const handleSubmit = async () => {
     try {
+      if (files.length === 0) {
+        return toast.error("Please upload at least one image");
+      }
+
       const data = new FormData();
       (Object.keys(formData) as (keyof ProductFormData)[]).forEach((key) => {
         if (key === "productFeatures") {
@@ -82,12 +121,16 @@ const AddProduct = () => {
           data.append(key, String(formData[key]));
         }
       });
-      if (file) data.append("image", file);
+      
+      // Tüm resimleri ekle
+      files.forEach((file) => {
+        data.append("images", file);
+      });
 
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products`,
         data,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (res.data.success) {
@@ -102,7 +145,8 @@ const AddProduct = () => {
           isActive: true,
           isFeatured: false,
         });
-        setFile(null);
+        setFiles([]);
+        setPreviews([]);
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
@@ -142,9 +186,7 @@ const AddProduct = () => {
   }, []);
 
   return (
-    <div className="bg-primary min-h-screen">
-      <Navbar />
-      <Sidebar />
+    <div className="bg-[#f6f7f9] h-full flex items-center justify-center mt-80 md:mt-70 lg:mt-0">
       {loading ? (
         <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
           <CircularText
@@ -154,7 +196,7 @@ const AddProduct = () => {
           />
         </div>
       ) : (
-        <div className="flex flex-col lg:flex-row gap-6 bg-white shadow-2xl md:ml-24 lg:ml-60 lg:mt-20 p-8 rounded-2xl max-w-[1600px] mx-auto">
+        <div className="flex flex-col lg:flex-row gap-6 bg-white shadow-2xl p-8 rounded-2xl max-w-[1600px] mx-auto">
           {/* LEFT SIDE - FORM */}
           <div className="flex-1">
             <h2 className="text-color text-2xl mb-4 text-jost font-semibold">
@@ -302,35 +344,39 @@ const AddProduct = () => {
             />
 
             <Button
-              variant="contained"
-              fullWidth
               onClick={handleSubmit}
-              sx={{
-                mt: 3,
-                backgroundColor: "#B1CBBB",
-                color: "#393E46",
-                fontWeight: 600,
-                "&:hover": {
-                  backgroundColor: "#A3C3AA",
-                  transform: "scale(1.02)",
-                },
-                transition: "all 0.2s ease-in-out",
-              }}
+              className="
+    mt-3
+    w-full
+    bg-primary 
+    hover:bg-[#A8D1B5]
+    text-[#393E46]
+    font-semibold
+    transition-all
+    duration-200
+    ease-in-out
+    hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md
+    cusor-poiinter
+  "
             >
               Add Product
             </Button>
           </div>
 
-          {/* MIDDLE - IMAGE */}
+          {/* MIDDLE - IMAGES */}
           <div className="flex-1 flex flex-col items-center justify-start">
             <h2 className="text-color text-2xl mb-2 text-jost font-semibold">
-              Product Image
+              Product Images ({previews.length}/6)
             </h2>
-            <div className="border-2 h-80 w-full relative rounded-lg overflow-hidden">
-              {file ? (
+            
+            {/* Main Image Preview */}
+            <div className="border-2 h-80 w-full relative rounded-lg overflow-hidden mb-4">
+              {previews.length > 0 ? (
                 <Image
-                  src={URL.createObjectURL(file)}
-                  alt="Selected Product"
+                  src={previews[0]}
+                  alt="Main Product"
                   fill
                   className="object-cover"
                 />
@@ -340,20 +386,74 @@ const AddProduct = () => {
                 </p>
               )}
             </div>
+
+            {/* Thumbnail Grid */}
+            {previews.length > 1 && (
+              <div className="grid grid-cols-3 gap-2 w-full mb-4">
+                {previews.slice(1).map((preview, index) => (
+                  <div
+                    key={index + 1}
+                    className="relative h-24 border rounded-lg overflow-hidden group"
+                  >
+                    <Image
+                      src={preview}
+                      alt={`Product ${index + 2}`}
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      onClick={() => removeImage(index + 1)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Remove First Image Button */}
+            {previews.length > 0 && (
+              <Button
+                onClick={() => removeImage(0)}
+                className="mb-2 bg-red-500 hover:bg-red-600 text-white"
+              >
+                Remove Main Image
+              </Button>
+            )}
+
             <Button
-              variant="contained"
-              component="label"
-              sx={{
-                mt: 2,
-                backgroundColor: "#B1CBBB",
-                color: "#393E46",
-                fontWeight: 600,
-                "&:hover": { backgroundColor: "#A3C3AA" },
-              }}
+              asChild
+              disabled={previews.length >= 6}
+              className="
+            mt-2
+            bg-primary 
+    hover:bg-[#A8D1B5]
+            text-[#393E46]
+            font-semibold
+            transition-colors
+            hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md
+     disabled:opacity-50
+     disabled:cursor-not-allowed
+          "
             >
-              Upload Image
-              <input type="file" hidden onChange={handleFileChange} />
+              <label className={previews.length >= 6 ? "cursor-not-allowed" : "cursor-pointer"}>
+                Upload Images
+                <input
+                  type="file"
+                  hidden
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={previews.length >= 6}
+                />
+              </label>
             </Button>
+            <p className="text-xs text-gray-500 mt-2">
+              You can upload up to 6 images
+            </p>
           </div>
 
           {/* RIGHT - FEATURES */}
@@ -415,19 +515,21 @@ const AddProduct = () => {
                 className="border p-2 rounded flex-1"
               />
               <Button
-                onClick={handleAddFeature}
-                sx={{
-                  backgroundColor: "#B1CBBB",
-                  color: "#393E46",
-                  fontWeight: 600,
-                  "&:hover": {
-                    backgroundColor: "#A3C3AA",
-                    transform: "scale(1.05)",
-                  },
-                }}
-              >
-                Add Feature
-              </Button>
+  onClick={handleAddFeature}
+  className="
+    bg-primary 
+    hover:bg-[#A8D1B5]
+    text-[#393E46]
+    font-semibold
+    transition-all
+    duration-20
+    hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md
+  "
+>
+  Add Feature
+</Button>
             </div>
           </div>
         </div>

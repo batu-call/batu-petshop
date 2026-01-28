@@ -78,7 +78,7 @@ const Footer = () => {
 
 
   return (
-    <div className="md:ml-24 lg:ml-40">
+    <div>
       <div className="w-full flex relative overflow-hidden h-[200px] mb-4 border-b" 
       style={{backgroundColor:config.animal === "fish" ? "#eff6ff" : "transparent"}}>
         {/* Ball */}

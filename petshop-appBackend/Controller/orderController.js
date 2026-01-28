@@ -44,8 +44,8 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     orderItems.push({
       product: product._id,
       name: product.product_name,
-      price: item.price,
-      quantity: item.quantity,
+      price: product.price,
+      quantity: product.quantity,
       image: product.image?.[0]?.url || "",
     });
   }
@@ -111,19 +111,91 @@ export const getUserOrder = catchAsyncError(async (req, res, next) => {
 
 export const AllOrders = catchAsyncError(async (req, res, next) => {
   if (!req.user) {
-    return next(new ErrorHandler("Unauthorized"), 401);
+    return next(new ErrorHandler("Unauthorized", 401));
   }
 
-  const orders = await Order.find()
+  const {
+    page = 1,
+    search,
+    email,
+    status,
+    minPrice,
+    maxPrice,
+    startDate,
+    endDate,
+    sortBy = 'createdAt',
+    sortOrder = 'desc'
+  } = req.query;
+
+  const limit = 15;
+  const skip = (Number(page) - 1) * limit;
+
+  // Build filter
+  let filter = {};
+
+  // Search filter (search in shipping address fullName)
+  const escapeRegex = (text) =>
+    text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  if (search && typeof search === "string") {
+    const safeSearch = escapeRegex(search.trim().slice(0, 50));
+    filter["shippingAddress.fullName"] = { $regex: safeSearch, $options: "i" };
+  }
+
+  // Email filter (search in both user email and shipping email)
+  if (email && typeof email === "string") {
+    const safeEmail = escapeRegex(email.trim().slice(0, 50));
+    filter.$or = [
+      { "shippingAddress.email": { $regex: safeEmail, $options: "i" } }
+    ];
+  }
+
+  // Status filter
+  if (status && ["pending", "paid", "shipped", "delivered", "cancelled"].includes(status)) {
+    filter.status = status;
+  }
+
+  // Price range filter
+  if (minPrice || maxPrice) {
+    filter.totalAmount = {};
+    if (minPrice) filter.totalAmount.$gte = Number(minPrice);
+    if (maxPrice) filter.totalAmount.$lte = Number(maxPrice);
+  }
+
+  // Date range filter
+  if (startDate || endDate) {
+    filter.createdAt = {};
+    if (startDate) filter.createdAt.$gte = new Date(startDate);
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // End of day
+      filter.createdAt.$lte = end;
+    }
+  }
+
+  // Count total filtered orders
+  const totalOrders = await Order.countDocuments(filter);
+
+  // Build sort
+  const sortObj = {};
+  sortObj[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+  // Fetch orders with filters
+  const orders = await Order.find(filter)
     .populate("user", "name email")
     .populate({
       path: "items.product",
-      select: "product_name image price",
+      select: "product_name image price slug",
     })
-    .sort({ createdAt: -1 });
+    .sort(sortObj)
+    .skip(skip)
+    .limit(limit);
 
   res.status(200).json({
     success: true,
+    totalPages: Math.ceil(totalOrders / limit),
+    totalOrders,
+    currentPage: Number(page),
     orders,
   });
 });
@@ -264,7 +336,7 @@ export const getOrderStats = catchAsyncError(async (req, res, next) => {
 });
 
 export const getOrderByUserId = catchAsyncError(async (req, res, next) => {
-
+  
   const orders = await Order.find({ user: req.params.id })
     .populate("user", "firstName lastName email")
     .populate({
@@ -278,6 +350,7 @@ export const getOrderByUserId = catchAsyncError(async (req, res, next) => {
     orders,
   });
 });
+
 
 export const getUserOrderStats = catchAsyncError(async (req, res, next) => {
   const stats = await Order.aggregate([

@@ -6,9 +6,8 @@ import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { TextField } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
 import CircularText from "@/components/CircularText";
+import InputAdornment from "@mui/material/InputAdornment";
 
 type Discount = {
   _id: string;
@@ -35,7 +34,7 @@ const DiscountAdminPage = () => {
     try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/coupon`,
-        { withCredentials: true }
+        { withCredentials: true },
       );
       setDiscounts(res.data.data || []);
     } catch {
@@ -49,7 +48,7 @@ const DiscountAdminPage = () => {
     try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/shipping`,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (res.data.success) {
@@ -68,57 +67,56 @@ const DiscountAdminPage = () => {
     fetchShippingSettings();
   }, []);
 
- const createDiscount = async () => {
+  const createDiscount = async () => {
+    if (!code || !percent) {
+      toast.error("Please fill required fields");
+      return;
+    }
 
-  if (!code || !percent) {
-    toast.error("Please fill required fields");
-    return;
-  }
+    const percentValue = Number(percent);
+    const minAmountValue = minAmount ? Number(minAmount) : 0;
 
-  const percentValue = Number(percent);
-  const minAmountValue = minAmount ? Number(minAmount) : 0;
+    if (percentValue <= 0 || percentValue > 100) {
+      toast.error("Discount percent must be between 1 and 100");
+      return;
+    }
 
-  if (percentValue <= 0 || percentValue > 100) {
-    toast.error("Discount percent must be between 1 and 100");
-    return;
-  }
+    if (minAmountValue < 0) {
+      toast.error("Minimum amount cannot be negative");
+      return;
+    }
 
-  if (minAmountValue < 0) {
-    toast.error("Minimum amount cannot be negative");
-    return;
-  }
-
-  const exists = discounts.find(
-    (d) => d.code.toLowerCase() === code.toLowerCase()
-  );
-
-  if (exists) {
-    toast.error("This discount code already exists!");
-    return;
-  }
-
-  try {
-    const res = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/coupon`,
-      {
-        code: code.trim().toUpperCase(),
-        percent: percentValue,
-        minAmount: minAmount ? minAmountValue : undefined,
-      },
-      { withCredentials: true }
+    const exists = discounts.find(
+      (d) => d.code.toLowerCase() === code.toLowerCase(),
     );
 
-    if (res.data.success) {
-      toast.success("Discount code created!");
-      setCode("");
-      setPercent("");
-      setMinAmount("");
-      fetchDiscounts();
+    if (exists) {
+      toast.error("This discount code already exists!");
+      return;
     }
-  } catch (error) {
-    toast.error("Failed to create discount");
-  }
-};
+
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/coupon`,
+        {
+          code: code.trim().toUpperCase(),
+          percent: percentValue,
+          minAmount: minAmount ? minAmountValue : undefined,
+        },
+        { withCredentials: true },
+      );
+
+      if (res.data.success) {
+        toast.success("Discount code created!");
+        setCode("");
+        setPercent("");
+        setMinAmount("");
+        fetchDiscounts();
+      }
+    } catch (error) {
+      toast.error("Failed to create discount");
+    }
+  };
 
   const deleteDiscount = async (id: string) => {
     if (!confirm("Are you sure?")) return;
@@ -126,7 +124,7 @@ const DiscountAdminPage = () => {
     try {
       const res = await axios.delete(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/coupon/${id}`,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (res.data.success) {
@@ -146,7 +144,7 @@ const DiscountAdminPage = () => {
           fee: Number(shippingFee),
           freeOver: Number(freeOver),
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (res.data.success) {
@@ -159,9 +157,6 @@ const DiscountAdminPage = () => {
 
   return (
     <>
-      <Navbar />
-      <Sidebar />
-
       {loading && (
         <div className="fixed inset-0 flex justify-center items-center bg-primary z-50">
           <CircularText
@@ -172,7 +167,7 @@ const DiscountAdminPage = () => {
         </div>
       )}
 
-      <div className="p-6 md:ml-24 lg:ml-40">
+      <div className="p-6">
         {/* CREATE DISCOUNT */}
         <div className="bg-white shadow-xl p-6 rounded-xl mb-6 max-w-xl">
           <h2 className="text-xl font-semibold mb-4 text-color">
@@ -259,6 +254,11 @@ const DiscountAdminPage = () => {
               variant="standard"
               fullWidth
               slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">$</InputAdornment>
+                  ),
+                },
                 inputLabel: {
                   sx: {
                     color: "#B1CBBB",
@@ -267,7 +267,9 @@ const DiscountAdminPage = () => {
                 },
               }}
               sx={{
-                "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB" },
+                "& .MuiInput-underline:after": {
+                  borderBottomColor: "#B1CBBB",
+                },
               }}
             />
 
@@ -278,7 +280,12 @@ const DiscountAdminPage = () => {
               onChange={(e) => setFreeOver(e.target.value)}
               variant="standard"
               fullWidth
-              slotProps={{
+               slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">$</InputAdornment>
+                  ),
+                },
                 inputLabel: {
                   sx: {
                     color: "#B1CBBB",
@@ -287,7 +294,9 @@ const DiscountAdminPage = () => {
                 },
               }}
               sx={{
-                "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB" },
+                "& .MuiInput-underline:after": {
+                  borderBottomColor: "#B1CBBB",
+                },
               }}
             />
 

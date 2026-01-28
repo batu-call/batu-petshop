@@ -1,14 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+
 
 @layer utilities {
   .bg-primary {
-     background-color:#97cba9; 
+    background-color: #97cba9 ;
   }
   .bg-secondary {
-    background-color: #DDEEDD;
+    background-color: #D6EED6;
   }
   .bg-secondary_20 {
     background-color: rgba(221, 238, 221, 0.2);
@@ -20,13 +20,52 @@
     color: #393E46;
   }
   .text-color2 {
-    color: #A8D1B5;
+    color: #B1CBBB;
   }
+   .text-color3 {
+    color: #FFFFFF;
+  }
+  .h-full{
+     height: calc(100vh - 4.5rem);
+  }
+   .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  }
+
+  .text-shadow-md {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  }
+
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  }
+  .scrollbar-hide {
+  scrollbar-width: none;
 }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+}
+
 
 body {
   font-family: 'Jost', Arial, Helvetica, sans-serif                                         
 }
+
+.swiper-button-next,
+.swiper-button-prev {
+  color: white;
+}
+
+.swiper-pagination-bullet {
+  background: white;
+}
+
+.swiper-pagination-bullet-active {
+  background: white;
+}
+
+
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -68,8 +107,6 @@ body {
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -99,6 +136,8 @@ body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
 }
 
 .dark {

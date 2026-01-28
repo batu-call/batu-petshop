@@ -6,12 +6,11 @@ import { Box, TextField, Typography } from "@mui/material";
 import axios, { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import CircularText from "@/components/CircularText";
 import Footer from "@/app/Footer/page";
+import { useRouter } from "next/navigation";
 
 type FormDataType = {
   firstName: string;
@@ -21,7 +20,8 @@ type FormDataType = {
 };
 
 const MyProfil = () => {
-  const { user, setUser } = useContext(AuthContext);
+  const router = useRouter();
+  const { user, setUser ,isAuthenticated } = useContext(AuthContext);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -89,10 +89,13 @@ const MyProfil = () => {
     }
   };
 
+  useEffect(() => {
+  if (!isAuthenticated) {
+    router.push("/Login");
+  }
+}, [isAuthenticated, router]);
   return (
     <div className="bg-[#f6f7f9] min-h-screen w-full relative">
-      <Navbar />
-      <Sidebar />
       {loading ? (
         <div className="md:ml-25 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
           <CircularText
@@ -102,7 +105,7 @@ const MyProfil = () => {
           />
         </div>
       ) : (
-        <div className="h-full md:ml-25 lg:ml-40 flex items-center justify-center p-4 md:p-8">
+        <div className="h-full flex items-center justify-center p-4 md:p-8">
           <div className="bg-white w-full xl:w-2/4 p-6 sm:p-10 shadow-2xl rounded-2xl">
             {/* Avatar Upload */}
             <Box
@@ -133,7 +136,9 @@ const MyProfil = () => {
 
               <Button
                 asChild
-                className="bg-primary hover:bg-[#A8D1B5] text-color font-semibold px-6 transition duration-300 ease-in-out hover:scale-105 cursor-pointer"
+                className="bg-primary hover:bg-[#A8D1B5] text-color font-semibold px-6 cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md"
               >
                 <label className="cursor-pointer flex items-center">
                   Change Avatar
@@ -253,7 +258,9 @@ const MyProfil = () => {
               </Box>
 
               <Button
-                className="mt-2 w-full bg-primary hover:bg-[#A8D1B5] text-color font-semibold px-6 transition duration-300 ease-in-out hover:scale-105 cursor-pointer"
+                className="mt-2 w-full bg-primary hover:bg-[#A8D1B5] text-color font-semibold px-6 cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md"
                 onClick={handleSubmit}
               >
                 Save Changes

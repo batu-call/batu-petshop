@@ -1,11 +1,21 @@
 "use client";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
 import CircularText from "@/components/CircularText";
 import Image from "next/image";
+import CloseIcon from "@mui/icons-material/Close";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Package, Trash2 } from "lucide-react";
+import Link from "next/link";
 
 type OrderItems = {
   product:
@@ -47,27 +57,90 @@ export type OrdersType = {
 };
 
 const AllOrders = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const [orders, setOrders] = useState<OrdersType[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState({
-    email: "",
-    status: "",
-    totalPriceMin: "",
-    totalPriceMax: "",
-  });
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!searchParams.get("page")) {
+      router.replace("?page=1", { scroll: false });
+    }
+  }, [searchParams, router]);
+
+  // Get filters from URL
+  const page = Number(searchParams.get("page")) || 1;
+
+  // Local filter state (for immediate UI updates)
+  const [localFilter, setLocalFilter] = useState({
+    search: searchParams.get("search") || "",
+    email: searchParams.get("email") || "",
+    status: searchParams.get("status") || "",
+    minPrice: searchParams.get("minPrice") || "",
+    maxPrice: searchParams.get("maxPrice") || "",
+  });
+
+  // Applied filters (for API calls)
+  const [appliedFilter, setAppliedFilter] = useState(localFilter);
+
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce filter updates
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    debounceTimeoutRef.current = setTimeout(() => {
+      setAppliedFilter(localFilter);
+
+      // Update URL
+      const params = new URLSearchParams();
+      params.set("page", "1");
+
+      if (localFilter.search) params.set("search", localFilter.search);
+      if (localFilter.email) params.set("email", localFilter.email);
+      if (localFilter.status) params.set("status", localFilter.status);
+      if (localFilter.minPrice) params.set("minPrice", localFilter.minPrice);
+      if (localFilter.maxPrice) params.set("maxPrice", localFilter.maxPrice);
+
+      router.push(`?${params.toString()}`, { scroll: false });
+    }, 600); 
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [localFilter, router]);
+
+  // Fetch orders with filters
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
       try {
+        const params: any = { page };
+
+        // Add filters to request
+        if (appliedFilter.search) params.search = appliedFilter.search;
+        if (appliedFilter.email) params.email = appliedFilter.email;
+        if (appliedFilter.status) params.status = appliedFilter.status;
+        if (appliedFilter.minPrice) params.minPrice = appliedFilter.minPrice;
+        if (appliedFilter.maxPrice) params.maxPrice = appliedFilter.maxPrice;
+
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/api/v1/order/allOrders`,
-          { withCredentials: true }
+          { params, withCredentials: true },
         );
+
         if (response.data.success) {
           setOrders(response.data.orders);
+          setTotalPages(response.data.totalPages || 1);
+          setTotalOrders(response.data.totalOrders || 0);
         }
       } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
@@ -82,7 +155,62 @@ const AllOrders = () => {
       }
     };
     fetchOrders();
-  }, []);
+  }, [
+    page,
+    appliedFilter.search,
+    appliedFilter.email,
+    appliedFilter.status,
+    appliedFilter.minPrice,
+    appliedFilter.maxPrice,
+  ]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    const emptyFilters = {
+      search: "",
+      email: "",
+      status: "",
+      minPrice: "",
+      maxPrice: "",
+    };
+    setLocalFilter(emptyFilters);
+    setAppliedFilter(emptyFilters);
+    router.push("?page=1", { scroll: false });
+  };
+
+  // Check if any filter is active
+  const hasActiveFilters = () => {
+    return Object.values(appliedFilter).some((value) => value !== "");
+  };
+
+  // Pagination
+  const goToPage = (p: number) => {
+    const params = new URLSearchParams();
+    params.set("page", String(p));
+
+    if (appliedFilter.search) params.set("search", appliedFilter.search);
+    if (appliedFilter.email) params.set("email", appliedFilter.email);
+    if (appliedFilter.status) params.set("status", appliedFilter.status);
+    if (appliedFilter.minPrice) params.set("minPrice", appliedFilter.minPrice);
+    if (appliedFilter.maxPrice) params.set("maxPrice", appliedFilter.maxPrice);
+
+    router.push(`?${params.toString()}`, { scroll: false });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const visibleCount = 5;
+  let start = Math.max(2, page - Math.floor(visibleCount / 2));
+  let end = start + visibleCount - 1;
+
+  if (end >= totalPages) {
+    end = totalPages - 1;
+    start = Math.max(2, end - visibleCount + 1);
+  }
+
+  const pages = [];
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -96,199 +224,368 @@ const AllOrders = () => {
     });
   };
 
-  const filteredOrders = orders.filter((o) => {
-    const matchesSearch = o.shippingAddress.fullName
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesEmail = filter.email
-      ? o.user?.email?.toLowerCase().includes(filter.email.toLowerCase()) ||
-        o.shippingAddress?.email
-          ?.toLowerCase()
-          .includes(filter.email.toLowerCase())
-      : true;
-    const matchStatus = filter.status ? o.status === filter.status : true;
-    const matchesTotalPrice =
-      (!filter.totalPriceMin ||
-        o.totalAmount >= Number(filter.totalPriceMin)) &&
-      (!filter.totalPriceMax || o.totalAmount <= Number(filter.totalPriceMax));
-    return matchesSearch && matchesEmail && matchStatus && matchesTotalPrice;
-  });
-
-  if (loading) {
-    return (
-      <>
-        <Navbar />
-        <Sidebar />
-        <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
+  return (
+    <div>
+      {loading ? (
+        <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50 mt-14 md:mt-0">
           <CircularText
             text="LOADING"
             spinDuration={20}
             className="text-white text-4xl"
           />
         </div>
-      </>
-    );
-  }
-
-  return (
-    <div>
-      <Navbar />
-      <Sidebar />
-
-      <div className="md:ml-24 lg:ml-40 flex-1 h-screen bg-white p-4 overflow-x-auto">
-        {/* FILTERS */}
-        <div className="flex flex-col md:flex-row gap-2 mb-4">
-          <input
-            type="text"
-            placeholder="Search by name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border p-2 rounded flex-1"
-          />
-          <input
-            type="text"
-            placeholder="Filter by email"
-            value={filter.email}
-            onChange={(e) => setFilter({ ...filter, email: e.target.value })}
-            className="border p-2 rounded flex-1"
-          />
-          <select
-            value={filter.status}
-            onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-            className="border p-2 rounded flex-1"
-          >
-            <option value="">All Status</option>
-            <option value="pending">pending</option>
-            <option value="paid">paid</option>
-            <option value="shipped">shipped</option>
-            <option value="delivered">delivered</option>
-            <option value="cancelled">cancelled</option>
-          </select>
-          <input
-            type="number"
-            placeholder="Min Total Price"
-            value={filter.totalPriceMin}
-            onChange={(e) =>
-              setFilter({ ...filter, totalPriceMin: e.target.value })
-            }
-            className="border p-2 rounded w-32"
-          />
-          <input
-            type="number"
-            placeholder="Max Total Price"
-            value={filter.totalPriceMax}
-            onChange={(e) =>
-              setFilter({ ...filter, totalPriceMax: e.target.value })
-            }
-            className="border p-2 rounded w-32"
-          />
-        </div>
-
-        {/* ORDERS LIST */}
-        {filteredOrders.length === 0 ? (
-          <p className="text-bold text-2xl text-color mt-8">No Orders!</p>
-        ) : (
-          filteredOrders.map((o) => (
-            <div
-              key={o._id}
-              className="border rounded-lg mb-4 shadow hover:shadow-lg transition cursor-pointer"
-            >
-              {/* MAIN ORDER INFO */}
-              <div
-                className="flex flex-col md:flex-row gap-2 p-2 bg-secondary text-color items-center justify-between"
-                onClick={() =>
-                  setExpandedOrder(expandedOrder === o._id ? null : o._id)
+      ) : (
+        <div className="flex-1 min-h-screen bg-white p-4">
+          {/* FILTER SECTION */}
+          <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <input
+                type="text"
+                placeholder="Search by name..."
+                value={localFilter.search}
+                onChange={(e) =>
+                  setLocalFilter({ ...localFilter, search: e.target.value })
                 }
+                className="border border-gray-300 p-2 rounded flex-1 min-w-[200px] focus:outline-none focus:ring-1 focus:ring-[#97cba9]"
+              />
+
+              <input
+                type="text"
+                placeholder="Filter by email"
+                value={localFilter.email}
+                onChange={(e) =>
+                  setLocalFilter({ ...localFilter, email: e.target.value })
+                }
+                className="border border-gray-300 p-2 rounded flex-1 min-w-[200px] focus:outline-none focus:ring-1 focus:ring-[#97cba9]"
+              />
+
+              <select
+                value={localFilter.status}
+                onChange={(e) =>
+                  setLocalFilter({ ...localFilter, status: e.target.value })
+                }
+                className="border border-gray-300 p-2 rounded min-w-[150px] focus:outline-none focus:ring-1 focus:ring-[#97cba9]"
               >
-                <div className="flex-1 text-center truncate">{o._id}</div>
-                <div className="flex-1 text-center truncate">
-                  {o.user?.name || o.shippingAddress.fullName}
-                </div>
-                <div className="flex-1 text-center truncate">
-                  {o.user?.email || o.shippingAddress.email}
-                </div>
-                <div className="flex-1 text-center truncate">
-                  {o.items.reduce((acc, item) => acc + item.quantity, 0)}
-                </div>
-                <div className="flex-1 text-center truncate">
-                  {o.totalAmount} $
-                </div>
-                <div
-                  className={`flex-1 text-center truncate ${
-                    o.status === "delivered"
-                      ? "text-green-500"
-                      : o.status === "pending"
-                      ? "text-yellow-500"
-                      : o.status === "shipped"
-                      ? "text-blue-500"
-                      : "text-red-500"
-                  }`}
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+
+              <input
+                type="number"
+                placeholder="Min Price"
+                value={localFilter.minPrice}
+                onChange={(e) =>
+                  setLocalFilter({ ...localFilter, minPrice: e.target.value })
+                }
+                className="border border-gray-300 p-2 rounded w-32 focus:outline-none focus:ring-1 focus:ring-[#97cba9]"
+              />
+
+              <input
+                type="number"
+                placeholder="Max Price"
+                value={localFilter.maxPrice}
+                onChange={(e) =>
+                  setLocalFilter({ ...localFilter, maxPrice: e.target.value })
+                }
+                className="border border-gray-300 p-2 rounded w-32 focus:outline-none focus:ring-1 focus:ring-[#97cba9]"
+              />
+            </div>
+
+            {/* Results count and clear button */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Showing{" "}
+                <span className="font-bold text-color2">{orders.length}</span>{" "}
+                of <span className="font-bold text-color">{totalOrders}</span>{" "}
+                orders
+              </p>
+              {hasActiveFilters() && (
+                <button
+                  onClick={clearFilters}
+                  className="w-40 flex gap-2 justify-center items-center bg-white text-gray-800 rounded-sm p-2 cursor-pointer hover:bg-gray-100 hover:scale-105 transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97] hover:shadow-md"
                 >
-                  {o.status}
-                </div>
-                <div className="flex-1 text-center truncate">
-                  {formatDate(o.createdAt)}
-                </div>
-              </div>
-
-              {/* ORDER DETAILS */}
-              {expandedOrder === o._id && (
-                <div className="p-4 bg-white border-t flex flex-col gap-2">
-                  <h3 className="font-semibold text-lg mb-2 text-color">
-                    Shipping Address
-                  </h3>
-                  <p>
-                    {o.shippingAddress.fullName} | {o.shippingAddress.email}
-                  </p>
-                  <p>
-                    {o.shippingAddress.phoneNumber} | {o.shippingAddress.city}
-                  </p>
-                  <p>
-                    {o.shippingAddress.address}, {o.shippingAddress.postalCode}
-                  </p>
-
-                  <h3 className="font-semibold text-lg mt-2 text-color">
-                    Products
-                  </h3>
-                  {o.items.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex gap-2 items-center border-b py-2"
-                    >
-                      <div className="relative w-16 h-16">
-                        <Image
-                          src={
-                            item.product &&
-                            typeof item.product !== "string" &&
-                            item.product.image?.length
-                              ? item.product.image[0].url
-                              : "/default-product.png"
-                          }
-                          alt={
-                            item.product && typeof item.product !== "string"
-                              ? item.product.product_name
-                              : item.name || "Product image"
-                          }
-                          fill
-                          className="object-cover rounded"
-                          unoptimized
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold">{item.name}</p>
-                        <p>
-                          {item.quantity} x ${item.price} = $
-                          {item.quantity * item.price}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                  <Trash2 className="w-4 h-4" />
+                  Clear Filters
+                </button>
               )}
             </div>
-          ))
-        )}
-      </div>
+          </div>
+
+          {/* TABLE HEADER - Desktop only */}
+          <div className="hidden lg:grid grid-cols-7 bg-secondary py-2 text-color font-semibold rounded-t-lg px-4 mb-2">
+            <div className="text-center">Order ID</div>
+            <div className="text-center">Customer</div>
+            <div className="text-center">Email</div>
+            <div className="text-center">Items</div>
+            <div className="text-center">Total</div>
+            <div className="text-center">Status</div>
+            <div className="text-center">Date</div>
+          </div>
+
+          {/* ORDERS LIST */}
+          {orders.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4 flex justify-center"><Package className="w-16 h-16 text-color2" /></div>
+              <h3 className="text-2xl font-bold text-gray-700 mb-2">
+                No orders found
+              </h3>
+              <p className="text-gray-500 mb-6">
+                {hasActiveFilters()
+                  ? "Try adjusting your filters to see more results"
+                  : "No orders available"}
+              </p>
+              {hasActiveFilters() && (
+                <button
+                  onClick={clearFilters}
+                  className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-[#D6EED6] hover:text-[#393E46] cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97]"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+          ) : (
+            orders.map((o) => (
+              <div
+                key={o._id}
+                className="border rounded-lg mb-4 shadow hover:shadow-lg transition overflow-hidden"
+              >
+                {/* MAIN ORDER INFO */}
+                <div
+                  className="grid grid-cols-1 lg:grid-cols-7 gap-2 p-4 bg-secondary text-color items-center cursor-pointer hover:bg-opacity-90 transition-colors"
+                  onClick={() =>
+                    setExpandedOrder(expandedOrder === o._id ? null : o._id)
+                  }
+                >
+                  <div className="text-center">
+                    <p className="lg:hidden text-xs text-gray-500 mb-1">
+                      Order ID
+                    </p>
+                    <span className="text-xs truncate block">{o._id}</span>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="lg:hidden text-xs text-gray-500 mb-1">
+                      Customer
+                    </p>
+                    <span className="truncate block">
+                      {o.user?.name || o.shippingAddress.fullName}
+                    </span>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="lg:hidden text-xs text-gray-500 mb-1">
+                      Email
+                    </p>
+                    <span className="truncate block text-sm">
+                      {o.user?.email || o.shippingAddress.email}
+                    </span>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="lg:hidden text-xs text-gray-500 mb-1">
+                      Items
+                    </p>
+                    <span className="font-semibold">
+                      {o.items.reduce((acc, item) => acc + item.quantity, 0)}
+                    </span>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="lg:hidden text-xs text-gray-500 mb-1">
+                      Total
+                    </p>
+                    <span className="font-bold text-green-600">
+                      ${o.totalAmount.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="lg:hidden text-xs text-gray-500 mb-1">
+                      Status
+                    </p>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${
+                        o.status === "delivered"
+                          ? "bg-green-100 text-green-700"
+                          : o.status === "pending"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : o.status === "shipped"
+                              ? "bg-blue-100 text-blue-700"
+                              : o.status === "paid"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {o.status.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="lg:hidden text-xs text-gray-500 mb-1">Date</p>
+                    <span className="text-sm">{formatDate(o.createdAt)}</span>
+                  </div>
+                </div>
+
+                {/* ORDER DETAILS */}
+                {expandedOrder === o._id && (
+                  <div className="p-4 bg-white border-t flex flex-col gap-4">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2 text-color">
+                        Shipping Address
+                      </h3>
+                      <Link href={`userDetails/${o.user?._id}`}> 
+                      <div className="bg-gray-50 p-3 rounded">
+                        <p className="font-medium">
+                          {o.shippingAddress.fullName}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {o.shippingAddress.email}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {o.shippingAddress.phoneNumber}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-2">
+                          {o.shippingAddress.address}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {o.shippingAddress.city},{" "}
+                          {o.shippingAddress.postalCode}
+                        </p>
+                      </div>
+                      </Link>
+                    </div>
+
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2 text-color">
+                        Products
+                      </h3>
+                      <div className="space-y-2">
+                        {o.items.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="flex gap-3 items-center border rounded p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                          >
+                            <div className="relative w-16 h-16 shrink-0">
+                              <Image
+                                src={
+                                  item.product &&
+                                  typeof item.product !== "string" &&
+                                  item.product.image?.length
+                                    ? item.product.image[0].url
+                                    : "/default-product.png"
+                                }
+                                alt={
+                                  item.product &&
+                                  typeof item.product !== "string"
+                                    ? item.product.product_name
+                                    : item.name || "Product image"
+                                }
+                                fill
+                                className="object-cover rounded"
+                                unoptimized
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-color">
+                                {item.name}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {item.quantity} x ${item.price.toFixed(2)} ={" "}
+                                <span className="font-semibold text-green-600">
+                                  ${(item.quantity * item.price).toFixed(2)}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+
+          {/* PAGINATION */}
+          {totalPages > 1 && (
+            <Pagination className="mt-12 text-color">
+              <PaginationContent>
+                {/* PREVIOUS */}
+                <PaginationItem className="cursor-pointer">
+                  <PaginationPrevious
+                    onClick={() => page > 1 && goToPage(page - 1)}
+                    className={
+                      page === 1 ? "opacity-50 pointer-events-none" : ""
+                    }
+                  />
+                </PaginationItem>
+
+                {/* FIRST PAGE */}
+                <PaginationItem className="cursor-pointer">
+                  <PaginationLink
+                    isActive={page === 1}
+                    onClick={() => goToPage(1)}
+                  >
+                    1
+                  </PaginationLink>
+                </PaginationItem>
+
+                {/* LEFT ELLIPSIS */}
+                {start > 2 && (
+                  <PaginationItem>
+                    <span className="px-2 text-sm">…</span>
+                  </PaginationItem>
+                )}
+
+                {/* MIDDLE PAGES */}
+                {pages.map((p) => (
+                  <PaginationItem key={p} className="cursor-pointer">
+                    <PaginationLink
+                      isActive={page === p}
+                      onClick={() => goToPage(p)}
+                    >
+                      {p}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+
+                {/* RIGHT ELLIPSIS */}
+                {end < totalPages - 1 && (
+                  <PaginationItem>
+                    <span className="px-2 text-sm">…</span>
+                  </PaginationItem>
+                )}
+
+                {/* LAST PAGE */}
+                <PaginationItem className="cursor-pointer">
+                  <PaginationLink
+                    isActive={page === totalPages}
+                    onClick={() => goToPage(totalPages)}
+                  >
+                    {totalPages}
+                  </PaginationLink>
+                </PaginationItem>
+
+                {/* NEXT */}
+                <PaginationItem className="cursor-pointer">
+                  <PaginationNext
+                    onClick={() => page < totalPages && goToPage(page + 1)}
+                    className={
+                      page === totalPages
+                        ? "opacity-50 pointer-events-none"
+                        : ""
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </div>
+      )}
     </div>
   );
 };

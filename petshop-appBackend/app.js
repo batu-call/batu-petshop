@@ -15,6 +15,7 @@ import couponRouter from "./Router/couponRoutes.js";
 import shippingRouter from "./Router/shippingRouter.js";
 import messageRouter from "./Router/messageRouter.js";
 import mailRouter from "./Router/mailRouter.js";
+import { errorMiddleware } from "./Middlewares/errorMiddleware.js";
 
 const app = express();
 
@@ -23,10 +24,10 @@ config({ path: "./Config/config.env" });
 
 // Middleware
 const allowedOrigins = [
-    "https://batu-petshop-app.vercel.app",
+     "https://batu-petshop-app.vercel.app",
    "https://batu-petshop-admin.vercel.app",
-  process.env.FRONTEND_URL,
-  process.env.ADMIN_URL,
+  // process.env.FRONTEND_URL,
+  // process.env.ADMIN_URL,
 ].filter(Boolean);
 
 const corsOptions = {
@@ -68,5 +69,6 @@ app.use("/api/v1/coupon", couponRouter);
 app.use("/api/v1/shipping", shippingRouter);
 app.use("/api/v1/message", messageRouter);
 app.use("/api/v1/mail", mailRouter);
+app.use(errorMiddleware);
 
 export default app;

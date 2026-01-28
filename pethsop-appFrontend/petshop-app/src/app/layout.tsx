@@ -1,12 +1,7 @@
 import "./globals.css";
-import { AuthProvider } from "./context/authContext";
 import type { Metadata } from "next";
 import { Jost } from "next/font/google";
-import { Toaster } from "react-hot-toast";
-import { CartProvider } from "./context/cartContext";
-import { FavoriteProvider } from "./context/favoriteContext";
-import { ConfirmProvider } from "./context/confirmContext";
-import ToastProvider from "@/components/ToastProvider";
+import Providers from "./providers";
 
 const jost = Jost({
   subsets: ["latin"],
@@ -16,9 +11,7 @@ const jost = Jost({
 export const metadata: Metadata = {
   title: "Batu Petshop",
   description: "Next.js Petshop App",
-  icons: {
-    icon: "/favicon.ico",
-  },
+  icons: { icon: "/favicon.ico" },
 };
 
 export default function RootLayout({
@@ -29,15 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased ${jost.className}`}>
-        <AuthProvider>
-          <CartProvider>
-            <FavoriteProvider>
-              <ConfirmProvider>{children}</ConfirmProvider>
-            </FavoriteProvider>
-          </CartProvider>
-        </AuthProvider>
-
-        <ToastProvider />
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

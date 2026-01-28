@@ -6,10 +6,15 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import CircularText from "@/components/CircularText";
 import Link from "next/link";
-import { Button } from "@mui/material";
 import { AuthContext } from "@/app/context/authContext";
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { Button } from "@/components/ui/button";
+import { signIn, useSession } from "next-auth/react";
+import GoogleIcon from "@mui/icons-material/Google";
+import { saveGoogleUser } from "@/app/utils/google";
 
 const Login = () => {
   const router = useRouter();
@@ -17,8 +22,41 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
+
+  useEffect(() => {
+  const saveUser = async () => {
+    if (!session?.user) return; 
+
+    const res = await saveGoogleUser(session.user);
+    if (res?.success) {
+      const fullName = session.user.name || "";
+      const [firstName, ...rest] = fullName.split(" ");
+      const lastName = rest.join(" ");
+
+      setUser({
+        _id: res.user._id,
+        firstName,
+        lastName,
+        email: session.user.email || "",
+        phone: "",
+        address: "",
+        avatar: session.user.image || "",
+        role: "User",
+      });
+      setIsAuthenticated(true);
+
+      router.push("/"); 
+    } else {
+      toast.error("Google login failed!");
+    }
+  };
+
+  saveUser();
+}, [session, setUser, setIsAuthenticated, router]);
 
   const handlerLogin = async () => {
     try {
@@ -28,14 +66,14 @@ const Login = () => {
           email,
           password,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       if (response.data.success) {
         toast.success("Login successful!");
 
         setUser(response.data.user);
         setIsAuthenticated(true);
-        router.push("/main");
+        router.push("/");
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
@@ -55,8 +93,6 @@ const Login = () => {
 
   return (
     <div>
-      <Navbar />
-      <Sidebar />
       {loading ? (
         <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
           <CircularText
@@ -66,7 +102,7 @@ const Login = () => {
           />
         </div>
       ) : (
-        <div className="md:ml-24 lg:ml-40 p-4 flex items-center justify-center h-full">
+        <div className="p-4 flex items-center justify-center h-full">
           <div className="w-full max-w-5xl bg-background-light rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row">
             {/* LEFT IMAGE */}
             <div className="hidden md:block w-1/2 relative bg-gray-100">
@@ -97,7 +133,13 @@ const Login = () => {
                 </p>
               </div>
 
-              <form className="flex flex-col gap-5">
+              <form
+                className="flex flex-col gap-5"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handlerLogin();
+                }}
+              >
                 {/* EMAIL */}
                 <TextField
                   label="Email"
@@ -125,13 +167,25 @@ const Login = () => {
                 <TextField
                   label="Password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   variant="standard"
                   fullWidth
                   autoComplete="new-password"
                   slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
                     inputLabel: {
                       sx: {
                         color: "#B1CBBB",
@@ -151,7 +205,7 @@ const Login = () => {
                   <label className="flex items-center gap-3">
                     <input
                       type="checkbox"
-                      className="h-5 w-5 rounded border-[#d7e0da] text-primary focus:ring-primary"
+                      className="h-4 w-4 rounded cursor-pointer accent-green-500 border-border-light"
                     />
                     <span className="text-xs lg:text-sm font-medium text-[#121714]">
                       Remember Me
@@ -169,21 +223,19 @@ const Login = () => {
                 </div>
                 {/* BUTTONS */}
                 <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={handlerLogin}
-                  sx={{
-                    cursor: "pointer",
-                    backgroundColor: "#D6EED6",
-                    borderRadius: "20px",
-                    color: "#393E46",
-                    transition: "all 0.3s",
-                    marginTop: "12px",
-                    "&:hover": {
-                      backgroundColor: "#97cba9",
-                      borderColor: "primary.main",
-                    },
-                  }}
+                  type="submit"
+                  className="
+    w-full 
+    mt-3 
+    rounded-[20px] 
+    bg-primary 
+    text-[#393E46] 
+    hover:bg-[#D6EED6]
+    cursor-pointer
+    transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md
+  "
                 >
                   <span className="text-md font-semibold">Login</span>
                 </Button>
@@ -194,16 +246,45 @@ const Login = () => {
                   <div className="flex-grow border-t" />
                 </div>
 
+                {/* GOOGLE LOGIN */}
+                <Button
+                 type="button"
+                  onClick={() => signIn("google")}
+                  className="
+    w-full
+    rounded-[20px]
+    bg-white
+    border border-gray-200
+    text-gray-800
+    cursor-pointer
+    hover:bg-gray-50
+    transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md
+  "
+                  variant="outline"
+                >
+                  <GoogleIcon
+                    fontSize="small"
+                    className="text-md font-semibold"
+                  />
+                  Continue with Google
+                </Button>
+
                 <Link href={"/Register"}>
                   <Button
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      cursor: "pointer",
-                      backgroundColor: "#fcfefe",
-                      borderRadius: "20px",
-                      color: "#393E46",
-                    }}
+                    className="
+    w-full
+    rounded-[20px]
+    bg-white
+    border border-gray-200
+    text-gray-800
+    cursor-pointer
+    hover:bg-gray-50
+    transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md
+  "
                   >
                     <span className="text-md font-semibold">
                       Create an Account
@@ -211,16 +292,6 @@ const Login = () => {
                   </Button>
                 </Link>
               </form>
-
-              {/* SOCIAL */}
-              <div className="mt-8 flex justify-center gap-4">
-                <button className="h-10 w-10 rounded-full bg-[#f0f4f2] hover:bg-[#e0e8e4]">
-                  G
-                </button>
-                <button className="h-10 w-10 rounded-full bg-[#f0f4f2] hover:bg-[#e0e8e4] text-blue-600">
-                  f
-                </button>
-              </div>
             </div>
           </div>
         </div>

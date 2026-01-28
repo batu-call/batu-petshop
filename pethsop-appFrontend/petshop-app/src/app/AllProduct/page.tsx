@@ -4,7 +4,7 @@ import AllProduct from "./allProduct";
 
 export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={null}>
       <AllProduct />
     </Suspense>
   );

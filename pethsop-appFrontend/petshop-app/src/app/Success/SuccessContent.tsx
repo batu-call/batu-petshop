@@ -37,7 +37,7 @@ export default function SuccessContent() {
       <p className="mt-2 text-gray-500">Thank you for your purchase!</p>
 
       <Link href={"/"} className="mt-4 text-white underline">
-      <Button className="bg-white hover:bg-white cursor-pointer transition duration-300 ease-in-out hover:scale-105">
+      <Button className="bg-white hover:bg-white cursor-pointer transition duration-300 ease-in-out hover:scale-105 active:scale-[0.97]">
         <HomeIcon style={{ color: 'white' }} className="bg-primary"/> <span className="text-color">Back to Home</span>
       </Button>
       </Link>

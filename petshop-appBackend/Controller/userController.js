@@ -6,20 +6,12 @@ import { User } from "../Models/userSchema.js";
 import generateToken from "../utils/jwt.js";
 import cloudinary from "cloudinary";
 import { sendAutoMail } from "./mailController.js";
-import crypto from "crypto"
+import crypto from "crypto";
 
 export const UserRegister = catchAsyncError(async (req, res, next) => {
-  const { firstName, lastName, email, phone, password, role } =
-    req.body;
+  const { firstName, lastName, email, phone, password, role } = req.body;
 
-  if (
-    !firstName ||
-    !lastName ||
-    !email ||
-    !phone ||
-    !password ||
-    !role
-  ) {
+  if (!firstName || !lastName || !email || !phone || !password || !role) {
     return next(new ErrorHandler("Please Fill Full Form!", 400));
   }
 
@@ -47,17 +39,17 @@ export const UserRegister = catchAsyncError(async (req, res, next) => {
     avatar: avatarUrl,
   });
   try {
-  await sendAutoMail({
-    to: user.email,
-    subject: "Welcome to Petshop 🐾",
-    html: `
+    await sendAutoMail({
+      to: user.email,
+      subject: "Welcome to Petshop 🐾",
+      html: `
       <h3>Welcome ${user.firstName}!</h3>
       <p>Your account has been created successfully.</p>
     `,
-  });
-} catch (err) {
-  console.error("Welcome mail failed:", err.message);
-}
+    });
+  } catch (err) {
+    console.error("Welcome mail failed:", err.message);
+  }
 
   generateToken(user, "User Registered Successfully!", 200, res);
 });
@@ -83,6 +75,31 @@ export const Login = catchAsyncError(async (req, res, next) => {
   await Session.create({ userId: user._id, startedAt: new Date() });
 
   generateToken(user, "User Logged Successfully!", 200, res);
+});
+
+export const googleLogin = catchAsyncError(async (req, res, next) => {
+  const { email, name, image } = req.body;
+
+  if (!email || !name) {
+    return next(new ErrorHandler("Google data missing", 400));
+  }
+
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    const [firstName, ...rest] = name.split(" ");
+    const lastName = rest.join(" ") || "GoogleUser";
+
+    user = await User.create({
+      firstName,
+      lastName,
+      email,
+      avatar: image,
+      authProvider: "google",
+    });
+  }
+
+  generateToken(user, "Google login successful", 200, res);
 });
 
 export const Logout = catchAsyncError(async (req, res, next) => {
@@ -124,8 +141,8 @@ export const newAdmin = catchAsyncError(async (req, res, next) => {
     return next(
       new ErrorHandler(
         `${isRegistered.role} With This Email Already Exists!`,
-        400
-      )
+        400,
+      ),
     );
   }
 
@@ -150,15 +167,14 @@ export const newAdmin = catchAsyncError(async (req, res, next) => {
     role: "Admin",
   });
   try {
-  await sendAutoMail({
-    to: admin.email,
-    subject: "Admin Account Created",
-    html: `<p>You have been added as an admin.</p>`,
-  });
-} catch (err) {
-  console.error("Admin mail failed");
-}
-
+    await sendAutoMail({
+      to: admin.email,
+      subject: "Admin Account Created",
+      html: `<p>You have been added as an admin.</p>`,
+    });
+  } catch (err) {
+    console.error("Admin mail failed");
+  }
 
   res.status(201).json({
     success: true,
@@ -170,7 +186,9 @@ export const newAdmin = catchAsyncError(async (req, res, next) => {
 export const adminLogin = catchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const admin = await User.findOne({ email, role: "Admin" }).select("+password");
+  const admin = await User.findOne({ email, role: "Admin" }).select(
+    "+password",
+  );
   if (!admin) return next(new ErrorHandler("Admin not found", 404));
 
   const isMatch = await admin.comparePassword(password);
@@ -184,8 +202,8 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
   res
     .cookie("AdminToken", token, {
       httpOnly: true,
-      secure: true,       
-      sameSite: "None",   
+      secure: true,
+      sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
     .status(200)
@@ -226,12 +244,46 @@ export const AdminLogout = catchAsyncError(async (req, res, next) => {
       message: "Admin Logout Out Successfully!",
     });
 });
-export const getAllUser = catchAsyncError(async (req, res, next) => {
-  const users = await User.aggregate([
-    {
-      $match: { role: "User" },
-    },
 
+export const getAllUser = catchAsyncError(async (req, res, next) => {
+  const { 
+    page = 1,
+    search,
+    role,
+    minOrders,
+    maxOrders,
+    sortBy = 'createdAt',
+    sortOrder = 'desc'
+  } = req.query;
+
+  const limit = 15;
+  const skip = (Number(page) - 1) * limit;
+
+  // Build match stage
+  let matchStage = { role: "User" };
+
+  // Search filter (firstName, lastName, email, phone)
+  const escapeRegex = (text) =>
+    text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  if (search && typeof search === "string") {
+    const safeSearch = escapeRegex(search.trim().slice(0, 50));
+
+    matchStage.$or = [
+      { firstName: { $regex: safeSearch, $options: "i" } },
+      { lastName: { $regex: safeSearch, $options: "i" } },
+      { email: { $regex: safeSearch, $options: "i" } },
+      { phone: { $regex: safeSearch, $options: "i" } },
+    ];
+  }
+
+  if (role) {
+    matchStage.role = role;
+  }
+
+  // Build aggregation pipeline
+  const pipeline = [
+    { $match: matchStage },
     {
       $lookup: {
         from: "orders",
@@ -240,38 +292,64 @@ export const getAllUser = catchAsyncError(async (req, res, next) => {
         as: "orders",
       },
     },
-
     {
       $addFields: {
         orderCount: { $size: "$orders" },
         lastOrderAt: { $max: "$orders.createdAt" },
       },
     },
+  ];
 
-    {
-      $project: {
-        password: 0,
-        orders: 0,
-      },
-    },
+  // Order count filter (orderCount hesaplandıktan sonra uygulanmalı)
+  if (minOrders || maxOrders) {
+    const orderFilter = {};
+    if (minOrders) orderFilter.$gte = Number(minOrders);
+    if (maxOrders) orderFilter.$lte = Number(maxOrders);
+    
+    pipeline.push({
+      $match: { orderCount: orderFilter }
+    });
+  }
 
-    {
-      $sort: { createdAt: -1 },
+  // Count total filtered users (before pagination)
+  const countPipeline = [...pipeline, { $count: "total" }];
+  const countResult = await User.aggregate(countPipeline);
+  const totalUsers = countResult.length > 0 ? countResult[0].total : 0;
+
+  // Sort
+  const sortStage = {};
+  sortStage[sortBy] = sortOrder === 'asc' ? 1 : -1;
+  pipeline.push({ $sort: sortStage });
+
+  // Pagination
+  pipeline.push({ $skip: skip });
+  pipeline.push({ $limit: limit });
+
+  // Project (remove sensitive data)
+  pipeline.push({
+    $project: {
+      password: 0,
+      orders: 0,
     },
-  ]);
+  });
+
+  // Execute aggregation
+  const users = await User.aggregate(pipeline);
 
   res.status(200).json({
     success: true,
-    count: users.length,
+    totalPages: Math.ceil(totalUsers / limit),
+    totalUsers,
+    currentPage: Number(page),
     users,
   });
 });
 
 export const getUserDetails = catchAsyncError(async (req, res, next) => {
- const user = await User.findById(req.params.id);
- if(!user){
-  return next(new ErrorHandler("User not found!", 400));
- }
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return next(new ErrorHandler("User not found!", 400));
+  }
 
   res.status(200).json({
     success: true,
@@ -293,13 +371,51 @@ export const getUserMe = catchAsyncError(async (req, res, next) => {
 });
 
 export const getAdminDetails = catchAsyncError(async (req, res, next) => {
-  const adminDetails = await User.find({ role: "Admin" })
+  const {
+    page = 1,
+    search,
+    sortBy = 'createdAt',
+    sortOrder = 'desc'
+  } = req.query;
+
+  const limit = 15;
+  const skip = (Number(page) - 1) * limit;
+
+  let filter = { role: "Admin" };
+
+  const escapeRegex = (text) =>
+    text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  if (search && typeof search === "string") {
+    const safeSearch = escapeRegex(search.trim().slice(0, 50));
+
+    filter.$or = [
+      { firstName: { $regex: safeSearch, $options: "i" } },
+      { lastName: { $regex: safeSearch, $options: "i" } },
+      { email: { $regex: safeSearch, $options: "i" } },
+      { address: { $regex: safeSearch, $options: "i" } },
+      { phone: { $regex: safeSearch, $options: "i" } },
+    ];
+  }
+
+
+  const totalAdmins = await User.countDocuments(filter);
+
+  const sortObj = {};
+  sortObj[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+ 
+  const adminDetails = await User.find(filter)
     .select("-password")
-    .sort({ createdAt: -1 });
+    .sort(sortObj)
+    .skip(skip)
+    .limit(limit);
 
   res.status(200).json({
     success: true,
-    count: adminDetails.length,
+    totalPages: Math.ceil(totalAdmins / limit),
+    totalAdmins,
+    currentPage: Number(page),
     adminDetails,
   });
 });
@@ -344,8 +460,7 @@ export const deleteAdmin = catchAsyncError(async (req, res, next) => {
 });
 
 export const updateUser = catchAsyncError(async (req, res, next) => {
-  
-    const user = await User.findById(req.user?._id);
+  const user = await User.findById(req.user?._id);
 
   if (!user) {
     return next(new ErrorHandler("User not found", 404));
@@ -383,35 +498,33 @@ export const updateUser = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
-export const updatePassword = catchAsyncError(async(req,res,next) => {
-  const user =  await User.findById(req.user?.id).select("+password")
+export const updatePassword = catchAsyncError(async (req, res, next) => {
+  const user = await User.findById(req.user?.id).select("+password");
 
   if (!user) {
-    return next(new ErrorHandler("User not found",404))
+    return next(new ErrorHandler("User not found", 404));
   }
 
-  const {oldPassword,newPassword} = req.body;
+  const { oldPassword, newPassword } = req.body;
 
   if (!oldPassword || !newPassword) {
     return next(new ErrorHandler("Please provide old and new password", 400));
   }
 
-  const isMatched  = await user.comparePassword(oldPassword);
-   
+  const isMatched = await user.comparePassword(oldPassword);
+
   if (!isMatched) {
     return next(new ErrorHandler("Old password is incorrect", 401));
   }
 
   user.password = newPassword;
   await user.save();
-  
-  res.status(200).json({
-    success:true,
-    message: "Password updated successfully",
-  })
-})
 
+  res.status(200).json({
+    success: true,
+    message: "Password updated successfully",
+  });
+});
 
 export const forgotPassword = catchAsyncError(async (req, res, next) => {
   const { email } = req.body;
@@ -421,8 +534,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
   if (!user) {
     return res.status(200).json({
       success: true,
-      message:
-        "If an account exists, a password reset link has been sent.",
+      message: "If an account exists, a password reset link has been sent.",
     });
   }
 
@@ -448,8 +560,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message:
-        "If an account exists, a password reset link has been sent.",
+      message: "If an account exists, a password reset link has been sent.",
     });
   } catch (error) {
     user.resetPasswordToken = undefined;
@@ -465,13 +576,12 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
   const { password } = req.body;
 
   if (!password || password.length < 6) {
-    return next(new ErrorHandler("Password must be at least 6 characters.", 400));
+    return next(
+      new ErrorHandler("Password must be at least 6 characters.", 400),
+    );
   }
 
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(token)
-    .digest("hex");
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
   const user = await User.findOne({
     resetPasswordToken: hashedToken,
@@ -482,9 +592,7 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Invalid or expired reset token.", 400));
   }
 
-  
   user.password = password;
-
 
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;

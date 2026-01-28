@@ -22,17 +22,17 @@ const Sidebar = () => {
     <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:flex-col bg-white md:w-24 lg:w-40 z-40">
       {/* LOGO */}
       <div className="flex justify-center py-4 shrink-0">
-        <Link href="/main">
-          <Image
-            src="/logo.png"
-            alt="logo"
-            width={160}
-            height={160}
-            className="w-16 md:w-20 lg:w-28 object-contain"
-            priority
-          />
-        </Link>
-      </div>
+  <Link href="/"> 
+    <Image
+      src="/logo.png"
+      alt="Pet Shop Logo"
+      width={160} 
+      height={160} 
+      className="w-16 md:w-24 lg:w-32 h-auto object-contain" 
+      priority 
+    />
+  </Link>
+</div>
 
       {/* CATEGORY MENU */}
       <nav className="flex-1 overflow-y-auto px-2">
@@ -48,7 +48,8 @@ const Sidebar = () => {
                 <Link href={href}>
                   <div
                     className={`flex items-center justify-center lg:justify-start
-                    gap-3 px-3 py-2 rounded-2xl transition-all
+                    gap-3 px-3 py-2 rounded-2xl transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
                     ${active ? "bg-[#DDEEDD]" : "bg-primary"}
                     hover:bg-[#DDEEDD] hover:scale-105`}
                   >
@@ -57,6 +58,7 @@ const Sidebar = () => {
                         src={cat.icon}
                         alt={cat.label}
                         fill
+                        sizes="(min-width: 1024px) 32px, 24px"
                         className="object-contain"
                       />
                     </div>

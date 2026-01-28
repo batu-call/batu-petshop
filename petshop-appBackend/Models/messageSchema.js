@@ -17,6 +17,12 @@ const MessageSchema = new mongoose.Schema({
     required: true,
     enum: ["General Inquiry", "Adoption", "Grooming Services", "Vet Consultation"],
   },
+  status:{
+    type:String,
+    required: true,
+    default:"New",
+    enum:["New", "Read", "Replied"],
+  },
   message: {
     type: String,
     required: true,

@@ -1,20 +1,13 @@
 "use client";
 import React from "react";
-import Navbar from "../../Navbar/page";
-import Sidebar from "../../Sidebar/page";
 import Image from "next/image";
-import { AdminGuard } from "@/app/Context/AdminGuard";
 import TextType from "@/components/TextType";
 
 const Main = () => {
   return (
     <div className="w-full min-h-screen bg-primary overflow-hidden">
-      <AdminGuard>
-        <Navbar />
-        <Sidebar />
-
         {/* CONTENT */}
-        <div className="relative md:ml-24 lg:ml-50 px-4 lg:px-0">
+        <div className="relative lg:ml-10 px-4 lg:px-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 items-start lg:items-center mt-12 lg:mt-35">
 
             {/* LEFT TEXT */}
@@ -63,7 +56,6 @@ const Main = () => {
 
           </div>
         </div>
-      </AdminGuard>
     </div>
   );
 };

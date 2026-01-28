@@ -4,8 +4,6 @@ import dynamic from "next/dynamic";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-import Navbar from "../Navbar/page";
-import Sidebar from "../Sidebar/page";
 
 import AddLocationIcon from "@mui/icons-material/AddLocation";
 import AddCallIcon from "@mui/icons-material/AddCall";
@@ -71,9 +69,6 @@ const Contact = () => {
 
   return (
     <>
-      <Navbar />
-      <Sidebar />
-
       {loading && (
         <div className="md:ml-24 lg:ml-40 fixed inset-0 z-50 flex items-center justify-center bg-primary">
           <CircularText
@@ -84,7 +79,7 @@ const Contact = () => {
         </div>
       )}
 
-      <div className="ml-0 md:ml-24 lg:ml-40 flex-1 flex flex-col items-center md:items-center min-h-screen bg-[#fafafa] px-4 md:px-20 lg:px-40 py-10">
+      <div className="flex-1 flex flex-col items-center md:items-center min-h-screen bg-[#fafafa] px-4 md:px-20 lg:px-40 py-10">
         <div className="max-w-250 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           {/* LEFT - Contact Form */}
           <div className="flex flex-col gap-8">

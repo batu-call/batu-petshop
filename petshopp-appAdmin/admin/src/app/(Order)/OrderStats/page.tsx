@@ -17,8 +17,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
 import CircularText from "@/components/CircularText";
 
 interface OrderStatsData {
@@ -59,21 +57,6 @@ export default function OrderStats() {
     fetchStats();
   }, []);
 
-  if (loading) {
-    return (
-      <>
-        <Navbar />
-        <Sidebar />
-        <div className="ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
-          <CircularText
-            text="LOADING"
-            spinDuration={20}
-            className="text-white text-4xl"
-          />
-        </div>
-      </>
-    );
-  }
 
   if (!data) return <div className="ml-40 mt-10">No order stats found.</div>;
 
@@ -81,9 +64,16 @@ export default function OrderStats() {
 
   return (
     <>
-      <Navbar />
-      <Sidebar />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 md:ml-24 lg:ml-40 mt-6 p-4">
+      {loading ? (
+          <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
+            <CircularText
+              text="LOADING"
+              spinDuration={20}
+              className="text-white text-4xl"
+            />
+          </div>
+        ) : (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 mt-6 p-4">
         {/* Stat Cards */}
         <Card sx={{ backgroundColor: "#A8D1B5" }}>
           <CardHeader
@@ -206,6 +196,7 @@ export default function OrderStats() {
           </CardContent>
         </Card>
       </div>
+        )}
     </>
   );
 }

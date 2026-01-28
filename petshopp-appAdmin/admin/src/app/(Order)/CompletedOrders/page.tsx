@@ -1,7 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
 import axios from "axios";
 import CircularText from "@/components/CircularText";
 
@@ -55,10 +53,7 @@ const CompletedOrders: React.FC = () => {
 
   return (
     <div>
-      <Navbar />
-      <Sidebar />
-
-      <div className="md:ml-24 lg:ml-40 p-4">
+      <div className="p-4">
         <h1 className="text-2xl font-bold mb-4 text-color">Completed Orders</h1>
         {loading ? (
           <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">

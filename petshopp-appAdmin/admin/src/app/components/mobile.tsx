@@ -51,8 +51,8 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
   };
 
   const general: MenuItem[] = [
-    { text: "Home", href: "/admin", icon: <HomeIcon sx={{ color: "#A8D1B5" }} /> },
-    { text: "Contact", href: "/contact", icon: <ContactMailIcon sx={{ color: "#A8D1B5" }} /> }
+    { text: "Home", href: "/main", icon: <HomeIcon sx={{ color: "#A8D1B5" }} /> },
+    { text: "Contact", href: "/Contact", icon: <ContactMailIcon sx={{ color: "#A8D1B5" }} /> }
   ];
 
   const adminMenu: MenuItem[] = isAuthenticated
@@ -63,13 +63,13 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
     : [];
 
     const categories: MenuItem[] = [
-    { text: "Cat", href: "/Cat", imgSrc: "/cat_7721779.png" },
-    { text: "Dog", href: "/Dog", imgSrc: "/dog.png" },
-    { text: "Bird", href: "/Bird", imgSrc: "/bird.png" },
-    { text: "Fish", href: "/Fish", imgSrc: "/fish.png" },
-    { text: "Reptile", href: "/Reptile", imgSrc: "/reptile.png" },
-    { text: "Rabbit", href: "/Rabbit", imgSrc: "/rabbit2.png" },
-    { text: "Horse", href: "/Horse", imgSrc: "/Horse.png" },
+    { text: "Cat", href: "/category/Cat", imgSrc: "/cat_7721779.png" },
+    { text: "Dog", href: "/category/Dog", imgSrc: "/dog.png" },
+    { text: "Bird", href: "/category/Bird", imgSrc: "/bird.png" },
+    { text: "Fish", href: "/category/Fish", imgSrc: "/fish.png" },
+    { text: "Reptile", href: "/category/Reptile", imgSrc: "/reptile.png" },
+    { text: "Rabbit", href: "/category/Rabbit", imgSrc: "/rabbit2.png" },
+    { text: "Horse", href: "/category/Horse", imgSrc: "/Horse.png" },
   ];
 
   const renderIconOrImage = (item: MenuItem) => {

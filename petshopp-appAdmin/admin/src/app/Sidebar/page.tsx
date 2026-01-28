@@ -1,253 +1,92 @@
 "use client";
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
+const categories = [
+  { slug: "Cat", label: "Cat", icon: "/cat_7721779.png" },
+  { slug: "Dog", label: "Dog", icon: "/dog.png" },
+  { slug: "Bird", label: "Bird", icon: "/bird.png" },
+  { slug: "Fish", label: "Fish", icon: "/fish.png" },
+  { slug: "Reptile", label: "Reptile", icon: "/reptile.png" },
+  { slug: "Rabbit", label: "Rabbit", icon: "/rabbit2.png" },
+  { slug: "Horse", label: "Horse", icon: "/horse.png" },
+];
+
 const Sidebar = () => {
   const pathname = usePathname();
 
   return (
-    <div className="hidden md:block absolute top-0">
-      <div className="md:w-24 lg:w-40 h-screen bg-white fixed">
-        <div className="mt-0">
-        {/* Logo */}
-        <Link href="/main" className="hidden md:flex justify-center">
-  <Image
-    src="/logo.png"
-    alt="main-icon"
-    width={400}
-    height={400}
-    priority
-    className="
-      object-contain
-      w-20 h-auto
-      md:w-24
-      lg:w-32
-      xl:w-40
-    "
-    sizes="
-      (max-width: 768px) 96px,
-      (max-width: 1024px) 128px,
-      (max-width: 1280px) 160px,
-      192px
-    "
-  />
-</Link>
+    <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:flex-col bg-white md:w-24 lg:w-40 z-40">
+      {/* LOGO */}
+      <div className="flex justify-center py-4 shrink-0">
+  <Link href="/main"> 
+    <Image
+      src="/logo.png"
+      alt="Pet Shop Logo"
+      width={160} 
+      height={160} 
+      className="w-16 md:w-24 lg:w-32 h-auto object-contain" 
+      priority 
+    />
+  </Link>
+</div>
 
-        </div>
+      {/* CATEGORY MENU */}
+      <nav className="flex-1 overflow-y-auto px-2">
+        <ul className="flex flex-col gap-3 py-4">
+          {categories.map((cat) => {
+           const href = `/category/${cat.slug}`;
 
-        {/* Cat */}
-        <Link href={"/Cat"}>
+     
+            const active = pathname.startsWith(href);
+
+            return (
+              <li key={cat.slug}>
+                <Link href={href}>
+                  <div
+                    className={`flex items-center justify-center lg:justify-start
+                    gap-3 px-3 py-2 rounded-2xl transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+                    ${active ? "bg-[#DDEEDD]" : "bg-primary"}
+                    hover:bg-[#DDEEDD] hover:scale-105`}
+                  >
+                    <div className="relative w-6 h-6 lg:w-8 lg:h-8 shrink-0">
+                      <Image
+                        src={cat.icon}
+                        alt={cat.label}
+                        fill
+                        sizes="(min-width: 1024px) 32px, 24px"
+                        className="object-contain"
+                      />
+                    </div>
+
+                    <span className="hidden lg:block text-white text-lg font-semibold">
+                      {cat.label}
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* CONTACT */}
+      <div className="p-3 shrink-0">
+        <Link href="/Contact">
           <div
-            className={`group inline-block p-2 items-center md:mt-24 lg:mt-12 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
-              pathname === "/Cat" ? "bg-[#DDEEDD]" : "bg-primary"
-            }`}
+            className={`flex justify-center lg:justify-start px-3 py-2 rounded-2xl
+            transition-all hover:scale-105
+            ${pathname === "/Contact" ? "bg-[#DDEEDD]" : "bg-primary"}`}
           >
-            <div
-              className={`flex gap-2 lg:gap-9 items-center justify-center transition-colors duration-400 ${
-                pathname === "/Cat" ? "bg-[#DDEEDD]" : "bg-primary"
-              } group-hover:bg-[#DDEEDD]`}
-            >
-              <div className="relative md:w-7 md:h-7 lg:w-10 lg:h-10">
-                <Image
-                  src="/cat_7721779.png"
-                  alt="cat-image"
-                  fill
-                  sizes="(max-width: 768px) 48px, (max-width: 1024px) 40px, 64px"
-                  className="object-contain"
-                />
-              </div>
-              <h2 className="hidden lg:block text-md lg:text-2xl text-jost text-white p-1">
-                Cat
-              </h2>
-            </div>
-          </div>
-        </Link>
-
-        {/* Dog */}
-        <Link href={"/Dog"}>
-          <div
-            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
-              pathname === "/Dog" ? "bg-[#DDEEDD]" : "bg-primary"
-            }`}
-          >
-            <div
-              className={`flex gap-2 lg:gap-9 items-center justify-center transition-colors duration-400 ${
-                pathname === "/Dog" ? "bg-[#DDEEDD]" : "bg-primary"
-              } group-hover:bg-[#DDEEDD]`}
-            >
-              <div className="relative md:w-7 md:h-7 lg:w-10 lg:h-10">
-                <Image
-                  src="/dog.png"
-                  alt="dog-image"
-                  fill
-                  sizes="(max-width: 768px) 48px, (max-width: 1024px) 40px, 64px"
-                  className="object-contain"
-                />
-              </div>
-              <h2 className="hidden lg:block text-md lg:text-2xl text-jost text-white p-1">
-                Dog
-              </h2>
-            </div>
-          </div>
-        </Link>
-
-        {/* Bird */}
-        <Link href={"/Bird"}>
-          <div
-            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
-              pathname === "/Bird" ? "bg-[#DDEEDD]" : "bg-primary"
-            }`}
-          >
-            <div
-              className={`flex gap-2 lg:gap-9 items-center justify-center transition-colors duration-400 ${
-                pathname === "/Bird" ? "bg-[#DDEEDD]" : "bg-primary"
-              } group-hover:bg-[#DDEEDD]`}
-            >
-              <div className="relative md:w-7 md:h-7 lg:w-10 lg:h-10">
-                <Image
-                  src="/bird.png"
-                  alt="bird-image"
-                  fill
-                  sizes="(max-width: 768px) 48px, (max-width: 1024px) 40px, 64px"
-                  className="object-contain"
-                />
-              </div>
-              <h2 className="hidden lg:block text-md lg:text-2xl text-white p-1">Bird</h2>
-            </div>
-          </div>
-        </Link>
-
-        {/* Fish */}
-        <Link href={"/Fish"}>
-          <div
-            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
-              pathname === "/Fish" ? "bg-[#DDEEDD]" : "bg-primary"
-            }`}
-          >
-            <div
-              className={`flex gap-2 lg:gap-9 items-center justify-center transition-colors duration-400 ${
-                pathname === "/Fish" ? "bg-[#DDEEDD]" : "bg-primary"
-              } group-hover:bg-[#DDEEDD]`}
-            >
-              <div className="relative md:w-7 md:h-7 lg:w-10 lg:h-10">
-                <Image
-                  src="/fish.png"
-                  alt="fish-image"
-                  fill
-                  sizes="(max-width: 768px) 48px, (max-width: 1024px) 40px, 64px"
-                />
-              </div>
-              <h2 className="hidden lg:block text-md lg:text-2xl text-jost text-white p-1">
-                Fish
-              </h2>
-            </div>
-          </div>
-        </Link>
-
-        {/* Reptile */}
-        <Link href={"/Reptile"}>
-          <div
-            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
-              pathname === "/Reptile" ? "bg-[#DDEEDD]" : "bg-primary"
-            }`}
-          >
-            <div
-              className={`flex md:gap-1 lg:gap-3 items-center justify-center transition-colors duration-400 ${
-                pathname === "/Reptile" ? "bg-[#DDEEDD]" : "bg-primary"
-              } group-hover:bg-[#DDEEDD]`}
-            >
-              <div className="relative md:w-7 md:h-7 lg:w-10 lg:h-10">
-                <Image
-                  src="/reptile.png"
-                  alt="reptile-image"
-                  fill
-                  sizes="(max-width: 768px) 48px, (max-width: 1024px) 40px, 64px"
-                  className="object-contain"
-                />
-              </div>
-              <h2 className="hidden lg:block text-[13px] lg:text-2xl text-jost text-white mr-2">
-                Reptile
-              </h2>
-            </div>
-          </div>
-        </Link>
-
-        {/* Rabbit */}
-        <Link href={"/Rabbit"}>
-          <div
-            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
-              pathname === "/Rabbit" ? "bg-[#DDEEDD]" : "bg-primary"
-            }`}
-          >
-            <div
-              className={`flex md:gap-2 lg:gap-3 items-center justify-center transition-colors duration-400 ${
-                pathname === "/Rabbit" ? "bg-[#DDEEDD]" : "bg-primary"
-              } group-hover:bg-[#DDEEDD]`}
-            >
-              <div className="relative md:w-7 md:h-7 lg:w-10 lg:h-10">
-                <Image
-                  src="/rabbit2.png"
-                  alt="rabbit-image"
-                  fill
-                  sizes="(max-width: 768px) 48px, (max-width: 1024px) 40px, 64px"
-                  className="object-contain"
-                />
-              </div>
-              <h2 className="hidden lg:block text-[12px] lg:text-2xl text-jost text-white p-1">
-                Rabbit
-              </h2>
-            </div>
-          </div>
-        </Link>
-
-        {/* Horse */}
-        <Link href={"/Horse"}>
-          <div
-            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
-              pathname === "/Horse" ? "bg-[#DDEEDD]" : "bg-primary"
-            }`}
-          >
-            <div
-              className={`flex lg:gap-3 items-center justify-center transition-colors duration-400 ${
-                pathname === "/Horse" ? "bg-[#DDEEDD]" : "bg-primary"
-              } group-hover:bg-[#DDEEDD]`}
-            >
-              <div className="relative md:w-7 md:h-7 lg:w-10 lg:h-10">
-                <Image
-                  src="/horse.png"
-                  alt="horse-image"
-                  fill
-                  sizes="(max-width: 768px) 48px, (max-width: 1024px) 40px, 64px"
-                  className="object-contain"
-                />
-              </div>
-              <h2 className="hidden lg:block text-[12px] lg:text-2xl text-jost text-white p-1">
-                Horse
-              </h2>
-            </div>
-          </div>
-        </Link>
-
-        {/* Contact */}
-        <Link href={"/Contact"}>
-          <div
-            className={`group inline-block p-2 items-center mt-5 ml-3 rounded-2xl md:w-20 lg:w-36 hover:bg-[#DDEEDD] transition duration-300 ease-in-out hover:scale-105 ${
-              pathname === "/Contact" ? "bg-[#DDEEDD]" : "bg-primary"
-            }`}
-          >
-            <div
-              className={`flex md:gap-2 lg:gap-3 items-center justify-center transition-colors duration-400 ${
-                pathname === "/Contact" ? "bg-[#DDEEDD]" : "bg-primary"
-              } group-hover:bg-[#DDEEDD]`}
-            >
-              <h2 className="text-md lg:text-2xl text-white p-1">Contact</h2>
-            </div>
+            <span className="text-white text-lg font-semibold">Contact</span>
           </div>
         </Link>
       </div>
-    </div>
+    </aside>
   );
 };
 

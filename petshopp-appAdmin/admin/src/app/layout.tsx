@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { Jost } from "next/font/google";
 import "./globals.css";
-import { AdminAuthProvider } from "./Context/AdminAuthContext";
-import { AdminGuard } from "./Context/AdminGuard";
-import { Toaster } from "react-hot-toast";
-import { ConfirmProvider } from "./Context/confirmContext";
+import Providers from "./providers";
 
 const jost = Jost({
   subsets: ["latin"],
@@ -27,12 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased ${jost.className}`}>
-        <AdminAuthProvider>
-            <ConfirmProvider>
-            {children}
-            </ConfirmProvider>
-          <Toaster position="top-right" reverseOrder={false} />
-        </AdminAuthProvider>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -3,8 +3,6 @@ import React, { useEffect, useState } from "react";
 import { Box, TextField, Typography } from "@mui/material";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
 import toast from "react-hot-toast";
 import CircularText from "@/components/CircularText";
 import Footer from "@/app/Footer/page";
@@ -87,8 +85,6 @@ const Settings = () => {
 
   return (
     <div>
-      <Navbar />
-      <Sidebar />
       {loading ? (
         <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50 ">
           <CircularText
@@ -98,7 +94,7 @@ const Settings = () => {
           />
         </div>
       ) : (
-        <div className="md:ml-24 lg:ml-40 bg-[#f6f7f9] h-auto md:min-h-[calc(100vh-4.5rem)] flex items-center justify-center p-2">
+        <div className=" bg-[#f6f7f9] h-auto md:min-h-[calc(100vh-4.5rem)] flex items-center justify-center p-2">
           <div className="w-full md:w-2/3 bg-white md:h-2/3 rounded-2xl p-10 flex flex-col md:flex md:flex-row gap-6">
             <div className="w-full md:w-1/2">
               <Typography
@@ -192,7 +188,9 @@ const Settings = () => {
 
 
                   <Button
-                className="mt-2 w-full bg-primary hover:bg-[#A8D1B5] text-color font-semibold px-6 transition duration-300 ease-in-out hover:scale-105 cursor-pointer"
+                className="mt-2 w-full bg-primary hover:bg-[#A8D1B5] text-color font-semibold px-6 cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md"
                 onClick={handleSubmit}
               >
                 Update Password

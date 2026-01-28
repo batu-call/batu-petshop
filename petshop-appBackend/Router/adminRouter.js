@@ -8,23 +8,12 @@ import upload from '../Config/multer.js';
 const router = express.Router();
 
 
-router.post("/add", upload.single("avatar"), async (req, res, next) => {
-  try {
-    const adminCount = await User.countDocuments({ role: "Admin" });
-
-    if (adminCount > 0) {
-      
-      return isAdminAuthenticated(req, res, async () => {
-        await newAdmin(req, res, next);
-      });
-    }
-
-    
-    await newAdmin(req, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
+router.post(
+  "/add",
+  isAdminAuthenticated,
+  upload.single("avatar"),
+  newAdmin
+);
 
 router.post("/login",adminLogin)
 router.get("/me", isAdminAuthenticated, getAdmin);

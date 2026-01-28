@@ -7,8 +7,6 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useAdminAuth } from "@/app/Context/AdminAuthContext";
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import CircularText from "@/components/CircularText";
@@ -86,8 +84,6 @@ const AddAdmin = () => {
 
   return (
     <div className="w-full min-h-screen relative">
-      <Navbar />
-      <Sidebar />
       {loading ? (
           <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
             <CircularText
@@ -98,7 +94,7 @@ const AddAdmin = () => {
           </div>
         ) : (
           <>
-      <div className="md:ml-24 lg:ml-40 p-4 flex justify-center">
+      <div className="p-4 flex justify-center">
         <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[650px]">
           {/* LEFT IMAGE */}
           <div className="hidden md:block w-1/2 relative">

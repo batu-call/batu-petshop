@@ -81,7 +81,7 @@ export const getUserReviews = catchAsyncError(async (req, res, next) => {
   }
 
   const reviews = await Review.find({ userId })
-    .populate("productId", "name price image")
+    .populate("productId", "product_name price image")
     .populate("userId", "firstName lastName email avatar");
 
   res.status(200).json({

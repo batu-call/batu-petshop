@@ -23,7 +23,7 @@ export const orderSchema = mongoose.Schema(
           type: Number,
           required: true,
         },
-        images: {
+        image: {
           type: String,
         },
       },

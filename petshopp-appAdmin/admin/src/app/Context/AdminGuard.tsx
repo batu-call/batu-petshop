@@ -20,7 +20,7 @@ export const AdminGuard = ({ children }: Props) => {
   }, [admin, loading, router, pathname]);
 
   if (loading) return 
-  <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
+  <div className="md:ml-24 lg:ml-12 fixed inset-0 flex items-center justify-center bg-primary z-50">
             <CircularText
               text="LOADING"
               spinDuration={20}

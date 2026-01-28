@@ -114,9 +114,11 @@ const StripePay = (props: StripePayProps) => {
     const createPaymentIntent = async () => {
       try {
         const { data } = await axios.post(
-          "http://localhost:5000/create-payment-intent",
-          { amount: props.totalAmount * 100 }
-        );
+   `${process.env.NEXT_PUBLIC_API_URL}/create-payment-intent`,
+  {
+    amount: Math.round(props.totalAmount * 100),
+  }
+);
         setClientSecret(data.clientSecret);
       } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {

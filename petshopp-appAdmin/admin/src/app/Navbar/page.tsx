@@ -50,6 +50,40 @@ const Navbar = () => {
     return "Admin Panel";
   };
 
+  const NavbarMenu = [
+  {
+    key: "products",
+    label: "Products",
+    items: [
+      { label: "Add Product", href: "/AddProduct" },
+      { label: "All Products", href: "/AllProduct" },
+      { label: "Product Stats", href: "/ProductStats" },
+    ],
+  },
+  {
+    key: "users",
+    label: "Users",
+    items: [
+      { label: "All Users", href: "/AllUsers" },
+      { label: "All Admin", href: "/AllAdmin" },
+      { label: "Add Admin", href: "/AddAdmin" },
+      { label: "User Activity", href: "/UserActivity" },
+    ],
+  },
+  {
+    key: "orders",
+    label: "Orders",
+    items: [
+      { label: "All Orders", href: "/AllOrders" },
+      { label: "Processing Orders", href: "/ProcessingOrders" },
+      { label: "Completed Orders", href: "/CompletedOrders" },
+      { label: "Pricing & Promotions", href: "/AllCoupon" },
+      { label: "Order Stats", href: "/OrderStats" },
+    ],
+  },
+];
+
+
   const handleLogout = async () => {
     try {
       const response = await axios.get(
@@ -74,7 +108,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="w-full h-14 sm:h-14 lg:h-18 bg-primary shadow-md relative">
+    <div className="md:ml-24 lg:ml-40 h-14 sm:h-14 lg:h-18 bg-primary shadow-md lg:relative fixed w-full md:w-[calc(100%-6rem)] lg:w-[calc(100%-10rem)] z-30 opacity-95">
       {/* Top Navbar */}
       <div>
         <div className="flex items-center justify-between">
@@ -83,13 +117,13 @@ const Navbar = () => {
           </div>
 
             {/* Page Name */}
-          <div className="hidden md:flex ml-44 items-center p-4">
+          <div className="hidden md:flex items-center p-4">
             <h1 className="text-xl font-bold text-white">{pageTitle()}</h1>
           </div>
 
           {/* Hamburger (Mobile) */}
           <div
-            className="w-40 lg:hidden items-center justify-end inline-block text-color rounded-2xl mt-2 mr-2"
+            className="w-40 lg:hidden items-center justify-end inline-block text-color rounded-2xl mt-2 md:mt-0 mr-2"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             <Button className="bg-secondary hover:bg-secondary cursor-pointer flex items-center justify-between text-color mt-1 ml-4">
@@ -113,240 +147,104 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex md:ml-24 gap-8 justify-center mb-12 mr-4 p-2 absolute top-2 right-2 z-100">
-          {/* Products */}
-          <div className="relative group">
-            <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-1 transition duration-300 ease-in-out hover:scale-105">
-              Products <ChevronDown size={16} />
-            </button>
-            <div className="absolute hidden group-hover:flex flex-col w-48 bg-white shadow-lg rounded-xl z-10">
-              <Link
-                href="/AddProduct"
-                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                Add Product
-              </Link>
-              <Link
-                href="/AllProduct"
-                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                All Products
-              </Link>
-              <Link
-                href="/ProductStats"
-                className="px-4 py-2 hover:bg-gray-200 transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                Product Stats
-              </Link>
+        <div
+         className="hidden lg:flex md:ml-24 gap-8 justify-center mb-12 mr-4 p-2 absolute top-2 right-2 z-100">
+          {NavbarMenu.map((menu) => (
+            <div key={menu.key} className="relative group">
+              <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-2 transition duration-300 ease-in-out hover:scale-105">
+                <span>{menu.label}</span>
+                <ChevronDown
+          size={16}
+          className="transition-transform duration-300 group-hover:rotate-180"
+        />
+              </button>    
+              <div className="absolute top-full hidden group-hover:flex flex-col w-48 bg-white shadow-lg rounded-xl z-10">
+                {menu.items.map((item) =>(
+                  <Link key={item.href} 
+                  href={item.href} 
+                  className="px-4 py-2 hover:bg-gray-200 border-b last:border-b-0 border-secondary transition duration-200 rounded-xl hover:scale-[1.05]
+    active:scale-[0.97]
+     "
+                  >
+                     {item.label}
+                  </Link>
+                ))}
+                </div> 
+                      
             </div>
-          </div>
-
-          {/* Users */}
-          <div className="relative group">
-            <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-1 transition duration-300 ease-in-out hover:scale-105">
-              Users <ChevronDown size={16} />
-            </button>
-            <div className="absolute hidden group-hover:flex flex-col w-48 bg-white shadow-lg rounded-xl z-10">
-              <Link
-                href="/AllUsers"
-                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                All Users
-              </Link>
-              <Link
-                href="/AllAdmin"
-                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                All Admin
-              </Link>
-              <Link
-                href="/AddAdmin"
-                className="px-4 py-2 hover:bg-gray-200 transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                Add Admin
-              </Link>
-              <Link
-                href="/UserActivity"
-                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                User Activity
-              </Link>
-            </div>
-          </div>
-
-          {/* Orders */}
-          <div className="relative group">
-            <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-1 transition duration-300 ease-in-out hover:scale-105">
-              Orders <ChevronDown size={16} />
-            </button>
-            <div className="absolute hidden group-hover:flex flex-col w-48 bg-white shadow-lg rounded-xl z-10">
-              <Link
-                href="/AllOrders"
-                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                All Orders
-              </Link>
-              <Link
-                href="/ProcessingOrders"
-                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                Processing Orders
-              </Link>
-              <Link
-                href="/CompletedOrders"
-                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                Completed Orders
-              </Link>
-              <Link
-                href="/AllCoupon"
-                className="px-4 py-2 hover:bg-gray-200 border-b border-secondary transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                Pricing & Promotions
-              </Link>
-              <Link
-                href="/OrderStats"
-                className="px-4 py-2 hover:bg-gray-200 transition duration-300 ease-in-out hover:scale-105 rounded-xl"
-              >
-                Order Stats
-              </Link>
-            </div>
-          </div>
-
-          {/* Logout */}
-          <Button
-            onClick={handleLogout}
-            className="bg-secondary text-color w-40 text-base hover:bg-secondary cursor-pointer transition duration-300 ease-in-out hover:scale-105"
-          >
-            Logout
-          </Button>
+            
+          ))}
+           <Button
+    onClick={handleLogout}
+    className="bg-secondary text-color w-40 text-base hover:bg-secondary cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md"
+  >
+    Logout
+  </Button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden flex flex-col pb-4 bg-secondary border-t border-gray-700 relative z-50 mt-3">
-          {/* Products */}
-          <div>
-            <button
-              onClick={() => toggleDropdown("products")}
-              className="w-full text-white py-2 transition flex justify-center items-center cursor-pointer"
-            >
-              <span className="hover:bg-secondary/50 text-color flex justify-center items-center p-2 rounded-sm">
-                Products <ChevronDown size={18} className="ml-1" />
-              </span>
-            </button>
-            {openDropdown === "products" && (
-              <div className="flex flex-col bg-primary rounded-md ">
-                <Link
-                  href="/AddProduct"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
-                >
-                  Add Product
-                </Link>
-                <Link
-                  href="/AllProduct"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
-                >
-                  All Products
-                </Link>
-                <Link
-                  href="/ProductStats"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
-                >
-                  Product Stats
-                </Link>
-              </div>
-            )}
-          </div>
+  <div
+    className="fixed inset-0 bg-black/10 z-40 lg:hidden"
+    onClick={() => {
+      setMenuOpen(false);
+      setOpenDropdown(null);
+    }}
+  />
+)}
 
-          {/* Users */}
-          <div>
-            <button
-              onClick={() => toggleDropdown("users")}
-              className="w-full text-color text-jost flex items-center justify-center py-2 transition cursor-pointer"
-            >
-              <span className="hover:bg-secondary/50 text-color flex justify-center items-center p-2 rounded-sm">
-                Users <ChevronDown size={18} className="ml-1" />
-              </span>
-            </button>
-            {openDropdown === "users" && (
-              <div className="flex flex-col bg-primary rounded-md">
-                <Link
-                  href="/AllUsers"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
-                >
-                  All Users
-                </Link>
-                <Link
-                  href="/AllAdmin"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
-                >
-                  All Admin
-                </Link>
-                <Link
-                  href="/AddAdmin"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
-                >
-                  Add Admin
-                </Link>
-                <Link
-                  href="/UserActivity"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
-                >
-                  User Activity
-                </Link>
-              </div>
-            )}
-          </div>
+      {/* Mobile Menu */}
+     {menuOpen && (
+  <div className="lg:hidden fixed top-14 left-0 right-0 flex flex-col pb-4 border-t border-gray-700 bg-primary z-50">
+    {NavbarMenu.map((menu) => {
+      const isOpen = openDropdown === menu.key;
 
-          {/* Orders */}
-          <div>
-            <button
-              onClick={() => toggleDropdown("orders")}
-              className="w-full text-color flex items-center justify-center py-2 transition cursor-pointer"
-            >
-              <span className="hover:bg-secondary/50 text-color flex justify-center items-center p-2 rounded-sm">
-                Orders <ChevronDown size={18} className="ml-1" />
-              </span>
-            </button>
-            {openDropdown === "orders" && (
-              <div className="flex flex-col bg-primary rounded-md">
+      return (
+        <div
+          key={menu.key}
+          className="border border-secondary rounded-md overflow-hidden md:ml-24 "
+        >
+          {/* HEADER */}
+          <button
+            onClick={() => toggleDropdown(menu.key)}
+            className="w-full flex items-center justify-between px-4 py-3 text-color bg-primary transition"
+          >
+            <span className="font-medium">{menu.label}</span>
+            <ChevronDown
+              size={18}
+              className={`transition-transform duration-300 ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {/* ITEMS */}
+          {isOpen && (
+            <div className="flex flex-col bg-secondary">
+              {menu.items.map((item) => (
                 <Link
-                  href="/AllOrders"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setOpenDropdown(null);
+                  }}
+                  className="px-6 py-3 text-sm text-color border-t border-secondary transition hover:bg-primary/10"
                 >
-                  All Orders
+                  {item.label}
                 </Link>
-                <Link
-                  href="/ProcessingOrders"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
-                >
-                  Processing Orders
-                </Link>
-                <Link
-                  href="/CompletedOrders"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
-                >
-                  Completed Orders
-                </Link>
-                <Link
-                  href="/AllCoupon"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
-                >
-                  Pricing & Promotions
-                </Link>
-                <Link
-                  href="/OrderStats"
-                  className="text-color px-4 py-2 hover:bg-secondary/50 border border-secondary"
-                >
-                  Order Stats
-                </Link>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      );
+    })}
+  </div>
+)}
+
+
     </div>
   );
 };

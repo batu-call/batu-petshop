@@ -1,7 +1,5 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
-import Sidebar from "../Sidebar/page";
-import Navbar from "../Navbar/page";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Image from "next/image";
@@ -143,8 +141,6 @@ const Order = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar />
-      <Sidebar />
       {loading ? (
         <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
           <CircularText
@@ -154,7 +150,7 @@ const Order = () => {
           />
         </div>
       ) : (
-        <div className="ml-0 md:ml-24 lg:ml-40 p-4 lg:p-8 flex flex-col gap-6 lg:flex-row lg:gap-8 flex-1">
+        <div className="p-4 lg:p-8 flex flex-col gap-6 lg:flex-row lg:gap-8 flex-1">
           <div className="w-full lg:w-1/2 flex flex-col gap-6">
             <div className="w-full h-[60vh] lg:h-[70vh] border border-[#A8D1B5] flex flex-col gap-2 p-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 rounded-lg shadow-md bg-white">
               <h2 className="text-xl font-bold text-color p-2 border-b">

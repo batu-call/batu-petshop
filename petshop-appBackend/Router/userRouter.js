@@ -1,5 +1,5 @@
 import express from 'express'
-import { AdminLogout, deleteUser, getAdminDetails, getAllUser, getUserDetails, getUserMe, Login, Logout, newAdmin, UserRegister, updateUser, updatePassword, resetPassword, forgotPassword } from '../Controller/userController.js';
+import { AdminLogout, deleteUser, getAdminDetails, getAllUser, getUserDetails, getUserMe, Login, Logout, newAdmin, UserRegister, updateUser, updatePassword, resetPassword, forgotPassword, googleLogin } from '../Controller/userController.js';
 import { isAdminAuthenticated, isUserAuthenticated } from '../Middlewares/Auth.js';
 import upload from "../Config/multer.js"
 
@@ -9,6 +9,7 @@ import upload from "../Config/multer.js"
 router.post("/register",upload.single("uploads"),UserRegister);
 
 router.post("/login",Login);
+router.post("/google-login",googleLogin);
 router.post("/logout",isUserAuthenticated,Logout);
 
 router.get("/users/me",isUserAuthenticated,getUserMe)

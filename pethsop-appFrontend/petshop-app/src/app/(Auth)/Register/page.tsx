@@ -1,7 +1,7 @@
 "use client";
 import React, { useContext, useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
+import { Button } from "@/components/ui/button";
 import Box from "@mui/material/Box";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -12,13 +12,16 @@ import "react-phone-input-2/lib/style.css";
 import CircularText from "@/components/CircularText";
 import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
 import { AuthContext } from "@/app/context/authContext";
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 const Register = () => {
   const router = useRouter();
-  const { setUser, setIsAuthenticated } = useContext(AuthContext);
+  const { setUser, isAuthenticated ,setIsAuthenticated } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
 
   type formDataType = {
     firstName: string;
@@ -40,6 +43,15 @@ const Register = () => {
 
   const [file, setFile] = useState<File | null>(null);
 
+   useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, router]);
+
+
+
+
   type FormInputNames = keyof formDataType;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,14 +72,14 @@ const Register = () => {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/register`,
         data,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (response.data.success) {
         toast.success(response.data.message);
         setUser(response.data.user);
         setIsAuthenticated(true);
-        router.push("/main");
+        router.push("/");
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
@@ -92,10 +104,7 @@ const Register = () => {
   }, []);
 
   return (
-    <div className="min-h-screen w-full relative">
-      <Navbar />
-      <Sidebar />
-
+    <div className="h-full w-full relative">
       {loading ? (
         <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
           <CircularText
@@ -107,7 +116,6 @@ const Register = () => {
       ) : (
         <div className="md:ml-24 lg:ml-40 p-4 flex justify-center">
           <div className="w-full max-w-5xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[650px]">
-
             {/* LEFT IMAGE */}
             <div className="hidden md:block w-1/2 relative">
               <div
@@ -130,7 +138,9 @@ const Register = () => {
             <div className="w-full md:w-1/2 p-8 md:p-12 lg:p-16 bg-white">
               <Box display="flex" flexDirection="column" gap={3} width="100%">
                 <div className="mb-8">
-                  <h2 className="text-3xl font-bold mb-2 text-color">Create Account</h2>
+                  <h2 className="text-3xl font-bold mb-2 text-color">
+                    Create Account
+                  </h2>
                   <p className="text-[#6d7e73] text-sm">
                     Enter your details below to get started.
                   </p>
@@ -144,19 +154,19 @@ const Register = () => {
                     onChange={handleChange}
                     variant="standard"
                     fullWidth
-                     slotProps={{
-                    inputLabel: {
-                      sx: {
-                        color: "#B1CBBB",
-                        "&.Mui-focused": { color: "#B1CBBB" },
+                    slotProps={{
+                      inputLabel: {
+                        sx: {
+                          color: "#B1CBBB",
+                          "&.Mui-focused": { color: "#B1CBBB" },
+                        },
                       },
-                    },
-                  }}
-                  sx={{
-                    "& .MuiInput-underline:after": {
-                      borderBottomColor: "#B1CBBB",
-                    },
-                  }}
+                    }}
+                    sx={{
+                      "& .MuiInput-underline:after": {
+                        borderBottomColor: "#B1CBBB",
+                      },
+                    }}
                   />
                   <TextField
                     label="Last Name"
@@ -165,19 +175,19 @@ const Register = () => {
                     onChange={handleChange}
                     variant="standard"
                     fullWidth
-                     slotProps={{
-                    inputLabel: {
-                      sx: {
-                        color: "#B1CBBB",
-                        "&.Mui-focused": { color: "#B1CBBB" },
+                    slotProps={{
+                      inputLabel: {
+                        sx: {
+                          color: "#B1CBBB",
+                          "&.Mui-focused": { color: "#B1CBBB" },
+                        },
                       },
-                    },
-                  }}
-                  sx={{
-                    "& .MuiInput-underline:after": {
-                      borderBottomColor: "#B1CBBB",
-                    },
-                  }}
+                    }}
+                    sx={{
+                      "& .MuiInput-underline:after": {
+                        borderBottomColor: "#B1CBBB",
+                      },
+                    }}
                   />
                   <div className="sm:col-span-2">
                     <TextField
@@ -187,28 +197,26 @@ const Register = () => {
                       onChange={handleChange}
                       variant="standard"
                       fullWidth
-                       slotProps={{
-                    inputLabel: {
-                      sx: {
-                        color: "#B1CBBB",
-                        "&.Mui-focused": { color: "#B1CBBB" },
-                      },
-                    },
-                  }}
-                  sx={{
-                    "& .MuiInput-underline:after": {
-                      borderBottomColor: "#B1CBBB",
-                    },
-                  }}
+                      slotProps={{
+                        inputLabel: {
+                          sx: {
+                            color: "#B1CBBB",
+                            "&.Mui-focused": { color: "#B1CBBB" },
+                          },
+                        },
+                      }}
+                      sx={{
+                        "& .MuiInput-underline:after": {
+                          borderBottomColor: "#B1CBBB",
+                        },
+                      }}
                     />
                   </div>
                   <div className="sm:col-span-2">
                     <PhoneInput
                       country={"us"}
                       value={formData.phone}
-                      onChange={(phone) =>
-                        setFormData({ ...formData, phone })
-                      }
+                      onChange={(phone) => setFormData({ ...formData, phone })}
                       inputStyle={{
                         width: "100%",
                         height: "56px",
@@ -222,25 +230,41 @@ const Register = () => {
                     <TextField
                       label="Password"
                       name="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={formData.password}
                       onChange={handleChange}
                       variant="standard"
                       fullWidth
                       autoComplete="new-password"
-                       slotProps={{
-                    inputLabel: {
-                      sx: {
-                        color: "#B1CBBB",
-                        "&.Mui-focused": { color: "#B1CBBB" },
-                      },
-                    },
-                  }}
-                  sx={{
-                    "& .MuiInput-underline:after": {
-                      borderBottomColor: "#B1CBBB",
-                    },
-                  }}
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                edge="end"
+                              >
+                                {showPassword ? (
+                                  <VisibilityOff />
+                                ) : (
+                                  <Visibility />
+                                )}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        },
+                        inputLabel: {
+                          sx: {
+                            color: "#B1CBBB",
+                            "&.Mui-focused": { color: "#B1CBBB" },
+                          },
+                        },
+                      }}
+                      sx={{
+                        "& .MuiInput-underline:after": {
+                          borderBottomColor: "#B1CBBB",
+                        },
+                      }}
                     />
                   </div>
                 </div>
@@ -283,23 +307,21 @@ const Register = () => {
                 </Box>
 
                 <Button
-                  variant="contained"
-                  fullWidth
-                  sx={{
-                    cursor: "pointer",
-                    backgroundColor: "#D6EED6",
-                    borderRadius: "20px",
-                    color: "#393E46",
-                    transition: "all 0.3s",
-                    marginTop: "12px",
-                    "&:hover": {
-                      backgroundColor: "#97cba9",
-                      borderColor: "primary.main",
-                    },
-                  }}
                   onClick={handlerSubmit}
+                  className="
+    w-full 
+    mt-3 
+    rounded-[20px] 
+    bg-primary 
+    text-[#393E46] 
+    hover:bg-[#D6EED6]
+    cursor-pointer
+    transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md
+  "
                 >
-                  Register
+                  <span className="text-md font-semibold">Register</span>
                 </Button>
               </Box>
             </div>

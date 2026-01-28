@@ -66,22 +66,32 @@ export const DropdownMenu = ({ children }: DropdownProps) => {
 };
 
 export const DropdownItem = ({ children, href, onClick, className }: DropdownItemProps) => {
+  const context = useContext(DropdownContext);
+  if (!context) throw new Error("DropdownItem must be used within Dropdown");
+
+  const { setOpen } = context;
   const base = "px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer block";
+
+  const handleClick = () => {
+    setOpen(false);
+    onClick?.();
+  };
 
   if (href) {
     return (
-      <Link href={href} className={`${base} ${className || ""}`}>
+      <Link href={href} className={`${base} ${className || ""}`} onClick={handleClick}>
         {children}
       </Link>
     );
   }
 
   return (
-    <div onClick={onClick} className={`${base} ${className || ""}`}>
+    <div onClick={handleClick} className={`${base} ${className || ""}`}>
       {children}
     </div>
   );
 };
+
 
 export const DropdownDivider = () => <div className="border-t border-gray-200 my-2" />;
 

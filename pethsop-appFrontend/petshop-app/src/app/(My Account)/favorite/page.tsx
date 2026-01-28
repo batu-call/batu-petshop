@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CircularText from "@/components/CircularText";
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
 import { Heart } from "lucide-react";
 import { Star } from "@mui/icons-material";
 import { AuthContext } from "@/app/context/authContext";
@@ -42,7 +40,7 @@ const FavoritePage = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const { favorites, removeFavorite, addFavorite, fetchFavorites, loading } =
     useFavorite();
-  const { addToCart } = useCart(); 
+  const { addToCart } = useCart();
 
   const [reviewStats, setReviewStats] = useState<ReviewStats>({});
 
@@ -79,8 +77,6 @@ const FavoritePage = () => {
   const isFavorite = (productId: string) =>
     favorites.some((f) => f._id === productId);
 
-
-
   const handlerAddToCart = async (product: Product) => {
     if (!isAuthenticated) return router.push("/Login");
 
@@ -93,9 +89,7 @@ const FavoritePage = () => {
 
   return (
     <>
-      <Navbar />
-      <Sidebar />
-      <div className="ml-0 md:ml-24 lg:ml-40 flex-1 flex flex-col items-center justify-center md:items-start md:justify-start min-h-screen bg-[#f6f7f9] p-6 mt-3 md:mt-0">
+      <div className="flex-1 min-h-screen p-4 md:mt-0">
         {loading ? (
           <div className="md:ml-24 lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
             <CircularText
@@ -113,6 +107,10 @@ const FavoritePage = () => {
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 md:gap-6 lg:gap-8 sm:p-0 w-full">
             {favorites.map((p) => {
+              const discountPercent =
+                  p.salePrice && p.salePrice < p.price
+                    ? Math.round(((p.price - p.salePrice) / p.price) * 100)
+                    : 0;
               const stats = reviewStats[p._id];
               return (
                 <Link
@@ -120,11 +118,18 @@ const FavoritePage = () => {
                   href={`/Products/${p.slug}`}
                   className="bg-primary w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative"
                 >
+                  {/* DISCOUNT BADGE */}
+                  {discountPercent > 0 && (
+                    <span className="absolute top-2 left-1 sm:top-2 sm:left-2 bg-secondary text-color text-[8px] sm:text-xs font-bold px-2 py-1 rounded-full z-10">
+                      %{discountPercent} OFF
+                    </span>
+                  )}
 
+                  {/* favorite */}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="p-2 rounded-full hover:bg-[#D6EED6] absolute top-0 right-0 cursor-pointer"
+                    className="p-3 sm:p-2 rounded-full hover:bg-[#D6EED6] absolute top-0 right-0 cursor-pointer"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -132,11 +137,11 @@ const FavoritePage = () => {
                     }}
                   >
                     <Heart
-                        className={`w-3 h-3 transition-colors duration-300 ${
-                          isFavorite(p._id) ? "text-gray-600": "text-gray-400"
-                        }`}
-                        fill={isFavorite(p._id) ? "currentColor" : "none"}
-                      />
+                      className={`w-3 h-3 transition-colors duration-300 ${
+                        isFavorite(p._id) ? "text-gray-600" : "text-gray-400"
+                      }`}
+                      fill={isFavorite(p._id) ? "currentColor" : "none"}
+                    />
                   </Button>
 
                   {/* image */}
@@ -147,7 +152,13 @@ const FavoritePage = () => {
                         alt={p.product_name}
                         width={400}
                         height={400}
-                        className="rounded-full w-28 h-28 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-48 lg:h-48 xl:w-44 xl:h-44 object-cover border-4 border-white shadow-2xl"
+                        sizes="
+    (max-width: 640px) 50vw,
+    (max-width: 1024px) 33vw,
+    (max-width: 1536px) 25vw,
+    20vw
+  "
+                        className="rounded-full w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-44 lg:h-44 xl:w-44 xl:h-44 object-cover border-2 md:border-4 border-white shadow-2xl"
                       />
                     ) : (
                       <p className="text-white text-sm">No image!</p>
@@ -155,55 +166,56 @@ const FavoritePage = () => {
                   </div>
 
                   <div className="px-2 sm:px-4 py-1 sm:py-2 text-center">
-                    <h2 className="text-white text-sm sm:text-base md:text-lg truncate font-semibold">
+                    <h2 className="text-white text-xs sm:text-base md:text-lg truncate font-semibold">
                       {p.product_name}
                     </h2>
                   </div>
 
                   {/* Review stars & count */}
                   {stats && stats.count > 0 && (
-                    <div className="flex items-center justify-center gap-1 text-gray-200 text-sm mt-1">
+                    <div className="flex items-center justify-center gap-1 text-gray-200 mt-1">
                       <div className="flex text-yellow-500">
                         {[...Array(Math.round(stats.avgRating))].map((_, i) => (
                           <Star key={i} sx={{ fontSize: 16 }} />
                         ))}
                       </div>
-                      <span className="text-xs text-color3 font-semibold">
+                      <span className="text-[10px] text-color3 font-semibold">
                         ( {stats.count} )
                       </span>
                     </div>
                   )}
 
-                  <div className="px-4 py-3 sm:px-4 sm:py-2 h-20 sm:h-24 md:h-24 overflow-hidden mt-1">
-                    <h2 className="text-xs sm:text-sm text-color font-semibold line-clamp-3 leading-snug">
+                  <div className="px-4 py-3 sm:px-4 sm:py-2 h-12 sm:h-12 md:h-18 overflow-hidden mt-1">
+                    <h2 className="text-[10px] sm:text-xs lg:text-sm text-color font-semibold line-clamp-2 md:line-clamp-3 leading-snug">
                       {p.description}
                     </h2>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-2 justify-between items-center px-2 sm:px-4 py-2">
-                   <div className="flex flex-col items-center">
-  {p.salePrice && p.salePrice < p.price ? (
-    <>
-      <span className="line-through text-color text-xs opacity-55 font-bold">
-        {p.price},00$
-      </span>
-      <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
-        {p.salePrice},00$
-      </span>
-    </>
-  ) : (
-    <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
-      {p.price},00$
-    </span>
-  )}
-</div>
+                    <div className="flex flex-col items-center">
+                      {p.salePrice && p.salePrice < p.price ? (
+                        <>
+                          <span className="line-through text-color text-xs opacity-55 font-bold">
+                            ${(p.price).toFixed(2)}
+                          </span>
+                          <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
+                            ${(p.salePrice).toFixed(2)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
+                          ${(p.price).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+
                     <Button
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        handlerAddToCart(p); 
+                        handlerAddToCart(p);
                       }}
-                      className="w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400"
+                      className="w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400 ease-in-out active:scale-[0.97]"
                     >
                       Add To Cart
                     </Button>
@@ -214,7 +226,7 @@ const FavoritePage = () => {
           </div>
         )}
       </div>
-      <Footer/>
+      <Footer />
     </>
   );
 };

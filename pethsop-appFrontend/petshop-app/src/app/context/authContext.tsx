@@ -1,7 +1,6 @@
 "use client";
 import axios from "axios";
 import { createContext, useState, ReactNode, useEffect } from "react";
-import toast from "react-hot-toast";
 
 
 export interface User {

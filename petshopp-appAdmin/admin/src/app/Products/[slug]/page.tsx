@@ -1,19 +1,15 @@
 "use client";
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import CircularText from "@/components/CircularText";
-import Switch from "@mui/material/Switch";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import CloseIcon from "@mui/icons-material/Close";
-import StarOutlineIcon from "@mui/icons-material/StarOutline";
 import { useAdminAuth } from "@/app/Context/AdminAuthContext";
 import { useConfirm } from "@/app/Context/confirmContext";
+import ImageManager from "./components/ImageManager";
+import ProductForm from "./components/ProductForm";
+import FeatureManager from "./components/FeatureManager";
+import ReviewList from "./components/ReviewsList";
 
 type Features = {
   name: string;
@@ -25,6 +21,7 @@ type ProductImage = {
   publicId: string;
   _id: string;
 };
+
 type Category = {
   _id: string;
   name: string;
@@ -36,7 +33,7 @@ type Product = {
   product_name: string;
   description: string;
   price: number;
-  salePrice?: number;
+  salePrice?: number | null;
   stock: number;
   isActive: boolean;
   isFeatured: boolean;
@@ -67,11 +64,14 @@ const AdminProductDetails = () => {
   const [product, setProduct] = useState<Product>();
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState<Reviews[]>([]);
-
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newPreviews, setNewPreviews] = useState<string[]>([]);
   const [newFeature, setNewFeature] = useState<Features>({
     name: "",
     description: "",
   });
+
   const { admin } = useAdminAuth();
   const { confirm } = useConfirm();
 
@@ -82,7 +82,7 @@ const AdminProductDetails = () => {
         setLoading(true);
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/admin/products/slug/${slug}`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
         if (response.data.success) {
           setProduct(response.data.product);
@@ -91,7 +91,7 @@ const AdminProductDetails = () => {
         if (axios.isAxiosError(error) && error.response) {
           toast.error(error.response.data.message);
         } else {
-          toast.error("Something went wrong while fetching reviews!");
+          toast.error("Something went wrong while fetching product!");
         }
       } finally {
         setLoading(false);
@@ -106,7 +106,7 @@ const AdminProductDetails = () => {
     const fetchReviews = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/${product._id}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/${product._id}`,
         );
         if (response.data.success) {
           setReviews(response.data.reviews);
@@ -129,26 +129,144 @@ const AdminProductDetails = () => {
       ? Math.round(((product.price - product.salePrice) / product.price) * 100)
       : 0;
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      const currentImageCount = product?.image.length || 0;
+      
+      if (currentImageCount + newFiles.length + files.length > 6) {
+        toast.error("Maximum 6 images allowed!");
+        return;
+      }
+
+      setNewFiles((prev) => [...prev, ...files]);
+
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setNewPreviews((prev) => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const removeNewImage = async (index: number) => {
+    const ok = await confirm({
+      title: "Remove Image",
+      description: "Are you sure you want to remove this image?",
+      confirmText: "Yes, Remove",
+      cancelText: "Cancel",
+      variant: "destructive",
+    });
+
+    if (!ok) return;
+
+    setNewFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewPreviews((prev) => prev.filter((_, i) => i !== index));
+    toast.success("Image removed from upload queue");
+  };
+
+  const deleteExistingImage = async (publicId: string, imageId: string) => {
+    if (!product) return;
+
+    const ok = await confirm({
+      title: "Delete Image",
+      description: "Are you sure you want to delete this image permanently?",
+      confirmText: "Yes, Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+    });
+
+    if (!ok) return;
+
+    try {
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/${product._id}/image/${imageId}`,
+        { 
+          withCredentials: true,
+          data: { publicId }
+        },
+      );
+
+      if (response.data.success) {
+        toast.success("Image deleted successfully!");
+        
+        // Update local state
+        setProduct((prev) => 
+          prev ? {
+            ...prev,
+            image: prev.image.filter(img => img._id !== imageId)
+          } : prev
+        );
+        
+        // Reset selected index if needed
+        if (selectedImageIndex >= product.image.length - 1) {
+          setSelectedImageIndex(0);
+        }
+      }
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.message || "Delete failed");
+      } else {
+        toast.error("Failed to delete image!");
+      }
+    }
+  };
+
   const handleUpdate = async () => {
     if (!product?._id) return toast.error("Product not found!");
 
     try {
+      const formData = new FormData();
+      
+      formData.append("product_name", product.product_name);
+      formData.append("description", product.description);
+      formData.append("price", product.price.toString());
+      
+      if (product.salePrice !== null && product.salePrice !== undefined) {
+        formData.append("salePrice", product.salePrice.toString());
+      } else {
+        formData.append("salePrice", "");
+      }
+      
+      formData.append("stock", product.stock.toString());
+      formData.append("isActive", product.isActive.toString());
+      formData.append("isFeatured", product.isFeatured.toString());
+      formData.append("productFeatures", JSON.stringify(product.productFeatures));
+      
+      if (product.category) {
+        formData.append("category", typeof product.category === 'string' ? product.category : product.category.name);
+      }
+
+      newFiles.forEach((file) => {
+        formData.append("images", file);
+      });
+
       const response = await axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/update/${product._id}`,
-        {
-          product_name: product.product_name,
-          description: product.description,
-          price: product.price,
-          salePrice: product.salePrice === undefined ? null : product.salePrice,
-          stock: product.stock,
-          isActive: product.isActive,
-          isFeatured: product.isFeatured,
-          productFeatures: product.productFeatures,
+        formData,
+        { 
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         },
-        { withCredentials: true }
       );
+      
       if (response.data.success) {
         toast.success("Product updated successfully!");
+        setNewFiles([]);
+        setNewPreviews([]);
+        
+        // Refresh product data
+        const refreshResponse = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/admin/products/slug/${slug}`,
+          { withCredentials: true },
+        );
+        if (refreshResponse.data.success) {
+          setProduct(refreshResponse.data.product);
+        }
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
@@ -162,28 +280,66 @@ const AdminProductDetails = () => {
   };
 
   const handleFeatureAdd = () => {
-    if (!newFeature.name || !newFeature.description)
+    if (!newFeature.name || !newFeature.description) {
       return toast.error("Please fill out both fields");
+    }
+    
     setProduct((prev) =>
       prev
         ? {
             ...prev,
             productFeatures: [...prev.productFeatures, newFeature],
           }
-        : prev
+        : prev,
     );
     setNewFeature({ name: "", description: "" });
+    toast.success("Feature added!");
   };
 
-  const handleDelete = async (id: string) => {
+  const handleFeatureUpdate = (index: number, field: "name" | "description", value: string) => {
+    if (!product) return;
+    
+    const updated = [...product.productFeatures];
+    updated[index][field] = value;
+    setProduct({ ...product, productFeatures: updated });
+  };
+
+  const handleFeatureDelete = async (index: number) => {
+    if (!product) return;
+
+    const ok = await confirm({
+      title: "Delete Feature",
+      description: "Are you sure you want to delete this feature?",
+      confirmText: "Yes, Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+    });
+
+    if (!ok) return;
+
+    const updated = product.productFeatures.filter((_, i) => i !== index);
+    setProduct({ ...product, productFeatures: updated });
+    toast.success("Feature removed");
+  };
+
+  const handleReviewDelete = async (id: string) => {
+    const ok = await confirm({
+      title: "Delete Review",
+      description: "Are you sure you want to delete this review?",
+      confirmText: "Yes, Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+    });
+
+    if (!ok) return;
+
     try {
       const response = await axios.delete(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/admin/${id}`,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       toast.success(response.data.message);
-
       setReviews((prev) => prev.filter((r) => r._id !== id));
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
@@ -193,24 +349,24 @@ const AdminProductDetails = () => {
       }
     }
   };
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
 
-    return date.toLocaleString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
+  const handleProductDelete = async () => {
+    if (!product) return;
+
+    const ok = await confirm({
+      title: "Delete Product",
+      description: "Are you sure you want to delete this product? This action cannot be undone.",
+      confirmText: "Yes, Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
     });
-  };
 
-  const handlerRemove = async (id: string) => {
+    if (!ok) return;
+
     try {
       const response = await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products/${id}`,
-        { withCredentials: true }
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products/${product._id}`,
+        { withCredentials: true },
       );
 
       if (response.data.success) {
@@ -222,10 +378,20 @@ const AdminProductDetails = () => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
   return (
-    <div className="h-screen relative">
-      <Navbar />
-      <Sidebar />
+    <div className="min-h-screen bg-gray-50">
       {loading ? (
         <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
           <CircularText
@@ -235,347 +401,82 @@ const AdminProductDetails = () => {
           />
         </div>
       ) : (
-        <div className="md:ml-24 lg:ml-40 min-h-screen bg-gray-50 py-10 px-6">
+        <div className="py-8 px-4 md:px-6 max-w-7xl mx-auto">
           {product && (
-            <div className="bg-primary shadow-lg rounded-2xl flex flex-col md:flex-row max-w-6xl mx-auto overflow-hidden">
-              <div className="relative w-full md:w-1/2 h-80 md:h-auto">
-                {product.image?.[0]?.url ? (
-                  <Image
-                    src={product.image[0].url}
-                    alt={product.product_name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-80 bg-gray-200 flex items-center justify-center">
-                    No Image
-                  </div>
-                )}
-              </div>
-
-              {/* Right Side */}
-              <div className="w-full md:w-1/2 p-8 flex flex-col justify-between gap-6">
-                <input
-                  value={product.product_name}
-                  onChange={(e) =>
-                    setProduct({ ...product, product_name: e.target.value })
-                  }
-                  className="text-3xl font-bold text-color bg-white border p-2 rounded"
+            <>
+              {/* Main Product Card */}
+              <div className="bg-primary shadow-lg rounded-2xl flex flex-col md:flex-row overflow-hidden mb-8">
+                <ImageManager
+                  images={product.image}
+                  selectedImageIndex={selectedImageIndex}
+                  setSelectedImageIndex={setSelectedImageIndex}
+                  newPreviews={newPreviews}
+                  newFiles={newFiles}
+                  onFileChange={handleFileChange}
+                  onRemoveNew={removeNewImage}
+                  onDeleteExisting={deleteExistingImage}
+                  productName={product.product_name}
                 />
 
-                <textarea
-                  value={product.description}
-                  onChange={(e) =>
-                    setProduct({ ...product, description: e.target.value })
+                <ProductForm
+                  productName={product.product_name}
+                  description={product.description}
+                  category={product.category}
+                  price={product.price}
+                  salePrice={product.salePrice}
+                  stock={product.stock}
+                  isActive={product.isActive}
+                  isFeatured={product.isFeatured}
+                  discountPercent={discountPercent}
+                  onProductNameChange={(value) =>
+                    setProduct({ ...product, product_name: value })
                   }
-                  className="text-color text-lg bg-white border p-2 rounded"
+                  onDescriptionChange={(value) =>
+                    setProduct({ ...product, description: value })
+                  }
+                  onCategoryChange={(value) =>
+                    setProduct({ ...product, category: value as any })
+                  }
+                  onPriceChange={(value) =>
+                    setProduct({ ...product, price: value })
+                  }
+                  onSalePriceChange={(value) =>
+                    setProduct({ ...product, salePrice: value })
+                  }
+                  onStockChange={(value) =>
+                    setProduct({ ...product, stock: value })
+                  }
+                  onIsActiveChange={(value) =>
+                    setProduct({ ...product, isActive: value })
+                  }
+                  onIsFeaturedChange={(value) =>
+                    setProduct({ ...product, isFeatured: value })
+                  }
+                  onUpdate={handleUpdate}
+                  onDelete={handleProductDelete}
                 />
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-lg text-color font-semibold">
-                    Price ($)
-                  </label>
-                  <input
-                    type="number"
-                    value={product.price}
-                    onChange={(e) =>
-                      setProduct({ ...product, price: Number(e.target.value) })
-                    }
-                    className="text-xl font-semibold text-color bg-white border p-2 rounded"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-lg text-color font-semibold">
-                    Sale Price (optional)
-                  </label>
-                  <input
-                    type="number"
-                    value={product.salePrice ?? ""}
-                    onChange={(e) =>
-                      setProduct({
-                        ...product,
-                        salePrice: e.target.value
-                          ? Number(e.target.value)
-                          : undefined,
-                      })
-                    }
-                    className="text-xl font-semibold text-color bg-white border p-2 rounded"
-                  />
-                  {discountPercent > 0 && (
-                    <p className="text-sm text-zinc-600 font-semibold">
-                      %{discountPercent} discount is being applied
-                    </p>
-                  )}
-                </div>
-
-                {/* Stock + Switch controls */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-4">
-                    <label className="text-lg text-color font-semibold">
-                      Stock:
-                    </label>
-                    <input
-                      type="number"
-                      value={product.stock}
-                      onChange={(e) =>
-                        setProduct({
-                          ...product,
-                          stock: Number(e.target.value),
-                        })
-                      }
-                      className="border border-white p-2 rounded w-28 text-xl text-color flex justify-center items-center"
-                    />
-                  </div>
-
-                  <div>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={product.isActive}
-                          onChange={(e) =>
-                            setProduct({
-                              ...product,
-                              isActive: e.target.checked,
-                            })
-                          }
-                          color="success"
-                        />
-                      }
-                      label="Active Product"
-                      className="text-color text-2xl text-jost font-semibold"
-                    />
-                  </div>
-                  <div className="text-color text-2xl text-jost">
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={product.isFeatured}
-                          onChange={(e) =>
-                            setProduct({
-                              ...product,
-                              isFeatured: e.target.checked,
-                            })
-                          }
-                          color="success"
-                        />
-                      }
-                      label="Featured Product"
-                    />
-                  </div>
-                </div>
-
-                  <div className="flex flex-col">
-                <Button
-                  onClick={handleUpdate}
-                  className="bg-secondary hover:bg-white text-color font-semibold py-3 rounded-lg mt-4 cursor-pointer transition duration-300 ease-in-out hover:scale-105"
-                >
-                  Update Product
-                </Button>
-                <Button
-                  onClick={async (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-
-                      const ok = await confirm({
-                        title: "Delete Product",
-                        description:
-                          "Are you sure you want to delete this product?",
-                        confirmText: "Yes, Delete",
-                        cancelText: "Cancel",
-                        variant: "destructive",
-                      });
-
-                      if (ok) handlerRemove(product._id);
-                    }}
-                  className="bg-[#393E46] hover:bg-white text-white hover:text-[#393E46] font-semibold py-3 rounded-lg mt-4 cursor-pointer transition duration-300 ease-in-out hover:scale-105"
-                >
-                  Delete Product
-                </Button>
-                </div>
               </div>
-            </div>
+
+              {/* Features Section */}
+              <FeatureManager
+                features={product.productFeatures}
+                newFeature={newFeature}
+                onFeatureUpdate={handleFeatureUpdate}
+                onFeatureDelete={handleFeatureDelete}
+                onNewFeatureChange={(field, value) =>
+                  setNewFeature({ ...newFeature, [field]: value })
+                }
+                onFeatureAdd={handleFeatureAdd}
+              />
+
+              {/* Reviews Section */}
+              <ReviewList
+                reviews={reviews}
+                onDeleteReview={handleReviewDelete}
+                formatDate={formatDate}
+              />
+            </>
           )}
-
-          {/* Features Section */}
-          <div className="max-w-4xl mx-auto mt-12 bg-white p-6 rounded-xl shadow-md">
-            <h2 className="text-2xl font-bold text-color mb-4">
-              Product Features
-            </h2>
-
-            {product?.productFeatures.map((f, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-3 border-b py-2 mb-2 relative group"
-              >
-                <input
-                  value={f.name}
-                  onChange={(e) => {
-                    const updated = [...product.productFeatures];
-                    updated[index].name = e.target.value;
-                    setProduct({ ...product, productFeatures: updated });
-                  }}
-                  className="border p-2 rounded w-1/3"
-                />
-                <textarea
-                  value={f.description}
-                  onChange={(e) => {
-                    const updated = [...product.productFeatures];
-                    updated[index].description = e.target.value;
-                    setProduct({ ...product, productFeatures: updated });
-                  }}
-                  className="border p-2 rounded w-2/3"
-                />
-
-                <button
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const ok = await confirm({
-                      title: "Delete Feature",
-                      description:
-                        "Are you sure you want to delete this feature?",
-                      confirmText: "Yes, Delete",
-                      cancelText: "Cancel",
-                      variant: "destructive",
-                    });
-
-                    if (!ok) return;
-
-                    const updated = product.productFeatures.filter(
-                      (_, i) => i !== index
-                    );
-
-                    setProduct({ ...product, productFeatures: updated });
-                    toast.success("Feature removed");
-                  }}
-                  className="absolute top-2 right-2
-  text-color cursor-pointer
-  opacity-100 lg:opacity-0 lg:group-hover:opacity-100
-  transition-all duration-300 hover:scale-110"
-                >
-                  <CloseIcon fontSize="small" />
-                </button>
-              </div>
-            ))}
-
-            {/* Add new feature */}
-            <div className="flex flex-col md:flex-row gap-3 mt-4">
-              <input
-                placeholder="Feature name"
-                value={newFeature.name}
-                onChange={(e) =>
-                  setNewFeature({ ...newFeature, name: e.target.value })
-                }
-                className="border p-2 rounded flex-1"
-              />
-              <input
-                placeholder="Feature description"
-                value={newFeature.description}
-                onChange={(e) =>
-                  setNewFeature({ ...newFeature, description: e.target.value })
-                }
-                className="border p-2 rounded flex-1"
-              />
-              <Button
-                onClick={handleFeatureAdd}
-                className="bg-secondary hover:bg-[#A8D1B5] text-color font-semibold px-6 transition duration-300 ease-in-out hover:scale-105 cursor-pointer"
-              >
-                Add Feature
-              </Button>
-            </div>
-          </div>
-
-          {/* Reviews */}
-          <div className="px-6 py-10 max-w-4xl mx-auto">
-            <h2 className="text-color text-3xl md:text-4xl font-bold flex items-center justify-center py-4 border-b-2 border-color2 mb-8">
-              Product Reviews
-            </h2>
-
-            {!reviews || reviews.length === 0 ? (
-              <p className="text-center text-gray-500">No reviews yet.</p>
-            ) : (
-              <div className="space-y-4">
-                {reviews.map((review) => {
-                  const reviewUser = review.userId;
-
-                  return (
-                    <div
-                      key={review._id}
-                      className="group bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative"
-                    >
-                      {admin && (
-                        <button
-                          onClick={async (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            const ok = await confirm({
-                              title: "Delete Review",
-                              description:
-                                "Are you sure you want to delete this review?",
-                              confirmText: "Yes, Delete",
-                              cancelText: "Cancel",
-                              variant: "destructive",
-                            });
-
-                            if (!ok) return;
-
-                            handleDelete(review._id);
-                          }}
-                          className="absolute top-2 right-2
-  text-color cursor-pointer
-  opacity-100 lg:opacity-0 lg:group-hover:opacity-100
-  transition-all duration-300 hover:scale-110"
-                        >
-                          <CloseIcon fontSize="small" />
-                        </button>
-                      )}
-
-                      {/* HEADER */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="relative w-10 h-10 rounded-full overflow-hidden border">
-                            <Image
-                              src={
-                                review.userId?.avatar || "/default-avatar.png"
-                              }
-                              alt="user avatar"
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-sm text-color">
-                              {reviewUser
-                                ? `${reviewUser.firstName} ${reviewUser.lastName?.[0]}.`
-                                : "Deleted User"}
-                            </h3>
-                            <p className="text-[11px] text-gray-400">
-                              {formatDate(review.createdAt)}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* RATING */}
-                        <div className="flex text-yellow-500 mr-4">
-                          {[...Array(review.rating)].map((_, i) => (
-                            <StarOutlineIcon key={i} fontSize="small" />
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* COMMENT */}
-                      <p className="text-gray-600 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                        {review.comment}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
         </div>
       )}
     </div>

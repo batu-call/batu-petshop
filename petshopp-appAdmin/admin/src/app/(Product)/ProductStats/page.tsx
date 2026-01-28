@@ -1,8 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Navbar from "@/app/Navbar/page";
-import Sidebar from "@/app/Sidebar/page";
 import CircularText from "@/components/CircularText";
 import {
   PieChart,
@@ -119,9 +117,6 @@ const Page = () => {
 
   return (
     <>
-      <Navbar />
-      <Sidebar />
-
       {loading ? (
         <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
           <CircularText
@@ -131,7 +126,7 @@ const Page = () => {
           />
         </div>
       ) : (
-        <div className="md:ml-24 lg:ml-40 p-6 grid grid-cols-1 xl:grid-cols-2 gap-6 md:mt-20">
+        <div className="p-6 grid grid-cols-1 xl:grid-cols-2 gap-6 md:mt-20">
           {/* LEFT: PIE + FEATURED */}
           <div className="bg-white shadow rounded p-4">
             <h2 className="text-xl font-semibold mb-4 text-center text-color">

@@ -33,7 +33,7 @@ export default function ResetPassword() {
         setUser(resposne.data.user);
         setIsAuthenticated(true);
         toast.success("Password has been reset successfully!");
-        router.push("/"); 
+        router.replace("/"); 
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
