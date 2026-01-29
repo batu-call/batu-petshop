@@ -391,7 +391,6 @@ const handleLogout = async () => {
                 )}
               </Button>
 
-              {/* ✅ FIX: Filter dropdown genişliği düzeltildi */}
               {showFilters && (
                 <div
                   ref={filterDropdownRef}

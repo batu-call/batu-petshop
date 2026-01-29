@@ -402,7 +402,6 @@ const CategoryPage = () => {
               </Button>
             </div>
 
-            {/* ✅ FIX: Mobile filter genişliği düzeltildi */}
             {showMobileFilters && (
               <div className="md:hidden bg-white rounded-2xl shadow-2xl border-2 border-primary/20 p-4 mb-4 z-40 max-w-full">
                 <div className="flex items-center justify-between mb-4">
@@ -659,7 +658,7 @@ const CategoryPage = () => {
                       </div>
 
                       <div className="px-2 sm:px-4 py-1 sm:py-2 text-center">
-                        <h2 className="text-white text-xs sm:text-base md:text-lg truncate font-semibold">
+                        <h2 className="text-white text-lg sm:text-base md:text-lg truncate font-semibold">
                           {p.product_name}
                         </h2>
                       </div>
@@ -693,12 +692,12 @@ const CategoryPage = () => {
                             <span className="line-through text-color text-xs opacity-55 font-bold">
                               ${p.price.toFixed(2)}
                             </span>
-                            <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
+                            <span className="text-color text-md sm:text-base xl:text-lg font-semibold">
                               ${p.salePrice.toFixed(2)}
                             </span>
                           </>
                         ) : (
-                          <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
+                          <span className="text-color text-md sm:text-base xl:text-lg font-semibold">
                             ${p.price.toFixed(2)}
                           </span>
                         )}

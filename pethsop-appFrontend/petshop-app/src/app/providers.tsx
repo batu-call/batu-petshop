@@ -8,6 +8,7 @@ import Navbar from "@/app/Navbar/page";
 import Sidebar from "@/app/Sidebar/page";
 import { usePathname } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
+import ScrollToTop from "./components/ScrollToTop";
 
 export default function Providers({
   children,
@@ -30,6 +31,7 @@ export default function Providers({
   return (
     <SessionProvider>
       <AuthProvider>
+        <ScrollToTop />
         <CartProvider>
           <FavoriteProvider>
             <ConfirmProvider>
