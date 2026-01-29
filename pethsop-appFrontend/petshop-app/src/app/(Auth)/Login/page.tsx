@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { signIn, useSession } from "next-auth/react";
 import GoogleIcon from "@mui/icons-material/Google";
 import { saveGoogleUser } from "@/app/utils/google";
-import { saveAuthToken } from "@/app/utils/authHelper";
 
 const Login = () => {
   const router = useRouter();
@@ -71,10 +70,6 @@ const Login = () => {
       );
       if (response.data.success) {
         toast.success("Login successful!");
-
-        if (response.data.token) {
-        saveAuthToken(response.data.token);
-      }
 
         setUser(response.data.user);
         setIsAuthenticated(true);

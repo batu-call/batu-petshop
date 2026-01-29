@@ -2,7 +2,7 @@
 import axios from "axios";
 import { createContext, useState, ReactNode, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { getAuthToken, isMobile } from "@/app/utils/authHelper";
+
 
 export interface User {
   _id: string;
@@ -61,17 +61,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isCheckingAuth.current = true;
 
     try {
-        let headers = {};
-    if (isMobile()) {
-      const token = getAuthToken();
-      if (token) {
-        headers = { Authorization: `Bearer ${token}` };
-      }
-    }
-
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/users/me`,
-        { withCredentials: true ,headers }
+        { withCredentials: true }
       );
 
       if (res.data?.success && res.data?.user) {

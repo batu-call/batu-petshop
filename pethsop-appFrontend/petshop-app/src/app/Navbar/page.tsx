@@ -40,7 +40,6 @@ import { FavoriteContext } from "../context/favoriteContext";
 import RotatingText from "@/components/RotatingText";
 import { signOut, useSession } from "next-auth/react";
 import Slider from "@mui/material/Slider";
-import { clearAuthToken } from "@/app/utils/authHelper";
 
 type ProductImage = {
   url: string;
@@ -187,7 +186,6 @@ const Navbar: React.FC<NavbarProps> = ({
 
 const handleLogout = async () => {
   try {
-    clearAuthToken()
     if (session?.user) {
       await signOut({ redirect: false });
     } else {
@@ -207,7 +205,6 @@ const handleLogout = async () => {
   } catch (error) {
     console.error("Logout error:", error);
     toast.error("Logout failed");
-    clearAuthToken();
   }
 };
 

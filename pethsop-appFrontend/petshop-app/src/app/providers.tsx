@@ -9,7 +9,6 @@ import Sidebar from "@/app/Sidebar/page";
 import { usePathname } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
 import ScrollToTop from "./components/ScrollToTop";
-import "@/lib/axiosConfig";
 
 export default function Providers({
   children,
