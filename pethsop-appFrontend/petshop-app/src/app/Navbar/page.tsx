@@ -184,30 +184,29 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showFilters, isSearchFocused, setShowFilters]);
 
-  const handleLogout = async () => {
+const handleLogout = async () => {
+  try {
     if (session?.user) {
-      signOut({ callbackUrl: "/Login" });
+      await signOut({ redirect: false });
     } else {
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/logout`,
-          {},
-          { withCredentials: true },
-        );
-        if (response.data.success) toast.success("Logged out successfully!");
-        router.push("/Login");
-      } catch (error) {
-        console.log(error);
-        toast.error("Logout failed");
-      }
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/logout`,
+        {},
+        { withCredentials: true }
+      );
     }
-
-    localStorage.removeItem("UserToken");
-    sessionStorage.removeItem("UserToken");
     setUser(null);
     setIsAuthenticated(false);
     setCart([]);
-  };
+
+    toast.success("Logged out successfully!");
+
+    router.replace("/Login");
+  } catch (error) {
+    console.error("Logout error:", error);
+    toast.error("Logout failed");
+  }
+};
 
   useEffect(() => {
     if (session?.user) {
@@ -375,9 +374,6 @@ const Navbar: React.FC<NavbarProps> = ({
               >
                 <p className="text-color">Filter</p>
                 <Filter size={16} className="text-color" />
-                <span className="hidden sm:inline text-sm">
-                  {showFilters ? "Hide" : "Filter"}
-                </span>
 
                 {hasActiveFilters() && (
                   <span className="bg-secondary text-primary rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold">
@@ -395,10 +391,11 @@ const Navbar: React.FC<NavbarProps> = ({
                 )}
               </Button>
 
+              {/* ✅ FIX: Filter dropdown genişliği düzeltildi */}
               {showFilters && (
                 <div
                   ref={filterDropdownRef}
-                  className="fixed top-12 right-0 sm:left-auto sm:right-6 sm:w-[420px] md:w-[600px] lg:w-[760px] xl:w-[900px] bg-white rounded-2xl shadow-2xl border-2 border-primary/20 p-4 sm:p-6 z-50"
+                  className="fixed top-12 right-2 w-[calc(100vw-1rem)] sm:w-96 md:w-[28rem] lg:w-[32rem] bg-white rounded-2xl shadow-2xl border-2 border-primary/20 p-4 sm:p-6 z-50"
                 >
                   {/* HEADER */}
                   <div className="flex items-center justify-between mb-4">
@@ -668,10 +665,9 @@ const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          {/* Avatar Dropdown - RESPONSIVE */}
           <Dropdown>
             <DropdownButton>
-              <div className="relative w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97]">
+              <div className="relative w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97] z-[100]">
                 <Image
                   src={user?.avatar || "/default-avatar.png"}
                   alt="user avatar"
@@ -694,7 +690,6 @@ const Navbar: React.FC<NavbarProps> = ({
                   <FavoriteBorderIcon sx={{ color: "#A8D1B5" }} />
                   <span>Favorite</span>
                   <span className="text-xs font-bold bg-secondary text-color px-2 py-0.5 rounded-xl">
-
                     {favorites.length}
                   </span>
                 </DropdownItem>
@@ -731,7 +726,7 @@ const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          {/* Login/Logout Button - AYNI BOYUT */}
+          {/* Login/Logout Button */}
           <div className="hidden md:flex items-center justify-center">
             {isAuthenticated ? (
               <Button

@@ -4,7 +4,11 @@ import ErrorHandler from "./errorMiddleware.js";
 import { User } from "../Models/userSchema.js";
 
 export const isAdminAuthenticated = catchAsyncError(async (req, res, next) => {
-  const token = req.cookies.AdminToken;
+  let token = req.cookies.AdminToken;
+
+  if (!token && req.headers.authorization?.startsWith("Bearer ")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
 
   if (!token) {
     return next(new ErrorHandler("Admin not authenticated", 401));
@@ -13,7 +17,7 @@ export const isAdminAuthenticated = catchAsyncError(async (req, res, next) => {
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-  } catch (error) {
+  } catch {
     return next(new ErrorHandler("Invalid or expired token", 401));
   }
 
@@ -34,7 +38,11 @@ export const isAdminAuthenticated = catchAsyncError(async (req, res, next) => {
 });
 
 export const isUserAuthenticated = catchAsyncError(async (req, res, next) => {
-  const token = req.cookies.UserToken;
+  let token = req.cookies.UserToken;
+
+  if (!token && req.headers.authorization?.startsWith("Bearer ")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
 
   if (!token) {
     return next(new ErrorHandler("User not authenticated", 401));
@@ -43,14 +51,40 @@ export const isUserAuthenticated = catchAsyncError(async (req, res, next) => {
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-  } catch (error) {
+  } catch {
     return next(new ErrorHandler("Invalid or expired token", 401));
   }
 
   const user = await User.findById(decoded.id);
 
   if (!user) {
-    return next(new ErrorHandler("User not found", 404));
+    return res
+      .status(401)
+      .cookie("UserToken", "", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        expires: new Date(0),
+      })
+      .cookie("next-auth.session-token", "", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        expires: new Date(0),
+        path: "/",
+      })
+      .cookie("next-auth.csrf-token", "", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        expires: new Date(0),
+        path: "/",
+      })
+      .json({
+        success: false,
+        message: "User account has been deleted",
+        accountDeleted: true,
+      });
   }
 
   if (user.role !== "User") {

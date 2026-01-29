@@ -81,23 +81,43 @@ export const googleLogin = catchAsyncError(async (req, res, next) => {
   const { email, name, image } = req.body;
 
   if (!email || !name) {
-    return next(new ErrorHandler("Google data missing", 400));
+    return next(new ErrorHandler("Google authentication data missing", 400));
   }
 
   let user = await User.findOne({ email });
 
+  
   if (!user) {
     const [firstName, ...rest] = name.split(" ");
-    const lastName = rest.join(" ") || "GoogleUser";
+    const lastName = rest.join(" ") || "";
 
     user = await User.create({
       firstName,
       lastName,
       email,
-      avatar: image,
+      phone: "", 
+      password: crypto.randomBytes(32).toString("hex"),
+      role: "User",
+      avatar: image || "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg",
       authProvider: "google",
     });
+
+    try {
+      await sendAutoMail({
+        to: user.email,
+        subject: "Welcome to Petshop 🐾",
+        html: `
+          <h3>Welcome ${user.firstName}!</h3>
+          <p>Your account has been created successfully via Google.</p>
+        `,
+      });
+    } catch (err) {
+      console.error("Welcome mail failed:", err.message);
+    }
   }
+
+  await LoginActivity.create({ userId: user._id });
+  await Session.create({ userId: user._id, startedAt: new Date() });
 
   generateToken(user, "Google login successful", 200, res);
 });
@@ -436,12 +456,39 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("User not found", 404));
   }
 
-  await user.deleteOne();
+  // Session'ları temizle
+  await Session.updateMany(
+    { userId: user._id, endedAt: null },
+    { endedAt: new Date() }
+  );
 
-  res.status(200).json({
-    success: true,
-    message: "User deleted successfully",
-  });
+  await user.deleteOne();
+  res
+    .status(200)
+    .cookie("UserToken", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      expires: new Date(0),
+    })
+    .cookie("next-auth.session-token", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      expires: new Date(0),
+      path: "/",
+    })
+    .cookie("next-auth.csrf-token", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      expires: new Date(0),
+      path: "/",
+    })
+    .json({
+      success: true,
+      message: "User deleted successfully",
+    });
 });
 
 export const deleteAdmin = catchAsyncError(async (req, res, next) => {

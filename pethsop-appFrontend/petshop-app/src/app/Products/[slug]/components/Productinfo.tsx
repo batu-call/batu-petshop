@@ -49,11 +49,11 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         </Button>
       </div>
 
-      <h1 className="text-2xl md:text-4xl font-bold text-color text-center break-words leading-tight">
+      <h1 className="text-2xl md:text-4xl font-bold text-color text-center wrap-break-word leading-tight">
         {productName}
       </h1>
 
-      <p className="text-color text-lg break-words whitespace-normal">
+      <p className="text-color text-lg wrap-break-word whitespace-normal">
         {description}
       </p>
 

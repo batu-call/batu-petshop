@@ -66,7 +66,7 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
   ];
 
    const general: MenuItem[] = [
-      { text: "Home", href: "/main", icon: <HomeIcon sx={{ color: "#A8D1B5" }} /> },
+      { text: "Home", href: "/", icon: <HomeIcon sx={{ color: "#A8D1B5" }} /> },
     { text: "Contact", href: "/Contact", icon: <ContactMailIcon sx={{ color: "#A8D1B5" }} /> }
   ];
 

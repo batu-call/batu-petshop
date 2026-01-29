@@ -1,7 +1,7 @@
 "use client";
 import axios from "axios";
-import { createContext, useState, ReactNode, useEffect } from "react";
-
+import { createContext, useState, ReactNode, useEffect, useRef } from "react";
+import { usePathname, useRouter } from "next/navigation"; // ✅ DOĞRU IMPORT
 
 export interface User {
   _id: string;
@@ -11,8 +11,7 @@ export interface User {
   phone: string;
   address: string;
   avatar: string;
-  role: "User"
-
+  role: "User";
 }
 
 interface AuthContextType {
@@ -21,7 +20,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   setIsAuthenticated: (auth: boolean) => void;
   loading: boolean;
-
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -29,44 +28,96 @@ export const AuthContext = createContext<AuthContextType>({
   setUser: () => {},
   isAuthenticated: false,
   setIsAuthenticated: () => {},
-  loading:true
+  loading: true,
+  refreshUser: async () => {},
 });
-
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-   const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
+  const router = useRouter();
+  const pathname = usePathname();
 
+  const hasCheckedAuth = useRef(false);
+  const isCheckingAuth = useRef(false);
 
-     useEffect(() => {
+  // Public routes
+  const publicRoutes = ["/Login", "/Register", "/forgot-password", "/reset-password"];
+  const isPublicRoute = publicRoutes.some(route =>
+    pathname?.startsWith(route)
+  );
+
   const checkAuth = async () => {
-      try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/users/me`, { withCredentials: true });
-        if (res.data.success) {
-          setUser(res.data.user);
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      } catch {
-        setIsAuthenticated(false);
+    if (isCheckingAuth.current) return;
+
+    if (isPublicRoute) {
+      setLoading(false);
+      return;
+    }
+
+    isCheckingAuth.current = true;
+
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/users/me`,
+        { withCredentials: true }
+      );
+
+      if (res.data?.success && res.data?.user) {
+        setUser(res.data.user);
+        setIsAuthenticated(true);
+      } else {
         setUser(null);
-      } 
-      finally {
-        setLoading(false);
+        setIsAuthenticated(false);
       }
+    } catch (error: any) {
+      const status = error.response?.status;
+
+      setUser(null);
+      setIsAuthenticated(false);
+
+      if ((status === 401 || status === 403) && !isPublicRoute) {
+        router.replace("/Login");
+      }
+    } finally {
+      setLoading(false);
+      isCheckingAuth.current = false;
+      hasCheckedAuth.current = true;
+    }
   };
-  checkAuth();
-}, []);
 
+  const refreshUser = async () => {
+    hasCheckedAuth.current = false;
+    await checkAuth();
+  };
 
-  
+  useEffect(() => {
+    if (hasCheckedAuth.current) return;
+
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (isPublicRoute) return;
+
+    if (!hasCheckedAuth.current) {
+      checkAuth();
+    }
+  }, [pathname]);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, isAuthenticated, setIsAuthenticated,loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        isAuthenticated,
+        setIsAuthenticated,
+        loading,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

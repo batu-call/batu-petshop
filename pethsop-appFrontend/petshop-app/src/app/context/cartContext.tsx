@@ -81,7 +81,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [discountAmount, setDiscountAmount] = useState(0);
   const [total, setTotal] = useState(0);
   const [coupon, setCoupon] = useState<Coupon | null>(null);
-  const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, user, loading } = useContext(AuthContext);
 
   const fetchCart = useCallback(async () => {
     try {
@@ -103,28 +103,26 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(error.response.data.message);
-      } else if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error("An unexpected error occurred during cart fetch!");
+        console.log("Cart fetch error:", error.response.data.message);
       }
     }
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchCart();
-    }
-  }, [isAuthenticated, fetchCart]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
+    if (loading) return;
+    
+    if (isAuthenticated && user) {
+      fetchCart(); // Artık güvenli
+    } else if (!isAuthenticated) {
+      // Logout durumu
       setCart([]);
       setCoupon(null);
+      setSubtotal(0);
+      setDiscountAmount(0);
+      setTotal(0);
       localStorage.removeItem("appliedCoupon");
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user, loading, fetchCart]);
 
   // AddToCart
   const addToCart = async (productId: string) => {
@@ -271,6 +269,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       toast.error("Failed to remove coupon!");
     }
   };
+  
   return (
     <CartContext.Provider
       value={{

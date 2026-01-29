@@ -10,7 +10,6 @@ type ProductImage = {
   _id?: string;
 };
 
-
 type Product = {
   _id: string;
   product_name: string;
@@ -43,79 +42,82 @@ export const FavoriteProvider = ({ children }: { children: ReactNode }) => {
   const [favorites, setFavorites] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingFav, setLoadingFav] = useState<{ [key: string]: boolean }>({});
-  const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, user, loading: authLoading } = useContext(AuthContext);
 
   // Fetch favorites
   const fetchFavorites = useCallback(async () => {
-  if (!isAuthenticated) return;
+    if (!isAuthenticated) return;
 
-  setLoading(true);
-  try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/`,
-      { withCredentials: true }
-    );
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/`,
+        { withCredentials: true }
+      );
 
-    if (res.data.success) {
-      setFavorites(res.data.favorites);
+      if (res.data.success) {
+        setFavorites(res.data.favorites);
+      }
+    } catch (error: unknown) {
+      // Sessizce handle et - ilk yüklemede normal
+      console.log("Favorites fetch error:", error);
+    } finally {
+      setLoading(false);
     }
-  } catch {
-    toast.error("Failed to fetch favorites!");
-  } finally {
-    setLoading(false);
-  }
-}, [isAuthenticated]);
+  }, [isAuthenticated]);
 
   // Add favorite
- const addFavorite = async (productId: string) => {
-  if (loadingFav[productId]) return; 
+  const addFavorite = async (productId: string) => {
+    if (loadingFav[productId]) return; 
 
-  setLoadingFav((prev) => ({ ...prev, [productId]: true }));
+    setLoadingFav((prev) => ({ ...prev, [productId]: true }));
 
-  try {
-    await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/add`,
-      { productId },
-      { withCredentials: true }
-    );
-    await fetchFavorites();
-    toast.success("Added to favorites!");
-  } catch (err: any) {
-    if (err.response?.data?.message !== "Already favorited") {
-      toast.error("Failed to add favorite!");
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/add`,
+        { productId },
+        { withCredentials: true }
+      );
+      await fetchFavorites();
+      toast.success("Added to favorites!");
+    } catch (err: any) {
+      if (err.response?.data?.message !== "Already favorited") {
+        toast.error("Failed to add favorite!");
+      }
+    } finally {
+      setLoadingFav((prev) => ({ ...prev, [productId]: false }));
     }
-  } finally {
-    setLoadingFav((prev) => ({ ...prev, [productId]: false }));
-  }
-};
+  };
 
   // Remove favorite
   const removeFavorite = async (productId: string) => {
-  if (loadingFav[productId]) return;
+    if (loadingFav[productId]) return;
 
-  setLoadingFav((prev) => ({ ...prev, [productId]: true }));
+    setLoadingFav((prev) => ({ ...prev, [productId]: true }));
 
-  try {
-    await axios.delete(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/remove/${productId}`,
-      { withCredentials: true }
-    );
-    setFavorites((prev) => prev.filter((p) => p._id !== productId));
-    toast.success("Removed from favorites!");
-  } catch {
-    toast.error("Failed to remove favorite!");
-  } finally {
-    setLoadingFav((prev) => ({ ...prev, [productId]: false }));
-  }
-};
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/favorite/remove/${productId}`,
+        { withCredentials: true }
+      );
+      setFavorites((prev) => prev.filter((p) => p._id !== productId));
+      toast.success("Removed from favorites!");
+    } catch {
+      toast.error("Failed to remove favorite!");
+    } finally {
+      setLoadingFav((prev) => ({ ...prev, [productId]: false }));
+    }
+  };
 
-useEffect(() => {
-  if (!isAuthenticated) {
-    setFavorites([]);
-  } else {
-    fetchFavorites();
-  }
-}, [isAuthenticated, fetchFavorites]);
+  useEffect(() => {
+    if (authLoading) return; 
+    
+    if (!isAuthenticated) {
+      setFavorites([]); 
+    } else if (user) {
+      fetchFavorites(); 
+    }
+  }, [isAuthenticated, user, authLoading, fetchFavorites]);
 
   return (
     <FavoriteContext.Provider value={{ favorites, fetchFavorites, addFavorite, removeFavorite, loading }}>
