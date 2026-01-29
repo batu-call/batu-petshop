@@ -2,6 +2,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 import toast from "react-hot-toast";
 import CircularText from "@/components/CircularText";
 import Link from "next/link";
@@ -13,107 +14,80 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Button } from "@/components/ui/button";
 import { signIn, useSession } from "next-auth/react";
 import GoogleIcon from "@mui/icons-material/Google";
-import { login as loginApi, saveGoogleUser } from "@/lib/api-client"; 
+import { saveGoogleUser } from "@/app/utils/google";
+import { saveAuthToken } from "@/app/utils/authHelper";
 
 const Login = () => {
   const router = useRouter();
-  const { setUser, setIsAuthenticated, refreshUser } = useContext(AuthContext);
+  const { setUser, setIsAuthenticated } = useContext(AuthContext);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(true);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [isProcessingGoogle, setIsProcessingGoogle] = useState(false);
-  
   const { data: session } = useSession();
 
-  // Google login
   useEffect(() => {
-    const processGoogleLogin = async () => {
-      if (!session?.user || isProcessingGoogle) return;
+  const saveUser = async () => {
+    if (!session?.user) return; 
 
-      setIsProcessingGoogle(true);
-      
-      try {
-        console.log("🔐 [Google Login] Processing...");
-        
-        const res = await saveGoogleUser(session.user);
-        
-        if (res?.success && res?.user) {
-          console.log("✅ [Google Login] Success");
-          
-          // CRITICAL: Token'ı localStorage'a kaydet (MOBILE İÇİN!)
-          if (res.token) {
-            localStorage.setItem("userToken", res.token);
-            console.log("✅ [Google Login] Token saved to localStorage");
-          }
-          
-          setUser(res.user);
-          setIsAuthenticated(true);
-          
-          toast.success("Google login successful!");
-          
-          // User bilgilerini refresh et
-          setTimeout(() => {
-            refreshUser();
-            router.push("/");
-          }, 300);
-        } else {
-          console.error("❌ [Google Login] Failed:", res?.error);
-          toast.error(res?.error || "Google login failed!");
-          setIsProcessingGoogle(false);
-        }
-      } catch (error) {
-        console.error("❌ [Google Login] Error:", error);
-        toast.error("Google login failed!");
-        setIsProcessingGoogle(false);
-      }
-    };
+    const res = await saveGoogleUser(session.user);
+    if (res?.success) {
+      const fullName = session.user.name || "";
+      const [firstName, ...rest] = fullName.split(" ");
+      const lastName = rest.join(" ");
 
-    processGoogleLogin();
-  }, [session]);
+      setUser({
+        _id: res.user._id,
+        firstName,
+        lastName,
+        email: session.user.email || "",
+        phone: "",
+        address: "",
+        avatar: session.user.image || "",
+        role: "User",
+      });
+      setIsAuthenticated(true);
 
-  // Normal login
-  const handleLogin = async () => {
-    if (!email || !password) {
-      toast.error("Please fill in all fields!");
-      return;
+      router.push("/"); 
+    } else {
+      toast.error("Google login failed!");
     }
+  };
 
-    setIsLoggingIn(true);
-    
+  saveUser();
+}, [session, setUser, setIsAuthenticated, router]);
+
+  const handlerLogin = async () => {
     try {
-      console.log("🔐 [Login] Attempting login...");
-      
-      const response = await loginApi(email, password);
-      
-      if (response.success) {
-        console.log("✅ [Login] Success");
-        
-        // CRITICAL: Token'ı localStorage'a kaydet (MOBILE İÇİN!)
-        if (response.token) {
-          localStorage.setItem("userToken", response.token);
-          console.log("✅ [Login] Token saved to localStorage");
-        }
-        
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/login`,
+        {
+          email,
+          password,
+        },
+        { withCredentials: true },
+      );
+      if (response.data.success) {
         toast.success("Login successful!");
-        
-        setUser(response.user);
-        setIsAuthenticated(true);
-        
-        // User bilgilerini refresh et
-        setTimeout(() => {
-          refreshUser();
-          router.push("/");
-        }, 300);
+
+        if (response.data.token) {
+        saveAuthToken(response.data.token);
       }
-    } catch (error: any) {
-      console.error("❌ [Login] Failed:", error);
-      const errorMessage = error.response?.data?.message || "Login failed!";
-      toast.error(errorMessage);
-    } finally {
-      setIsLoggingIn(false);
+
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+        router.push("/");
+      }
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.message);
+      } else if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong!");
+      }
     }
   };
 
@@ -168,9 +142,10 @@ const Login = () => {
                 className="flex flex-col gap-5"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  handleLogin();
+                  handlerLogin();
                 }}
               >
+                {/* EMAIL */}
                 <TextField
                   label="Email"
                   name="email"
@@ -178,7 +153,6 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   fullWidth
-                  disabled={isLoggingIn || isProcessingGoogle}
                   slotProps={{
                     inputLabel: {
                       sx: {
@@ -194,6 +168,7 @@ const Login = () => {
                   }}
                 />
 
+                {/* PASSWORD */}
                 <TextField
                   label="Password"
                   name="password"
@@ -202,8 +177,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   variant="standard"
                   fullWidth
-                  disabled={isLoggingIn || isProcessingGoogle}
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   slotProps={{
                     input: {
                       endAdornment: (
@@ -211,7 +185,6 @@ const Login = () => {
                           <IconButton
                             onClick={() => setShowPassword((prev) => !prev)}
                             edge="end"
-                            disabled={isLoggingIn || isProcessingGoogle}
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -233,33 +206,43 @@ const Login = () => {
                 />
 
                 <div className="flex justify-between">
+                  {/* REMEMBER */}
                   <label className="flex items-center gap-3">
                     <input
                       type="checkbox"
                       className="h-4 w-4 rounded cursor-pointer accent-green-500 border-border-light"
-                      disabled={isLoggingIn || isProcessingGoogle}
                     />
                     <span className="text-xs lg:text-sm font-medium text-[#121714]">
                       Remember Me
                     </span>
                   </label>
 
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs lg:text-sm text-primary hover:underline"
-                  >
-                    Forgot your password?
-                  </Link>
+                  <div className="flex justify-end">
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs lg:text-sm text-primary hover:underline"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </div>
                 </div>
-
+                {/* BUTTONS */}
                 <Button
                   type="submit"
-                  disabled={isLoggingIn || isProcessingGoogle}
-                  className="w-full mt-3 rounded-[20px] bg-primary text-[#393E46] hover:bg-[#D6EED6] cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="
+    w-full 
+    mt-3 
+    rounded-[20px] 
+    bg-primary 
+    text-[#393E46] 
+    hover:bg-[#D6EED6]
+    cursor-pointer
+    transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md
+  "
                 >
-                  <span className="text-md font-semibold">
-                    {isLoggingIn ? "Logging in..." : "Login"}
-                  </span>
+                  <span className="text-md font-semibold">Login</span>
                 </Button>
 
                 <div className="flex items-center gap-3">
@@ -268,21 +251,45 @@ const Login = () => {
                   <div className="flex-grow border-t" />
                 </div>
 
+                {/* GOOGLE LOGIN */}
                 <Button
-                  type="button"
+                 type="button"
                   onClick={() => signIn("google")}
-                  disabled={isProcessingGoogle || isLoggingIn}
-                  className="w-full rounded-[20px] bg-white border border-gray-200 text-gray-800 cursor-pointer hover:bg-gray-50 transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="
+    w-full
+    rounded-[20px]
+    bg-white
+    border border-gray-200
+    text-gray-800
+    cursor-pointer
+    hover:bg-gray-50
+    transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md
+  "
                   variant="outline"
                 >
-                  <GoogleIcon fontSize="small" className="text-md font-semibold" />
-                  {isProcessingGoogle ? "Processing..." : "Continue with Google"}
+                  <GoogleIcon
+                    fontSize="small"
+                    className="text-md font-semibold"
+                  />
+                  Continue with Google
                 </Button>
 
                 <Link href={"/Register"}>
                   <Button
-                    disabled={isLoggingIn || isProcessingGoogle}
-                    className="w-full rounded-[20px] bg-white border border-gray-200 text-gray-800 cursor-pointer hover:bg-gray-50 transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="
+    w-full
+    rounded-[20px]
+    bg-white
+    border border-gray-200
+    text-gray-800
+    cursor-pointer
+    hover:bg-gray-50
+    transition duration-300 ease-in-out hover:scale-[1.05]
+    active:scale-[0.97]
+     hover:shadow-md
+  "
                   >
                     <span className="text-md font-semibold">
                       Create an Account

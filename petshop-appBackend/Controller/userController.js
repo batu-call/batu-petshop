@@ -456,7 +456,6 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("User not found", 404));
   }
 
-  // Session'ları temizle
   await Session.updateMany(
     { userId: user._id, endedAt: null },
     { endedAt: new Date() }
