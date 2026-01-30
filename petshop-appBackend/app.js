@@ -2,9 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import { config } from "dotenv";
 import cors from "cors";
-
 import { dbConncetion } from "./database/dbConncetion.js";
-
 import userRouter from "./Router/userRouter.js";
 import productRouter from "./Router/productRouter.js";
 import cartRouter from "./Router/cartRouter.js";
@@ -17,38 +15,32 @@ import couponRouter from "./Router/couponRoutes.js";
 import shippingRouter from "./Router/shippingRouter.js";
 import messageRouter from "./Router/messageRouter.js";
 import mailRouter from "./Router/mailRouter.js";
-
 import { errorMiddleware } from "./Middlewares/errorMiddleware.js";
 
 const app = express();
 
-/* =======================
-   ENV
-======================= */
+// Environment variables
 config({ path: "./Config/config.env" });
 
-/* =======================
-   CORS (MOBİL + COOKIE SAFE)
-======================= */
+// Middleware
 const allowedOrigins = [
-  "https://batu-petshop-app.vercel.app",
-  "https://batu-petshop-admin.vercel.app",
+        "https://batu-petshop-app.vercel.app",
+        "https://batu-petshop-admin.vercel.app",
+      // process.env.FRONTEND_URL,
+      //  process.env.ADMIN_URL,
 ].filter(Boolean);
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Mobile Safari / Postman / SSR
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.error("Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
     }
-
-    // ❗ Error fırlatma → mobilde network error yapar
-    return callback(null, false);
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
   allowedHeaders: [
     "Content-Type",
     "Authorization",
@@ -56,34 +48,15 @@ const corsOptions = {
     "Accept",
   ],
 };
-
 app.use(cors(corsOptions));
-
-/* =======================
-   BODY & COOKIE
-======================= */
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* =======================
-   PREFLIGHT FIX (Node 20 SAFE)
-======================= */
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-  next();
-});
-
-/* =======================
-   DATABASE
-======================= */
+// Database connection
 dbConncetion();
 
-/* =======================
-   ROUTES
-======================= */
+// Routes
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/product", productRouter);
@@ -96,10 +69,6 @@ app.use("/api/v1/coupon", couponRouter);
 app.use("/api/v1/shipping", shippingRouter);
 app.use("/api/v1/message", messageRouter);
 app.use("/api/v1/mail", mailRouter);
-
-/* =======================
-   ERROR HANDLER
-======================= */
 app.use(errorMiddleware);
 
 export default app;

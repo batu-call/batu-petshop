@@ -8,6 +8,7 @@ import { TextField } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import CircularText from "@/components/CircularText";
 import InputAdornment from "@mui/material/InputAdornment";
+import Image from "next/image";
 
 type Discount = {
   _id: string;
@@ -34,7 +35,7 @@ const DiscountAdminPage = () => {
     try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/coupon`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
       setDiscounts(res.data.data || []);
     } catch {
@@ -48,7 +49,7 @@ const DiscountAdminPage = () => {
     try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/shipping`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
       if (res.data.success) {
@@ -87,7 +88,7 @@ const DiscountAdminPage = () => {
     }
 
     const exists = discounts.find(
-      (d) => d.code.toLowerCase() === code.toLowerCase(),
+      (d) => d.code.toLowerCase() === code.toLowerCase()
     );
 
     if (exists) {
@@ -103,7 +104,7 @@ const DiscountAdminPage = () => {
           percent: percentValue,
           minAmount: minAmount ? minAmountValue : undefined,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
       if (res.data.success) {
@@ -124,7 +125,7 @@ const DiscountAdminPage = () => {
     try {
       const res = await axios.delete(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/coupon/${id}`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
       if (res.data.success) {
@@ -144,7 +145,7 @@ const DiscountAdminPage = () => {
           fee: Number(shippingFee),
           freeOver: Number(freeOver),
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
       if (res.data.success) {
@@ -167,175 +168,222 @@ const DiscountAdminPage = () => {
         </div>
       )}
 
-      <div className="p-6">
-        {/* CREATE DISCOUNT */}
-        <div className="bg-white shadow-xl p-6 rounded-xl mb-6 max-w-xl">
-          <h2 className="text-xl font-semibold mb-4 text-color">
-            Create Discount Code
-          </h2>
-          <div className="flex flex-col gap-4">
-            <TextField
-              label="Discount Code"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              variant="standard"
-              fullWidth
-              slotProps={{
-                inputLabel: {
-                  sx: {
-                    color: "#B1CBBB",
-                    "&.Mui-focused": { color: "#B1CBBB" },
-                  },
-                },
-              }}
-              sx={{
-                "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB" },
-              }}
-            />
+      <div className="p-4 md:p-6 max-w-7xl mx-auto">
+        {/* TOP SECTION - FORMS & IMAGE */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* LEFT - FORMS */}
+          <div className="space-y-6">
+            {/* CREATE DISCOUNT */}
+            <div className="bg-white shadow-xl p-6 rounded-xl">
+              <h2 className="text-xl font-semibold mb-4 text-color">
+                Create Discount Code
+              </h2>
+              <div className="flex flex-col gap-4">
+                <TextField
+                  label="Discount Code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  variant="standard"
+                  fullWidth
+                  slotProps={{
+                    inputLabel: {
+                      sx: {
+                        color: "#B1CBBB",
+                        "&.Mui-focused": { color: "#B1CBBB" },
+                      },
+                    },
+                  }}
+                  sx={{
+                    "& .MuiInput-underline:after": {
+                      borderBottomColor: "#B1CBBB",
+                    },
+                  }}
+                />
 
-            <TextField
-              label="Discount %"
-              type="number"
-              value={percent}
-              onChange={(e) => setPercent(e.target.value)}
-              variant="standard"
-              fullWidth
-              slotProps={{
-                inputLabel: {
-                  sx: {
-                    color: "#B1CBBB",
-                    "&.Mui-focused": { color: "#B1CBBB" },
-                  },
-                },
-              }}
-              sx={{
-                "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB" },
-              }}
-            />
+                <TextField
+                  label="Discount %"
+                  type="number"
+                  value={percent}
+                  onChange={(e) => setPercent(e.target.value)}
+                  variant="standard"
+                  fullWidth
+                  slotProps={{
+                    inputLabel: {
+                      sx: {
+                        color: "#B1CBBB",
+                        "&.Mui-focused": { color: "#B1CBBB" },
+                      },
+                    },
+                  }}
+                  sx={{
+                    "& .MuiInput-underline:after": {
+                      borderBottomColor: "#B1CBBB",
+                    },
+                  }}
+                />
 
-            <TextField
-              label="Minimum Order Amount (Optional)"
-              type="number"
-              value={minAmount}
-              onChange={(e) => setMinAmount(e.target.value)}
-              variant="standard"
-              fullWidth
-              slotProps={{
-                inputLabel: {
-                  sx: {
-                    color: "#B1CBBB",
-                    "&.Mui-focused": { color: "#B1CBBB" },
-                  },
-                },
-              }}
-              sx={{
-                "& .MuiInput-underline:after": { borderBottomColor: "#B1CBBB" },
-              }}
-            />
+                <TextField
+                  label="Minimum Order Amount (Optional)"
+                  type="number"
+                  value={minAmount}
+                  onChange={(e) => setMinAmount(e.target.value)}
+                  variant="standard"
+                  fullWidth
+                  slotProps={{
+                    inputLabel: {
+                      sx: {
+                        color: "#B1CBBB",
+                        "&.Mui-focused": { color: "#B1CBBB" },
+                      },
+                    },
+                  }}
+                  sx={{
+                    "& .MuiInput-underline:after": {
+                      borderBottomColor: "#B1CBBB",
+                    },
+                  }}
+                />
 
-            <Button onClick={createDiscount} className="bg-primary">
-              Create Discount
-            </Button>
+                <Button
+                  onClick={createDiscount}
+                  className="bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                >
+                  Create Discount
+                </Button>
+              </div>
+            </div>
+
+            {/* SHIPPING SETTINGS */}
+            <div className="bg-white shadow-xl p-6 rounded-xl">
+              <h2 className="text-xl font-semibold mb-4 text-color">
+                Shipping Settings
+              </h2>
+
+              <div className="flex flex-col gap-4">
+                <TextField
+                  label="Shipping Fee"
+                  type="number"
+                  value={shippingFee}
+                  onChange={(e) => setShippingFee(e.target.value)}
+                  variant="standard"
+                  fullWidth
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">$</InputAdornment>
+                      ),
+                    },
+                    inputLabel: {
+                      sx: {
+                        color: "#B1CBBB",
+                        "&.Mui-focused": { color: "#B1CBBB" },
+                      },
+                    },
+                  }}
+                  sx={{
+                    "& .MuiInput-underline:after": {
+                      borderBottomColor: "#B1CBBB",
+                    },
+                  }}
+                />
+
+                <TextField
+                  label="Free Shipping Over"
+                  type="number"
+                  value={freeOver}
+                  onChange={(e) => setFreeOver(e.target.value)}
+                  variant="standard"
+                  fullWidth
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">$</InputAdornment>
+                      ),
+                    },
+                    inputLabel: {
+                      sx: {
+                        color: "#B1CBBB",
+                        "&.Mui-focused": { color: "#B1CBBB" },
+                      },
+                    },
+                  }}
+                  sx={{
+                    "& .MuiInput-underline:after": {
+                      borderBottomColor: "#B1CBBB",
+                    },
+                  }}
+                />
+
+                <Button
+                  onClick={updateShipping}
+                  className="bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                >
+                  Save Shipping Settings
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT - IMAGE */}
+          <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl p-8">
+            <div className="relative w-full  min-h-[500px] max-h-[600px]">
+              <Image
+                src="/Pricing_Promotions.png"
+                alt="Pricing Promotions"
+                fill
+                className="object-contain drop-shadow-2xl rounded-xl"
+                priority
+              />
+            </div>
           </div>
         </div>
 
-        {/* SHIPPING SETTINGS */}
-        <div className="bg-white shadow-xl p-6 rounded-xl mb-6 max-w-xl">
-          <h2 className="text-xl font-semibold mb-4 text-color">
-            Shipping Settings
-          </h2>
-
-          <div className="flex flex-col gap-4">
-            <TextField
-              label="Shipping Fee"
-              type="number"
-              value={shippingFee}
-              onChange={(e) => setShippingFee(e.target.value)}
-              variant="standard"
-              fullWidth
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">$</InputAdornment>
-                  ),
-                },
-                inputLabel: {
-                  sx: {
-                    color: "#B1CBBB",
-                    "&.Mui-focused": { color: "#B1CBBB" },
-                  },
-                },
-              }}
-              sx={{
-                "& .MuiInput-underline:after": {
-                  borderBottomColor: "#B1CBBB",
-                },
-              }}
-            />
-
-            <TextField
-              label="Free Shipping Over"
-              type="number"
-              value={freeOver}
-              onChange={(e) => setFreeOver(e.target.value)}
-              variant="standard"
-              fullWidth
-               slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">$</InputAdornment>
-                  ),
-                },
-                inputLabel: {
-                  sx: {
-                    color: "#B1CBBB",
-                    "&.Mui-focused": { color: "#B1CBBB" },
-                  },
-                },
-              }}
-              sx={{
-                "& .MuiInput-underline:after": {
-                  borderBottomColor: "#B1CBBB",
-                },
-              }}
-            />
-
-            <Button onClick={updateShipping} className="bg-primary">
-              Save Shipping Settings
-            </Button>
-          </div>
-        </div>
-
-        {/* DISCOUNT LIST */}
+        {/* BOTTOM SECTION - DISCOUNT LIST */}
         <div className="bg-white shadow-xl p-6 rounded-xl">
           <h2 className="text-2xl font-semibold mb-4 text-color">
             All Discount Codes
           </h2>
 
           {discounts.length === 0 ? (
-            <p className="text-gray-500">No discount codes found.</p>
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🎟️</div>
+              <p className="text-gray-500 text-lg">No discount codes found.</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Create your first discount code above
+              </p>
+            </div>
           ) : (
-            discounts.map((d) => (
-              <div
-                key={d._id}
-                className="flex justify-between items-center bg-primary p-4 rounded-lg mb-2"
-              >
-                <div className="font-semibold">
-                  <span className="bg-white px-2 py-1 rounded mr-2">
-                    {d.code}
-                  </span>
-                  — {d.percent}% OFF
-                  {d.minAmount > 0 && (
-                    <span className="text-sm ml-2">(Min: ${d.minAmount})</span>
-                  )}
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {discounts.map((d) => (
+                <div
+                  key={d._id}
+                  className="flex justify-between items-center bg-primary p-4 rounded-lg hover:shadow-lg transition-all duration-300 group"
+                >
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="bg-white px-3 py-1 rounded font-mono font-bold text-primary">
+                        {d.code}
+                      </span>
+                      <span className="bg-secondary text-color px-2 py-1 rounded text-sm font-semibold">
+                        {d.percent}% OFF
+                      </span>
+                    </div>
+                    {d.minAmount > 0 && (
+                      <span className="text-sm text-color ml-1">
+                        Minimum order: ${d.minAmount}
+                      </span>
+                    )}
+                  </div>
 
-                <ClearIcon
-                  onClick={() => deleteDiscount(d._id)}
-                  className="cursor-pointer hover:scale-110"
-                />
-              </div>
-            ))
+                  <button
+                    onClick={() => deleteDiscount(d._id)}
+                    className="p-2 hover:bg-white/20 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer"
+                  >
+                    <ClearIcon className="text-white group-hover:text-red-500 transition-colors" />
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

@@ -26,7 +26,7 @@ export default function Providers({
   const hideNavbarAndSidebar =
     pathname === "/forgot-password" ||
     pathname.startsWith("/reset-password") ||
-    pathname === "/Success"
+    pathname === "/Success";
 
   return (
     <SessionProvider>
@@ -48,7 +48,7 @@ export default function Providers({
                 className={
                   !hideNavbarAndSidebar
                     ? hasCustomNavbar
-                      ? "md:ml-24 lg:ml-40" 
+                      ? "md:ml-24 lg:ml-40" // ✅ Category sayfalarında pt yok
                       : "md:ml-24 lg:ml-40 pt-14 lg:pt-0"
                     : ""
                 }

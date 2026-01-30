@@ -184,29 +184,29 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showFilters, isSearchFocused, setShowFilters]);
 
-const handleLogout = async () => {
-  try {
-    if (session?.user) {
-      await signOut({ redirect: false });
-    } else {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/logout`,
-        {},
-        { withCredentials: true }
-      );
+  const handleLogout = async () => {
+    try {
+   if (session?.user) {
+        await signOut({ redirect: false });
+      } else {
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/logout`,
+          {},
+          { withCredentials: true }
+        );
+      }
+      setUser(null);
+      setIsAuthenticated(false);
+      setCart([]);
+
+      toast.success("Logged out successfully!");
+
+      router.replace("/Login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Logout failed");
     }
-    setUser(null);
-    setIsAuthenticated(false);
-    setCart([]);
-
-    toast.success("Logged out successfully!");
-
-    router.replace("/Login");
-  } catch (error) {
-    console.error("Logout error:", error);
-    toast.error("Logout failed");
-  }
-};
+  };
 
   useEffect(() => {
     if (session?.user) {
@@ -394,7 +394,7 @@ const handleLogout = async () => {
               {showFilters && (
                 <div
                   ref={filterDropdownRef}
-                  className="fixed top-12 right-2 w-[calc(100vw-1rem)] sm:w-96 md:w-[28rem] lg:w-[32rem] bg-white rounded-2xl shadow-2xl border-2 border-primary/20 p-4 sm:p-6 z-50"
+                  className="fixed top-12 right-2 w-[calc(100vw-1rem)] sm:w-80 md:w-96 lg:w-[28rem] bg-white rounded-2xl shadow-2xl border-2 border-primary/20 p-4 sm:p-6 z-50"
                 >
                   {/* HEADER */}
                   <div className="flex items-center justify-between mb-4">
@@ -666,7 +666,7 @@ const handleLogout = async () => {
 
           <Dropdown>
             <DropdownButton>
-              <div className="relative w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97] z-[100]">
+              <div className="relative w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97] z-[200]">
                 <Image
                   src={user?.avatar || "/default-avatar.png"}
                   alt="user avatar"
@@ -677,6 +677,7 @@ const handleLogout = async () => {
               </div>
             </DropdownButton>
             {isAuthenticated && (
+              <div className="z-200">
               <DropdownMenu>
                 <DropdownLabel>My Account</DropdownLabel>
                 <DropdownItem href="/my-profile">
@@ -699,6 +700,7 @@ const handleLogout = async () => {
                   <SettingsIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Settings
                 </DropdownItem>
               </DropdownMenu>
+              </div>
             )}
           </Dropdown>
 

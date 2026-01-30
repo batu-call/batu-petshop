@@ -16,6 +16,8 @@ import CircularText from "@/components/CircularText";
 import { AuthContext } from "@/app/context/authContext";
 import { useCart } from "@/app/context/cartContext";
 import { useFavorite } from "@/app/context/favoriteContext";
+import { ShoppingCart } from 'lucide-react';
+
 
 import {
   Cat,
@@ -139,7 +141,7 @@ const CategoryPage = () => {
         const params: any = {
           category: categorySlug,
           page,
-          sortBy: sortBy, // ✅ Her zaman gönder
+          sortBy: sortBy,
         };
 
         if (
@@ -342,25 +344,28 @@ const CategoryPage = () => {
 
   return (
     <>
-      <Navbar
-        showFilters={showFilters}
-        setShowFilters={setShowFilters}
-        priceRange={priceRange}
-        setPriceRange={setPriceRange}
-        tempPriceRange={tempPriceRange}
-        setTempPriceRange={setTempPriceRange}
-        priceStats={priceStats}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        showOnSale={showOnSale}
-        setShowOnSale={setShowOnSale}
-        minRating={minRating}
-        setMinRating={setMinRating}
-        hasActiveFilters={hasActiveFilters}
-        clearAllFilters={clearAllFilters}
-        handlePriceChange={handlePriceChange}
-        handlePriceChangeCommitted={handlePriceChangeCommitted}
-      />
+      <div className="sticky md:static top-0 z-50">
+        <Navbar
+          showFilters={showFilters}
+          setShowFilters={setShowFilters}
+          priceRange={priceRange}
+          setPriceRange={setPriceRange}
+          tempPriceRange={tempPriceRange}
+          setTempPriceRange={setTempPriceRange}
+          priceStats={priceStats}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          showOnSale={showOnSale}
+          setShowOnSale={setShowOnSale}
+          minRating={minRating}
+          setMinRating={setMinRating}
+          hasActiveFilters={hasActiveFilters}
+          clearAllFilters={clearAllFilters}
+          handlePriceChange={handlePriceChange}
+          handlePriceChangeCommitted={handlePriceChangeCommitted}
+        />
+      </div>
+
       <div className="min-h-screen px-4 py-4 pt-4">
         {loading ? (
           <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
@@ -589,7 +594,7 @@ const CategoryPage = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 [@media(min-width:1600px)]:grid-cols-5 gap-4 sm:gap-5 [@media(min-width:1600px)]:gap-4">
               {displayProducts.map((p) => {
                 const discountPercent =
                   p.salePrice && p.salePrice < p.price
@@ -678,14 +683,14 @@ const CategoryPage = () => {
                         </div>
                       )}
 
-                      <div className="px-4 py-3 sm:px-4 sm:py-2 h-12 sm:h-12 md:h-18 overflow-hidden mt-1">
+                      <div className="hidden md:block px-4 py-3 sm:px-4 sm:py-2 h-12 sm:h-12 md:h-18 overflow-hidden mt-1">
                         <h2 className="text-[10px] sm:text-xs lg:text-sm text-color font-semibold line-clamp-2 md:line-clamp-3 leading-snug">
                           {p.description}
                         </h2>
                       </div>
                     </Link>
 
-                    <div className="flex flex-col sm:flex-row gap-2 justify-between items-center px-2 sm:px-4 py-2">
+                    <div className="flex gap-2 justify-between items-center px-2 sm:px-4 py-2">
                       <div className="flex flex-col items-center">
                         {p.salePrice && p.salePrice < p.price ? (
                           <>
@@ -709,9 +714,21 @@ const CategoryPage = () => {
                           e.stopPropagation();
                           handlerAddToCart(p);
                         }}
-                        className="w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400 ease-in-out active:scale-[0.97]"
+                        className="hidden md:block w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400 ease-in-out active:scale-[0.97]"
                       >
                         Add To Cart
+                      </Button>
+
+                      {/* mobil cart */}
+                      <Button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handlerAddToCart(p);
+                        }}
+                        className="block md:hidden sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400 ease-in-out active:scale-[0.97] border-2"
+                      >
+                        <ShoppingCart />
                       </Button>
                     </div>
                   </div>

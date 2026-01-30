@@ -1,55 +1,66 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
-
 @layer utilities {
   .bg-primary {
-    background-color: #42b883 ;
+    background-color: #97cba9;
+    /* Renk uzayını belirt */
+    background-color: color(srgb 0.592 0.796 0.663);
   }
   .bg-secondary {
     background-color: #D6EED6;
+    background-color: color(srgb 0.839 0.933 0.839);
   }
   .bg-secondary_20 {
     background-color: rgba(221, 238, 221, 0.2);
   }
   .text-jost {
-    font-family: 'Jost',sans-serif;
+    font-family: 'Jost', sans-serif;
   }
   .text-color {
     color: #393E46;
+    color: color(srgb 0.224 0.243 0.275);
   }
   .text-color2 {
     color: #B1CBBB;
+    color: color(srgb 0.694 0.796 0.733);
   }
-   .text-color3 {
+  .text-color3 {
     color: #FFFFFF;
   }
-  .h-full{
-     height: calc(100vh - 4.5rem);
+  .h-full {
+    height: calc(100vh - 4.5rem);
   }
-   .text-shadow-sm {
+  .text-shadow-sm {
     text-shadow: 0 1px 2px rgba(0,0,0,0.25);
   }
-
   .text-shadow-md {
     text-shadow: 0 2px 4px rgba(0,0,0,0.4);
   }
-
   .text-shadow-lg {
     text-shadow: 0 4px 8px rgba(0,0,0,0.5);
   }
   .scrollbar-hide {
-  scrollbar-width: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-}
-
 
 body {
-  font-family: 'Jost', Arial, Helvetica, sans-serif                                         
+  font-family: 'Jost', Arial, Helvetica, sans-serif;
+  /* Renk profilini zorla */
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tüm renkler için color-adjust zorlaması */
+* {
+  color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .swiper-button-next,
@@ -64,8 +75,6 @@ body {
 .swiper-pagination-bullet-active {
   background: white;
 }
-
-
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -138,6 +147,9 @@ body {
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
+  
+  /* Renk modu */
+  color-scheme: light;
 }
 
 .dark {
@@ -172,6 +184,8 @@ body {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  
+  color-scheme: dark;
 }
 
 @layer base {

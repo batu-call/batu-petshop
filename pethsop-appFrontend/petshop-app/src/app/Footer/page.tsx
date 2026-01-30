@@ -113,9 +113,9 @@ const Footer = () => {
 
 
       {/* Footer links */}
-      <div className="lg:flex lg:flex-row flex flex-col space-y-2 w-full overflow-hidden p-2 lg:gap-20">
-        <div className="h-10 sm:h-32 flex px-4 sm:px-20 lg:px-10 justify-center items-center">
-          <ul className="flex gap-10 sm:gap-20 md:gap-15 lg:gap-16 xl:gap-30 2xl:gap-60 justify-center items-center text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-jost text-color font-bold">
+      <div className="lg:flex lg:flex-row flex flex-col space-y-2 w-full overflow-hidden p-2 justify-between">
+        <div className="h-10 sm:h-32 flex px-2 sm:px-20 lg:px-10 justify-center items-center">
+          <ul className="flex gap-4 sm:gap-8 md:gap-15 lg:gap-12 xl:gap-30 2xl:gap-52 justify-center items-center text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-jost text-color font-bold">
             <Link href={"/AboutUs"}>
             <li className="transition duration-300 ease-in-out hover:scale-105">About Us</li>
             </Link>
@@ -131,7 +131,7 @@ const Footer = () => {
           </ul>
         </div>
         <div className="flex justify-center items-center gap-4">
-          <div className="flex gap-7 md:gap-17 lg:gap-[16px] items-center">
+          <div className="flex gap-7 md:gap-17 lg:gap-4 items-center">
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
               <InstagramIcon fontSize="large" style={{ color: "#E1306C" }} className="transition duration-300 ease-in-out hover:scale-105"/>
             </a>

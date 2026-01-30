@@ -34,6 +34,8 @@ type Product = {
   image: ProductImage[];
   category: string;
   slug: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 const Page = () => {
@@ -323,6 +325,8 @@ const Page = () => {
               <div className="w-32 ml-6">Price</div>
               <div className="w-32 ml-6">Stock</div>
               <div className="w-32 ml-6">Category</div>
+              <div className="w-32 ml-14">Created</div>
+              <div className="w-32 ml-14">Last Updated</div>
               <div className="w-32 ml-14">Active</div>
             </div>
 
@@ -393,9 +397,27 @@ const Page = () => {
                     {p.category}
                   </div>
 
-                  <div className="w-full md:w-32 md:ml-6 flex items-center justify-between gap-2">
+                  <div className="w-full md:w-32 md:ml-6">
+  <p className="md:hidden text-xs text-gray-500">Created</p>
+  {new Date(p.createdAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  })}
+</div>
+
+<div className="w-full md:w-32 md:ml-6 flex justify-center">
+  <p className="md:hidden text-xs text-gray-500">Last Updated</p>
+  {new Date(p.updatedAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  })}
+</div>
+
+                  <div className="w-full md:w-32 md:ml-6 flex items-center justify-center gap-2">
                     <div>
-                      <p className="md:hidden text-xs text-gray-500">Status</p>
+                      <p className="md:hidden text-xs text-gray-500 flex">Status</p>
                       <span
                         className={`px-2 py-1 rounded text-xs font-semibold ${
                           p.isActive
@@ -406,7 +428,6 @@ const Page = () => {
                         {p.isActive ? "Active" : "Inactive"}
                       </span>
                     </div>
-
                     {/* Delete sm-lg-xl */}
                     <button
                       onClick={async (e) => {
