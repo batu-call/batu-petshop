@@ -24,31 +24,40 @@ config({ path: "./Config/config.env" });
 
 // Middleware
 const allowedOrigins = [
-         "https://batu-petshop-app.vercel.app",
-         "https://batu-petshop-admin.vercel.app",
-      //  process.env.FRONTEND_URL,
-      //   process.env.ADMIN_URL,
-].filter(Boolean);
+  "https://batu-petshop-app.vercel.app",
+  "https://batu-petshop-admin.vercel.app",
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
+
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.error("Blocked by CORS:", origin);
-      callback(new Error("Not allowed by CORS"));
+
+      console.log("Allowed origins:", allowedOrigins);
+      callback(null, false); 
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
+  methods: ["GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS"],
   allowedHeaders: [
     "Content-Type",
     "Authorization",
     "X-Requested-With",
     "Accept",
+    "Origin",
   ],
+  exposedHeaders: ["Set-Cookie"],
+  maxAge: 86400, 
 };
+
 app.use(cors(corsOptions));
+
+
+app.options('*', cors(corsOptions));
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
