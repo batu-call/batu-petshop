@@ -18,6 +18,7 @@ type Product = {
   salePrice?: number | null;
   image: ProductImage[];
   slug: string;
+  stock?: string;
 };
 
 type FavoriteContextType = {
@@ -59,7 +60,6 @@ export const FavoriteProvider = ({ children }: { children: ReactNode }) => {
         setFavorites(res.data.favorites);
       }
     } catch (error: unknown) {
-      // Sessizce handle et - ilk yüklemede normal
       console.log("Favorites fetch error:", error);
     } finally {
       setLoading(false);

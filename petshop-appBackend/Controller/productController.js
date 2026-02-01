@@ -32,19 +32,36 @@ export const newProduct = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Please Fill Full Form!", 400));
   }
 
-  const uploadedImages = [];
-  
-  for (const file of req.files) {
-    const result = await cloudinary.v2.uploader.upload(file.path, {
-      folder: "Products",
-    });
-    
-    uploadedImages.push({
-      publicId: result.public_id,
-      url: result.secure_url,
-    });
-    
-    fs.unlinkSync(file.path);
+
+  const uploadPromises = req.files.map((file) =>
+    cloudinary.v2.uploader
+      .upload(file.path, {
+        folder: "Products",
+      })
+      .then((result) => {
+        // Upload başarılı olduktan sonra dosyayı sil
+        fs.unlinkSync(file.path);
+        return {
+          publicId: result.public_id,
+          url: result.secure_url,
+        };
+      })
+      .catch((error) => {
+        // Hata durumunda dosyayı temizle
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+        throw error;
+      })
+  );
+
+  let uploadedImages;
+  try {
+    uploadedImages = await Promise.all(uploadPromises);
+  } catch (error) {
+    return next(
+      new ErrorHandler("Failed to upload images to cloud storage", 500)
+    );
   }
 
   let parseFeatures;
@@ -90,9 +107,12 @@ export const deleteProduct = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Product Not Found!", 404));
   }
 
-  for (const image of product.image) {
-    await cloudinary.v2.uploader.destroy(image.publicId);
-  }
+  // Paralel olarak tüm resimleri sil
+  const deletePromises = product.image.map((image) =>
+    cloudinary.v2.uploader.destroy(image.publicId)
+  );
+
+  await Promise.all(deletePromises);
 
   await Product.findByIdAndDelete(id);
 
@@ -261,23 +281,30 @@ export const getSimilarProducts = catchAsyncError(async (req, res, next) => {
 });
 
 export const getAdminAllProduct = catchAsyncError(async (req, res, next) => {
-  const { 
-    category, 
+  const {
+    category,
     page = 1,
     search,
     minPrice,
     maxPrice,
     minStock,
-    maxStock
+    maxStock,
+    isActive,
+    limit = 15,
   } = req.query;
 
-  const limit = 15;
-  const skip = (Number(page) - 1) * limit;
+  const pageLimit = Number(limit);
+  const skip = (Number(page) - 1) * pageLimit;
 
   let filter = {};
 
   if (category) {
     filter.category = category;
+  }
+
+  // isActive filter
+  if (isActive !== undefined && isActive !== "") {
+    filter.isActive = isActive === "true";
   }
 
   const escapeRegex = (text) =>
@@ -309,7 +336,7 @@ export const getAdminAllProduct = catchAsyncError(async (req, res, next) => {
   const products = await Product.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(limit);
+    .limit(pageLimit);
 
   const updatedProducts = products.map((p) => ({
     ...p._doc,
@@ -318,8 +345,8 @@ export const getAdminAllProduct = catchAsyncError(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    totalPages: Math.ceil(totalProducts / limit),
-    totalProducts, 
+    totalPages: Math.ceil(totalProducts / pageLimit),
+    totalProducts,
     products: updatedProducts,
   });
 });
@@ -400,20 +427,22 @@ export const getProductById = catchAsyncError(async (req, res, next) => {
   });
 });
 
-export const getAdminProductBySlug = catchAsyncError(async (req, res, next) => {
-  const { slug } = req.params;
+export const getAdminProductBySlug = catchAsyncError(
+  async (req, res, next) => {
+    const { slug } = req.params;
 
-  const product = await Product.findOne({ slug });
+    const product = await Product.findOne({ slug });
 
-  if (!product) {
-    return next(new ErrorHandler("Product Not Found!", 404));
+    if (!product) {
+      return next(new ErrorHandler("Product Not Found!", 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      product,
+    });
   }
-
-  res.status(200).json({
-    success: true,
-    product,
-  });
-});
+);
 
 export const updateProductController = async (req, res) => {
   try {
@@ -441,7 +470,12 @@ export const updateProductController = async (req, res) => {
 
     const finalPrice = price ? Number(price) : product.price;
 
-    if (salePrice && salePrice !== "" && salePrice !== "null" && salePrice !== "undefined") {
+    if (
+      salePrice &&
+      salePrice !== "" &&
+      salePrice !== "null" &&
+      salePrice !== "undefined"
+    ) {
       const salePriceNum = Number(salePrice);
       if (salePriceNum >= finalPrice) {
         return res.status(400).json({
@@ -451,23 +485,38 @@ export const updateProductController = async (req, res) => {
       }
     }
 
+    // Yeni resimler varsa PARALEL olarak yükle
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
-      const uploadedImages = [];
+      const uploadPromises = req.files.map((file) =>
+        cloudinary.v2.uploader
+          .upload(file.path, {
+            folder: "Products",
+          })
+          .then((result) => {
+            fs.unlinkSync(file.path);
+            return {
+              publicId: result.public_id,
+              url: result.secure_url,
+            };
+          })
+          .catch((error) => {
+            if (fs.existsSync(file.path)) {
+              fs.unlinkSync(file.path);
+            }
+            throw error;
+          })
+      );
 
-      for (const file of req.files) {
-        const result = await cloudinary.v2.uploader.upload(file.path, {
-          folder: "Products",
+      try {
+        const uploadedImages = await Promise.all(uploadPromises);
+        product.image.push(...uploadedImages);
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to upload images",
+          error: error.message,
         });
-
-        uploadedImages.push({
-          publicId: result.public_id,
-          url: result.secure_url,
-        });
-
-        fs.unlinkSync(file.path);
       }
-
-      product.image.push(...uploadedImages);
     }
 
     if (product_name && product_name !== product.product_name) {
@@ -488,7 +537,13 @@ export const updateProductController = async (req, res) => {
       product.price = Number(price);
     }
 
-    if (salePrice === "" || salePrice === null || salePrice === "null" || salePrice === "undefined" || salePrice === undefined) {
+    if (
+      salePrice === "" ||
+      salePrice === null ||
+      salePrice === "null" ||
+      salePrice === "undefined" ||
+      salePrice === undefined
+    ) {
       product.salePrice = null;
     } else {
       product.salePrice = Number(salePrice);
@@ -571,19 +626,19 @@ export const getPriceStats = catchAsyncError(async (req, res, next) => {
               $and: [
                 { $ne: ["$salePrice", null] },
                 { $gt: ["$salePrice", 0] },
-                { $lt: ["$salePrice", "$price"] }
-              ]
+                { $lt: ["$salePrice", "$price"] },
+              ],
             },
             "$salePrice",
-            "$price"
-          ]
+            "$price",
+          ],
         },
       },
     },
     {
       $match: {
-        effectivePrice: { $gt: 0 }
-      }
+        effectivePrice: { $gt: 0 },
+      },
     },
     {
       $group: {
@@ -594,9 +649,10 @@ export const getPriceStats = catchAsyncError(async (req, res, next) => {
     },
   ]);
 
-  const result = stats.length > 0 
-    ? { min: Math.floor(stats[0].min), max: Math.ceil(stats[0].max) }
-    : { min: 0, max: 1000 };
+  const result =
+    stats.length > 0
+      ? { min: Math.floor(stats[0].min), max: Math.ceil(stats[0].max) }
+      : { min: 0, max: 1000 };
 
   res.status(200).json({
     success: true,
@@ -623,5 +679,85 @@ export const searchProducts = catchAsyncError(async (req, res, next) => {
   } catch (error) {
     console.error("Search error:", error);
     res.status(500).json({ message: "Search failed" });
+  }
+});
+
+export const getProductStats = catchAsyncError(async (req, res, next) => {
+  try {
+    const [
+      totalProducts,
+      inStock,
+      outOfStock,
+      activeProducts,
+      inactiveProducts,
+      featuredProducts,
+      soldStats,
+      newThisMonth,
+      categoryData,
+    ] = await Promise.all([
+
+      Product.countDocuments(),
+
+      Product.countDocuments({ stock: { $gt: 0 } }),
+
+      Product.countDocuments({ stock: 0 }),
+
+      Product.countDocuments({ isActive: true }),
+
+      Product.countDocuments({ isActive: false }),
+
+      Product.countDocuments({ isFeatured: true }),
+
+      // Total sold - aggregate from Product.sold field
+      Product.aggregate([
+        { $group: { _id: null, totalSold: { $sum: "$sold" } } },
+      ]),
+
+      // New this month
+      (async () => {
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        return await Product.countDocuments({
+          createdAt: { $gte: monthStart },
+        });
+      })(),
+
+      // Category distribution
+      Product.aggregate([
+        { $group: { _id: "$category", count: { $sum: 1 } } },
+        { $project: { name: "$_id", count: 1, _id: 0 } },
+        { $sort: { count: -1 } },
+      ]),
+    ]);
+
+    const totalSold = soldStats.length > 0 ? soldStats[0].totalSold : 0;
+
+    // Get featured products list (top 5)
+    const featuredProductsList = await Product.find({ isFeatured: true })
+      .select("product_name slug _id")
+      .limit(5)
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalProducts,
+        inStock,
+        outOfStock,
+        activeProducts,
+        inactiveProducts,
+        featuredProducts,
+        totalSold,
+        newThisMonth,
+        categoryData,
+        featuredProductsList,
+      },
+    });
+  } catch (error) {
+    console.error("Product stats error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching product statistics",
+    });
   }
 });

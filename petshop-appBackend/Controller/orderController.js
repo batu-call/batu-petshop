@@ -1,3 +1,4 @@
+
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import ErrorHandler from "../Middlewares/errorMiddleware.js";
 import { Order } from "../Models/orderSchema.js";
@@ -24,6 +25,7 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
 
   const orderItems = [];
 
+  // Validate all products first
   for (const item of items) {
     const product = await Product.findById(item.product);
 
@@ -31,11 +33,10 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Product not found!", 404));
     }
 
-    
     if (product.stock < item.quantity) {
       return next(
         new ErrorHandler(
-          `${product.product_name} There is not enough stock for!`,
+          `${product.product_name} - There is not enough stock!`,
           400
         )
       );
@@ -45,11 +46,12 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
       product: product._id,
       name: product.product_name,
       price: product.price,
-      quantity: product.quantity,
+      quantity: item.quantity,  // ✅ FIXED: Use item.quantity, not product.quantity
       image: product.image?.[0]?.url || "",
     });
   }
 
+  // Create order
   const order = await Order.create({
     user: req.user._id,
     items: orderItems,
@@ -58,17 +60,18 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     status: "pending",
   });
 
-  for(const item of items) {
+  // Update stock and sold count
+  for (const item of items) {
     await Product.findByIdAndUpdate(
       item.product,
       {
         $inc: {
           stock: -item.quantity,
-          sold: item.quantity
-        }
+          sold: item.quantity,
+        },
       },
-      {new:true}
-    )
+      { new: true }
+    );
   }
 
   res.status(201).json({
@@ -96,7 +99,8 @@ export const getOrder = catchAsyncError(async (req, res, next) => {
 });
 
 export const getUserOrder = catchAsyncError(async (req, res, next) => {
-  const orders = await Order.find({ user: req.user._id }).populate("user" , "firstName lastName email")
+  const orders = await Order.find({ user: req.user._id })
+    .populate("user", "firstName lastName email")
     .populate({
       path: "items.product",
       select: "product_name image price",
@@ -123,17 +127,15 @@ export const AllOrders = catchAsyncError(async (req, res, next) => {
     maxPrice,
     startDate,
     endDate,
-    sortBy = 'createdAt',
-    sortOrder = 'desc'
+    sortBy = "createdAt",
+    sortOrder = "desc",
   } = req.query;
 
   const limit = 15;
   const skip = (Number(page) - 1) * limit;
 
-  // Build filter
   let filter = {};
 
-  // Search filter (search in shipping address fullName)
   const escapeRegex = (text) =>
     text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -142,16 +144,18 @@ export const AllOrders = catchAsyncError(async (req, res, next) => {
     filter["shippingAddress.fullName"] = { $regex: safeSearch, $options: "i" };
   }
 
-  // Email filter (search in both user email and shipping email)
   if (email && typeof email === "string") {
     const safeEmail = escapeRegex(email.trim().slice(0, 50));
     filter.$or = [
-      { "shippingAddress.email": { $regex: safeEmail, $options: "i" } }
+      { "shippingAddress.email": { $regex: safeEmail, $options: "i" } },
     ];
   }
 
   // Status filter
-  if (status && ["pending", "paid", "shipped", "delivered", "cancelled"].includes(status)) {
+  if (
+    status &&
+    ["pending", "paid", "shipped", "delivered", "cancelled"].includes(status)
+  ) {
     filter.status = status;
   }
 
@@ -168,7 +172,7 @@ export const AllOrders = catchAsyncError(async (req, res, next) => {
     if (startDate) filter.createdAt.$gte = new Date(startDate);
     if (endDate) {
       const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999); // End of day
+      end.setHours(23, 59, 59, 999);
       filter.createdAt.$lte = end;
     }
   }
@@ -178,11 +182,11 @@ export const AllOrders = catchAsyncError(async (req, res, next) => {
 
   // Build sort
   const sortObj = {};
-  sortObj[sortBy] = sortOrder === 'asc' ? 1 : -1;
+  sortObj[sortBy] = sortOrder === "asc" ? 1 : -1;
 
   // Fetch orders with filters
   const orders = await Order.find(filter)
-    .populate("user", "name email")
+    .populate("user", "name avatar email")
     .populate({
       path: "items.product",
       select: "product_name image price slug",
@@ -226,7 +230,7 @@ export const updateOrderStatus = catchAsyncError(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
 
   if (!order) {
-    return next(new ErrorHandler("Order Not Found!"), 400);
+    return next(new ErrorHandler("Order Not Found!", 400));
   }
 
   order.status = req.body.status;
@@ -242,7 +246,7 @@ export const getOrdeByStatus = catchAsyncError(async (req, res, next) => {
   const { status } = req.query;
 
   if (!status) {
-    return next(new ErrorHandler("Status is required!"), 400);
+    return next(new ErrorHandler("Status is required!", 400));
   }
 
   const order = await Order.find({ status }).sort({ createdAt: -1 });
@@ -257,7 +261,7 @@ export const MarkOrderAsDelivered = catchAsyncError(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
 
   if (!order) {
-    return next(new ErrorHandler("Order Not Found!"), 400);
+    return next(new ErrorHandler("Order Not Found!", 400));
   }
 
   order.status = "delivered";
@@ -274,16 +278,27 @@ export const getOrderStats = catchAsyncError(async (req, res, next) => {
   try {
     const totalOrders = await Order.countDocuments();
     const pendingOrders = await Order.countDocuments({ status: "pending" });
-    const completedOrders = await Order.countDocuments({ status: "delivered" });
-    const cancelledOrders = await Order.countDocuments({ status: "cancelled" });
+    const completedOrders = await Order.countDocuments({
+      status: "delivered",
+    });
+    const cancelledOrders = await Order.countDocuments({
+      status: "cancelled",
+    });
 
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    oneYearAgo.setDate(1);
-    oneYearAgo.setHours(0, 0, 0, 0);
+    // ✅ FIXED: Get last 6 months data properly
+    const now = new Date();
+    const sixMonthsAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 5, // 5 months back + current month = 6 months
+      1,
+      0,
+      0,
+      0,
+      0
+    );
 
     const monthlyStats = await Order.aggregate([
-      { $match: { createdAt: { $gte: oneYearAgo } } },
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
@@ -294,13 +309,10 @@ export const getOrderStats = catchAsyncError(async (req, res, next) => {
       { $sort: { _id: 1 } },
     ]);
 
+    // Generate last 6 months array
     const months = [];
-    for (let i = 0; i <= 12; i++) {
-      const d = new Date(
-        oneYearAgo.getFullYear(),
-        oneYearAgo.getMonth() + i,
-        1
-      );
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
         2,
         "0"
@@ -308,6 +320,7 @@ export const getOrderStats = catchAsyncError(async (req, res, next) => {
       months.push(monthStr);
     }
 
+    // Map stats to months
     const statsMap = {};
     monthlyStats.forEach((m) => {
       statsMap[m._id] = m;
@@ -336,7 +349,6 @@ export const getOrderStats = catchAsyncError(async (req, res, next) => {
 });
 
 export const getOrderByUserId = catchAsyncError(async (req, res, next) => {
-  
   const orders = await Order.find({ user: req.params.id })
     .populate("user", "firstName lastName email")
     .populate({
@@ -350,7 +362,6 @@ export const getOrderByUserId = catchAsyncError(async (req, res, next) => {
     orders,
   });
 });
-
 
 export const getUserOrderStats = catchAsyncError(async (req, res, next) => {
   const stats = await Order.aggregate([

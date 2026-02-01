@@ -142,7 +142,21 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
             required
             rows={4}
             placeholder="Write your review..."
-            className="w-full bg-gray-50 border border-[#97cba9] rounded-xl p-4 text-sm focus:ring-2 focus:bg-[#D6EED6] outline-none resize-none mb-4 max-h-40"
+            className="
+  w-full
+  bg-gray-50
+  border border-[#97cba9]
+  rounded-xl
+  p-4
+  text-base
+  sm:text-sm
+  focus:ring-2
+  focus:bg-[#D6EED6]
+  outline-none
+  resize-none
+  mb-4
+  max-h-40
+"
           />
 
           <button
@@ -166,71 +180,86 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
         </div>
 
         <div className="space-y-4 max-h-150 overflow-y-auto pr-2">
-          {reviews.map((review) => (
-            <div
-              key={review._id}
-              className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative"
-            >
-              <div className="absolute bottom-5 right-10 cursor-pointer">
-                {userId === review.userId?._id && (
-                  <button
-                    onClick={() => onDeleteReview(review._id)}
-                    className="text-xs text-color2 hover:text-[#D6EED6] font-medium cursor-pointer mb-1 transition duration-300 ease-in-out active:scale-[0.97]"
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border border-gray-300">
-                    <Image
-                      src={review.userId?.avatar || "/default-avatar.png"}
-                      alt="user avatar"
-                      fill
-                      sizes="48px"
-                      className="object-cover"
-                    />
-                  </div>
-
-                  <div>
-                    <h3 className="font-bold text-sm text-color">
-                      {review.userId?.firstName || "User"}{" "}
-                      {review.userId?.lastName?.[0]}
-                    </h3>
-                    <p className="text-[10px] text-gray-400">
-                      {formatDate(review.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex text-yellow-500">
-                  {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} sx={{ fontSize: 16 }} />
-                  ))}
-                </div>
-              </div>
-
-              <p className="text-gray-600 text-sm leading-relaxed break-words whitespace-pre-wrap overflow-hidden">
-                {review.comment}
+          {reviews.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center text-gray-400">
+              <RateReview
+                sx={{ fontSize: 48 }}
+                className="mb-3 text-gray-300"
+              />
+              <p className="text-sm font-medium">No reviews yet</p>
+              <p className="text-xs mt-1">
+                Be the first to share your experience 🐾
               </p>
+            </div>
+          ) : (
+            <div className="space-y-4 max-h-150 overflow-y-auto pr-2">
+              {reviews.map((review) => (
+                <div
+                  key={review._id}
+                  className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative"
+                >
+                  <div className="absolute bottom-5 right-10 cursor-pointer">
+                    {userId === review.userId?._id && (
+                      <button
+                        onClick={() => onDeleteReview(review._id)}
+                        className="text-xs text-color2 hover:text-[#D6EED6] font-medium cursor-pointer mb-1 transition duration-300 ease-in-out active:scale-[0.97]"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border border-gray-300">
+                        <Image
+                          src={review.userId?.avatar || "/default-avatar.png"}
+                          alt="user avatar"
+                          fill
+                          sizes="48px"
+                          className="object-cover"
+                        />
+                      </div>
 
-              <div className="mt-4">
-                <button
-                  onClick={() => onHelpful(review._id)}
-                  className={`text-xs flex items-center gap-1 font-medium transition-colors cursor-pointer duration-300 ease-in-out hover:scale-102 active:scale-[0.97]
+                      <div>
+                        <h3 className="font-bold text-sm text-color">
+                          {review.userId?.firstName || "User"}{" "}
+                          {review.userId?.lastName?.[0]}
+                        </h3>
+                        <p className="text-[10px] text-gray-400">
+                          {formatDate(review.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex text-yellow-500">
+                      {[...Array(review.rating)].map((_, i) => (
+                        <Star key={i} sx={{ fontSize: 16 }} />
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 text-sm leading-relaxed break-words whitespace-pre-wrap overflow-hidden">
+                    {review.comment}
+                  </p>
+
+                  <div className="mt-4">
+                    <button
+                      onClick={() => onHelpful(review._id)}
+                      className={`text-xs flex items-center gap-1 font-medium transition-colors cursor-pointer duration-300 ease-in-out hover:scale-102 active:scale-[0.97]
                     ${
                       review.helpful.includes(userId ?? "")
                         ? "text-color2"
                         : "text-gray-400 hover:text-[#97cba9]"
                     }`}
-                >
-                  <ThumbUp sx={{ fontSize: 14 }} />
-                  Helpful ({review.helpful?.length ?? 0})
-                </button>
-              </div>
+                    >
+                      <ThumbUp sx={{ fontSize: 14 }} />
+                      Helpful ({review.helpful?.length ?? 0})
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       </section>
     </main>

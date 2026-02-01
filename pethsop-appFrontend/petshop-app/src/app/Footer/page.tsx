@@ -13,7 +13,7 @@ import catAnimation from "../../../public/animation/cat.json";
 import birdAnimation from "../../../public/animation/bird.json";
 import fishAnimation from "../../../public/animation/fish.json";
 import reptileAnimation from "../../../public/animation/reptile.json";
-import rabbitAnimation from "../../../public/animation/rabbit.json";
+import rabbitAnimation from "../../../public/animation/Conejo.json"
 import horseAnimation from "../../../public/animation/horse.json";
 import ballAnimation from "../../../public/animation/ball.json"
 import Link from "next/link";
@@ -43,38 +43,61 @@ const Footer = () => {
   const animalAnimation =
   animalsMap[config.animal] || dogAnimation;
 
-  useEffect(() => {
-    const screenWidth = window.innerWidth;
+ useEffect(() => {
+  const screenWidth = window.innerWidth;
+  const isMobile = screenWidth < 768;
 
-    let ctx = gsap.context(() => {
-      if (config.showBall && ballRef.current) {
-        gsap.fromTo(
-          ballRef.current,
-          { x: screenWidth },
-          {
-            x: -200,
-            duration: 10,
-            ease: "linear",
-            repeat: -1,
-          }
-        );
-      }
-      if (config.animalMoves && animalRef.current) {
-        gsap.fromTo(
-          animalRef.current,
-          { x: screenWidth + 100 },
-          {
-            x: -400,
-            duration: 14,
-            ease: "linear",
-            repeat: -1,
-          }
-        );
-      }
-    });
+  const ballWidth = 200;
+  const animalWidth = config.animal === "dog" ? 400 : 200;
 
-    return () => ctx.revert(); 
-  }, [config]);
+  const startX = screenWidth + 50;
+  const endX = -Math.max(ballWidth, animalWidth) - 100;
+
+  const isDogWithBall = config.animal === "dog" && config.showBall;
+
+  let ctx = gsap.context(() => {
+
+    if (isDogWithBall && config.animalMoves) {
+      const lead = isMobile ? 60 : 120;
+
+      const tl = gsap.timeline({
+        repeat: -1,
+        defaults: {
+          ease: "linear",
+          duration: isMobile ? 22 : 18,
+        },
+      });
+
+      tl.fromTo(
+        ballRef.current,
+        { x: startX },
+        { x: endX },
+        0
+      ).fromTo(
+        animalRef.current,
+        { x: startX + lead },
+        { x: endX + lead },
+        0
+      );
+    }
+
+    if (!isDogWithBall && config.animalMoves && animalRef.current) {
+      gsap.fromTo(
+        animalRef.current,
+        { x: startX },
+        {
+          x: endX,
+          duration: isMobile ? 20 : 16,
+          ease: "linear",
+          repeat: -1,
+        }
+      );
+    }
+
+  });
+
+  return () => ctx.revert();
+}, [config]);
 
 
   return (

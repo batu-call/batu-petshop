@@ -4,6 +4,7 @@ import { LoginActivity } from "../Models/LoginActivitySchema.js";
 import { Session } from "../Models/sessionSchema.js";
 import { User } from "../Models/userSchema.js";
 import generateToken from "../utils/jwt.js";
+import { getClearCookieOptions, getCookieOptions } from "../utils/cookieHelper.js";
 import cloudinary from "cloudinary";
 import { sendAutoMail } from "./mailController.js";
 import crypto from "crypto";
@@ -38,6 +39,7 @@ export const UserRegister = catchAsyncError(async (req, res, next) => {
     role,
     avatar: avatarUrl,
   });
+  
   try {
     await sendAutoMail({
       to: user.email,
@@ -69,8 +71,9 @@ export const Login = catchAsyncError(async (req, res, next) => {
 
   const isPasswordMatch = await user.comparePassword(password);
   if (!isPasswordMatch) {
-    return next(new ErrorHandler("Invalide Password Or Email!", 400));
+    return next(new ErrorHandler("Invalid Password Or Email!", 400));
   }
+  
   await LoginActivity.create({ userId: user._id });
   await Session.create({ userId: user._id, startedAt: new Date() });
 
@@ -86,7 +89,6 @@ export const googleLogin = catchAsyncError(async (req, res, next) => {
 
   let user = await User.findOne({ email });
 
-  
   if (!user) {
     const [firstName, ...rest] = name.split(" ");
     const lastName = rest.join(" ") || "";
@@ -95,7 +97,7 @@ export const googleLogin = catchAsyncError(async (req, res, next) => {
       firstName,
       lastName,
       email,
-      phone: "", 
+      phone: "",
       password: crypto.randomBytes(32).toString("hex"),
       role: "User",
       avatar: image || "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg",
@@ -125,15 +127,10 @@ export const googleLogin = catchAsyncError(async (req, res, next) => {
 export const Logout = catchAsyncError(async (req, res, next) => {
   res
     .status(200)
-    .cookie("UserToken", "", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      expires: new Date(0),
-    })
+    .cookie("UserToken", "", getClearCookieOptions())
     .json({
       success: true,
-      message: "User Logout Out Successfully!",
+      message: "User Logged Out Successfully!",
     });
 });
 
@@ -156,16 +153,6 @@ export const newAdmin = catchAsyncError(async (req, res, next) => {
   if (userExists)
     return next(new ErrorHandler("User Already Registered!", 400));
 
-  const isRegistered = await User.findOne({ email });
-  if (isRegistered) {
-    return next(
-      new ErrorHandler(
-        `${isRegistered.role} With This Email Already Exists!`,
-        400,
-      ),
-    );
-  }
-
   let avatarUrl =
     "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg";
 
@@ -186,6 +173,7 @@ export const newAdmin = catchAsyncError(async (req, res, next) => {
     avatar: avatarUrl,
     role: "Admin",
   });
+  
   try {
     await sendAutoMail({
       to: admin.email,
@@ -198,7 +186,7 @@ export const newAdmin = catchAsyncError(async (req, res, next) => {
 
   res.status(201).json({
     success: true,
-    message: "New Admin Register!",
+    message: "New Admin Registered!",
     admin,
   });
 });
@@ -206,9 +194,7 @@ export const newAdmin = catchAsyncError(async (req, res, next) => {
 export const adminLogin = catchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const admin = await User.findOne({ email, role: "Admin" }).select(
-    "+password",
-  );
+  const admin = await User.findOne({ email, role: "Admin" }).select("+password");
   if (!admin) return next(new ErrorHandler("Admin not found", 404));
 
   const isMatch = await admin.comparePassword(password);
@@ -220,12 +206,7 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
   const token = admin.generateJsonWebToken();
 
   res
-    .cookie("AdminToken", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
+    .cookie("AdminToken", token, getCookieOptions())
     .status(200)
     .json({
       success: true,
@@ -253,36 +234,29 @@ export const AdminLogout = catchAsyncError(async (req, res, next) => {
 
   res
     .status(200)
-    .cookie("AdminToken", "", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      expires: new Date(0),
-    })
+    .cookie("AdminToken", "", getClearCookieOptions())
     .json({
       success: true,
-      message: "Admin Logout Out Successfully!",
+      message: "Admin Logged Out Successfully!",
     });
 });
 
 export const getAllUser = catchAsyncError(async (req, res, next) => {
-  const { 
+  const {
     page = 1,
     search,
     role,
     minOrders,
     maxOrders,
-    sortBy = 'createdAt',
-    sortOrder = 'desc'
+    sortBy = "createdAt",
+    sortOrder = "desc",
   } = req.query;
 
   const limit = 15;
   const skip = (Number(page) - 1) * limit;
 
-  // Build match stage
   let matchStage = { role: "User" };
 
-  // Search filter (firstName, lastName, email, phone)
   const escapeRegex = (text) =>
     text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -301,7 +275,6 @@ export const getAllUser = catchAsyncError(async (req, res, next) => {
     matchStage.role = role;
   }
 
-  // Build aggregation pipeline
   const pipeline = [
     { $match: matchStage },
     {
@@ -320,32 +293,27 @@ export const getAllUser = catchAsyncError(async (req, res, next) => {
     },
   ];
 
-  // Order count filter (orderCount hesaplandıktan sonra uygulanmalı)
   if (minOrders || maxOrders) {
     const orderFilter = {};
     if (minOrders) orderFilter.$gte = Number(minOrders);
     if (maxOrders) orderFilter.$lte = Number(maxOrders);
-    
+
     pipeline.push({
-      $match: { orderCount: orderFilter }
+      $match: { orderCount: orderFilter },
     });
   }
 
-  // Count total filtered users (before pagination)
   const countPipeline = [...pipeline, { $count: "total" }];
   const countResult = await User.aggregate(countPipeline);
   const totalUsers = countResult.length > 0 ? countResult[0].total : 0;
 
-  // Sort
   const sortStage = {};
-  sortStage[sortBy] = sortOrder === 'asc' ? 1 : -1;
+  sortStage[sortBy] = sortOrder === "asc" ? 1 : -1;
   pipeline.push({ $sort: sortStage });
 
-  // Pagination
   pipeline.push({ $skip: skip });
   pipeline.push({ $limit: limit });
 
-  // Project (remove sensitive data)
   pipeline.push({
     $project: {
       password: 0,
@@ -353,7 +321,6 @@ export const getAllUser = catchAsyncError(async (req, res, next) => {
     },
   });
 
-  // Execute aggregation
   const users = await User.aggregate(pipeline);
 
   res.status(200).json({
@@ -394,8 +361,8 @@ export const getAdminDetails = catchAsyncError(async (req, res, next) => {
   const {
     page = 1,
     search,
-    sortBy = 'createdAt',
-    sortOrder = 'desc'
+    sortBy = "createdAt",
+    sortOrder = "desc",
   } = req.query;
 
   const limit = 15;
@@ -418,13 +385,11 @@ export const getAdminDetails = catchAsyncError(async (req, res, next) => {
     ];
   }
 
-
   const totalAdmins = await User.countDocuments(filter);
 
   const sortObj = {};
-  sortObj[sortBy] = sortOrder === 'asc' ? 1 : -1;
+  sortObj[sortBy] = sortOrder === "asc" ? 1 : -1;
 
- 
   const adminDetails = await User.find(filter)
     .select("-password")
     .sort(sortObj)
@@ -462,26 +427,18 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
   );
 
   await user.deleteOne();
+
+  const clearOptions = getClearCookieOptions();
+
   res
     .status(200)
-    .cookie("UserToken", "", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      expires: new Date(0),
-    })
+    .cookie("UserToken", "", clearOptions)
     .cookie("next-auth.session-token", "", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      expires: new Date(0),
+      ...clearOptions,
       path: "/",
     })
     .cookie("next-auth.csrf-token", "", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      expires: new Date(0),
+      ...clearOptions,
       path: "/",
     })
     .json({
@@ -511,23 +468,15 @@ export const updateUser = catchAsyncError(async (req, res, next) => {
   if (!user) {
     return next(new ErrorHandler("User not found", 404));
   }
+
   const { firstName, lastName, email, phone, password } = req.body;
 
-  if (firstName) {
-    user.firstName = firstName;
-  }
-  if (lastName) {
-    user.lastName = lastName;
-  }
-  if (email) {
-    user.email = email;
-  }
-  if (phone) {
-    user.phone = phone;
-  }
-  if (password) {
-    user.password = password;
-  }
+  if (firstName) user.firstName = firstName;
+  if (lastName) user.lastName = lastName;
+  if (email) user.email = email;
+  if (phone) user.phone = phone;
+  if (password) user.password = password;
+
   if (req.file) {
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: "avatars",
@@ -623,7 +572,7 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
 
   if (!password || password.length < 6) {
     return next(
-      new ErrorHandler("Password must be at least 6 characters.", 400),
+      new ErrorHandler("Password must be at least 6 characters.", 400)
     );
   }
 
@@ -639,7 +588,6 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
   }
 
   user.password = password;
-
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
 

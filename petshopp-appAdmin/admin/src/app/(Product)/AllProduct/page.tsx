@@ -30,6 +30,7 @@ type Product = {
   description: string;
   price: string;
   stock: string;
+  sold: number;
   isActive: boolean;
   image: ProductImage[];
   category: string;
@@ -64,6 +65,7 @@ const Page = () => {
     maxPrice: searchParams.get("maxPrice") || "",
     minStock: searchParams.get("minStock") || "",
     maxStock: searchParams.get("maxStock") || "",
+    isActive: searchParams.get("isActive") || "",
   });
 
   // Applied filters (for API calls)
@@ -108,6 +110,7 @@ const Page = () => {
       if (localFilter.maxPrice) params.set("maxPrice", localFilter.maxPrice);
       if (localFilter.minStock) params.set("minStock", localFilter.minStock);
       if (localFilter.maxStock) params.set("maxStock", localFilter.maxStock);
+      if (localFilter.isActive) params.set("isActive", localFilter.isActive);
 
       router.push(`?${params.toString()}`, { scroll: false });
     }, 600); // 600ms debounce
@@ -133,6 +136,7 @@ const Page = () => {
         if (appliedFilter.maxPrice) params.maxPrice = appliedFilter.maxPrice;
         if (appliedFilter.minStock) params.minStock = appliedFilter.minStock;
         if (appliedFilter.maxStock) params.maxStock = appliedFilter.maxStock;
+        if (appliedFilter.isActive) params.isActive = appliedFilter.isActive;
 
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/admin/products`,
@@ -159,6 +163,7 @@ const Page = () => {
     appliedFilter.maxPrice,
     appliedFilter.minStock,
     appliedFilter.maxStock,
+    appliedFilter.isActive,
   ]);
 
   // Clear all filters
@@ -170,6 +175,7 @@ const Page = () => {
       maxPrice: "",
       minStock: "",
       maxStock: "",
+      isActive: "",
     };
     setLocalFilter(emptyFilters);
     setAppliedFilter(emptyFilters);
@@ -192,6 +198,7 @@ const Page = () => {
     if (appliedFilter.maxPrice) params.set("maxPrice", appliedFilter.maxPrice);
     if (appliedFilter.minStock) params.set("minStock", appliedFilter.minStock);
     if (appliedFilter.maxStock) params.set("maxStock", appliedFilter.maxStock);
+    if (appliedFilter.isActive) params.set("isActive", appliedFilter.isActive);
 
     router.push(`?${params.toString()}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -254,6 +261,18 @@ const Page = () => {
                   <option value="Horse">Horse</option>
                 </select>
 
+                <select
+                  value={localFilter.isActive}
+                  onChange={(e) =>
+                    setLocalFilter({ ...localFilter, isActive: e.target.value })
+                  }
+                  className="border border-gray-300 p-2 rounded min-w-[150px] focus:outline-none focus:ring-1 focus:ring-[#97cba9]"
+                >
+                  <option value="">All Status</option>
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+
                 <input
                   type="number"
                   placeholder="Min Price"
@@ -300,9 +319,7 @@ const Page = () => {
                     {product.length}
                   </span>{" "}
                   of{" "}
-                  <span className="font-bold text-color">
-                    {totalProducts}
-                  </span>{" "}
+                  <span className="font-bold text-color">{totalProducts}</span>{" "}
                   products
                 </p>
                 {hasActiveFilters() && (
@@ -324,16 +341,19 @@ const Page = () => {
               <div className="w-64 ml-12">Description</div>
               <div className="w-32 ml-6">Price</div>
               <div className="w-32 ml-6">Stock</div>
+              <div className="w-32 ml-6">Sold</div>
               <div className="w-32 ml-6">Category</div>
-              <div className="w-32 ml-14">Created</div>
-              <div className="w-32 ml-14">Last Updated</div>
-              <div className="w-32 ml-14">Active</div>
+              <div className="w-32 ml-6">Created</div>
+              <div className="w-32 ml-6">Updated</div>
+              <div className="w-32 ml-6">Status</div>
             </div>
 
             {/* PRODUCTS LIST */}
             {product.length === 0 ? (
               <div className="text-center py-16">
-                <div className="text-6xl mb-4 flex justify-center"><Package className="w-16 h-16 text-color2" /></div>
+                <div className="text-6xl mb-4 flex justify-center">
+                  <Package className="w-16 h-16 text-color2" />
+                </div>
                 <h3 className="text-2xl font-bold text-gray-700 mb-2">
                   No products found
                 </h3>
@@ -368,58 +388,94 @@ const Page = () => {
                     />
                   </div>
 
-                  <div className="w-full md:w-48 md:ml-6 overflow-hidden">
-                    <p className="md:hidden text-xs text-gray-500 line-clamp-1">
+                  {/* PRODUCT NAME */}
+                  <div className="w-full md:w-48 md:ml-6">
+                    <p className="md:hidden text-xs text-gray-500 mb-1">
                       Product
                     </p>
-                    {p.product_name}
+                    <p className="line-clamp-2 md:line-clamp-1 break-words">
+                      {p.product_name}
+                    </p>
                   </div>
 
-                  <div className="w-full md:w-64 md:ml-6 line-clamp-3 overflow-hidden">
-                    <p className="md:hidden text-xs text-gray-500">
+                  {/* DESCRIPTION */}
+                  <div className="w-full md:w-64 md:ml-6">
+                    <p className="md:hidden text-xs text-gray-500 mb-1">
                       Description
                     </p>
-                    {p.description}
+                    <p className="line-clamp-3 md:line-clamp-2 break-words">
+                      {p.description}
+                    </p>
                   </div>
 
-                  <div className="w-full md:w-32 md:ml-6 overflow-hidden">
-                    <p className="md:hidden text-xs text-gray-500">Price</p>$
-                    {p.price}
-                  </div>
-
+                  {/* PRICE */}
                   <div className="w-full md:w-32 md:ml-6">
-                    <p className="md:hidden text-xs text-gray-500">Stock</p>
-                    {p.stock}
+                    <p className="md:hidden text-xs text-gray-500 mb-1">
+                      Price
+                    </p>
+                    <p className="truncate">${p.price}</p>
                   </div>
 
+                  {/* STOCK */}
                   <div className="w-full md:w-32 md:ml-6">
-                    <p className="md:hidden text-xs text-gray-500">Category</p>
-                    {p.category}
+                    <p className="md:hidden text-xs text-gray-500 mb-1">
+                      Stock
+                    </p>
+                    <p className="truncate">{p.stock}</p>
                   </div>
 
+                  {/* SOLD */}
                   <div className="w-full md:w-32 md:ml-6">
-  <p className="md:hidden text-xs text-gray-500">Created</p>
-  {new Date(p.createdAt).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })}
-</div>
+                    <p className="md:hidden text-xs text-gray-500 mb-1">
+                      Sold
+                    </p>
+                    <p className="truncate">{p.sold || 0}</p>
+                  </div>
 
-<div className="w-full md:w-32 md:ml-6 flex justify-center">
-  <p className="md:hidden text-xs text-gray-500">Last Updated</p>
-  {new Date(p.updatedAt).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })}
-</div>
+                  {/* CATEGORY */}
+                  <div className="w-full md:w-32 md:ml-6">
+                    <p className="md:hidden text-xs text-gray-500 mb-1">
+                      Category
+                    </p>
+                    <p className="truncate">{p.category}</p>
+                  </div>
 
-                  <div className="w-full md:w-32 md:ml-6 flex items-center justify-center gap-2">
-                    <div>
-                      <p className="md:hidden text-xs text-gray-500 flex">Status</p>
+                  {/* CREATED DATE */}
+                  <div className="w-full md:w-32 md:ml-6">
+                    <p className="md:hidden text-xs text-gray-500 mb-1">
+                      Created
+                    </p>
+                    <p className="truncate">
+                      {new Date(p.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+
+                  {/* UPDATED DATE */}
+                  <div className="w-full md:w-32 md:ml-6">
+                    <p className="md:hidden text-xs text-gray-500 mb-1">
+                      Last Updated
+                    </p>
+                    <p className="truncate">
+                      {new Date(p.updatedAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+
+                  {/* STATUS & DELETE */}
+                  <div className="w-full md:w-32 md:ml-6 flex items-start md:items-center gap-3 md:gap-2 flex-wrap md:flex-nowrap">
+                    <div className="flex-shrink-0">
+                      <p className="md:hidden text-xs text-gray-500 mb-1">
+                        Status
+                      </p>
                       <span
-                        className={`px-2 py-1 rounded text-xs font-semibold ${
+                        className={`px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${
                           p.isActive
                             ? "bg-green-100 text-green-700"
                             : "bg-red-100 text-red-700"
@@ -428,7 +484,11 @@ const Page = () => {
                         {p.isActive ? "Active" : "Inactive"}
                       </span>
                     </div>
-                    {/* Delete sm-lg-xl */}
+                  </div>
+
+                        
+                    {/* Delete Button Mobile */}
+                    <div className="md:hidden w-full flex justify-end">
                     <button
                       onClick={async (e) => {
                         e.preventDefault();
@@ -445,12 +505,13 @@ const Page = () => {
 
                         if (ok) handlerRemove(p._id);
                       }}
-                      className="md:hidden text-[#393E46] text-xs font-semibold border border-[#A8D1B5] px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                      className="text-[#393E46] text-xs font-semibold border border-[#A8D1B5] px-3 py-1 rounded bg-secondary hover:bg-[#97cba9] transition duration-300 ease-in-out hover:scale-105 cursor-pointer"
                     >
                       Delete Product
                     </button>
-                  </div>
+                    </div>
 
+                  {/* Delete Icon Desktop XL */}
                   <button
                     onClick={async (e) => {
                       e.preventDefault();
@@ -477,6 +538,7 @@ const Page = () => {
                     />
                   </button>
 
+                  {/* Delete Icon Desktop MD-LG */}
                   <button
                     onClick={async (e) => {
                       e.preventDefault();

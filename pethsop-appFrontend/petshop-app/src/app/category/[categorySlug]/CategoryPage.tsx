@@ -377,6 +377,7 @@ const CategoryPage = () => {
           </div>
         ) : (
           <>
+          {/* Mobil filter and Showing bar */}
             <div className="flex items-center justify-between mb-4 md:hidden">
               <div className="text-sm text-gray-700">
                 Showing{" "}
@@ -407,6 +408,7 @@ const CategoryPage = () => {
               </Button>
             </div>
 
+                {/* filter bar */}
             {showMobileFilters && (
               <div className="md:hidden bg-white rounded-2xl shadow-2xl border-2 border-primary/20 p-4 mb-4 z-40 max-w-full">
                 <div className="flex items-center justify-between mb-4">
@@ -594,6 +596,7 @@ const CategoryPage = () => {
               </div>
             )}
 
+            {/* Product */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 [@media(min-width:1600px)]:grid-cols-5 gap-4 sm:gap-5 [@media(min-width:1600px)]:gap-4">
               {displayProducts.map((p) => {
                 const discountPercent =
@@ -643,9 +646,9 @@ const CategoryPage = () => {
                       href={`/Products/${p.slug}`}
                       className="flex-1 flex flex-col"
                     >
-                      <div className="w-full px-2 mt-3 shrink-0">
+                      <div className="w-full shrink-0">
                         {p.image && p.image.length > 0 ? (
-                          <div className="relative w-full aspect-4/5 sm:aspect-square md:w-36 md:h-36 lg:w-44 lg:h-44 mx-auto bg-white rounded-xl md:rounded-full overflow-hidden border border-white md:border-4 shadow-lg">
+                          <div className="relative w-full h-50 md:w-36 md:h-36 lg:w-44 lg:h-44 mx-auto bg-white rounded-xs md:rounded-full overflow-hidden border border-white md:border-4">
                             <Image
                               src={p.image[0].url}
                               alt={p.product_name}
@@ -683,7 +686,7 @@ const CategoryPage = () => {
                         </div>
                       )}
 
-                      <div className="hidden md:block px-4 py-3 sm:px-4 sm:py-2 h-12 sm:h-12 md:h-18 overflow-hidden mt-1">
+                      <div className="px-4 py-3 sm:px-4 sm:py-2 h-12 sm:h-12 md:h-18 overflow-hidden mt-1">
                         <h2 className="text-[10px] sm:text-xs lg:text-sm text-color font-semibold line-clamp-2 md:line-clamp-3 leading-snug">
                           {p.description}
                         </h2>
@@ -726,9 +729,9 @@ const CategoryPage = () => {
                           e.stopPropagation();
                           handlerAddToCart(p);
                         }}
-                        className="block md:hidden sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400 ease-in-out active:scale-[0.97] border-2"
+                        className="flex md:hidden bg-secondary text-color cursor-pointer hover:bg-[#D6EED6]/90 transition-all duration-300 active:scale-95 rounded-full aspect-square p-0 min-w-[44px] min-h-[44px] w-11 h-11 shadow-sm"
                       >
-                        <ShoppingCart />
+                        <ShoppingCart size={20} />
                       </Button>
                     </div>
                   </div>

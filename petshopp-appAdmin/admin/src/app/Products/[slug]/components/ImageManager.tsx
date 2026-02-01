@@ -53,7 +53,7 @@ const ImageManager: React.FC<AdminImageManagerProps> = ({
                   onDeleteExisting(currentImage.publicId, currentImage._id);
                 }
               }}
-              className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-all hover:scale-110 z-10"
+              className="absolute top-3 right-3 bg-secondary hover:bg-white text-color rounded-full p-2 shadow-lg transition-all hover:scale-110 z-10 cursor-pointer"
               title="Delete this image"
             >
               <Trash2 size={18} />
@@ -92,7 +92,7 @@ const ImageManager: React.FC<AdminImageManagerProps> = ({
                   e.stopPropagation();
                   onDeleteExisting(img.publicId, img._id);
                 }}
-                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-1 right-1 bg-secondary hover:bg-white text-color rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                 title="Delete"
               >
                 <Trash2 size={14} />
@@ -122,7 +122,7 @@ const ImageManager: React.FC<AdminImageManagerProps> = ({
                 />
                 <button
                   onClick={() => onRemoveNew(index)}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 bg-secondary text-color rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   title="Remove"
                 >
                   <X size={14} />

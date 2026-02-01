@@ -89,6 +89,7 @@ const Navbar: React.FC<NavbarProps> = ({
   showFilters,
   setShowFilters,
   priceRange,
+  setPriceRange,
   tempPriceRange,
   setTempPriceRange,
   priceStats,
@@ -186,7 +187,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
   const handleLogout = async () => {
     try {
-   if (session?.user) {
+      if (session?.user) {
         await signOut({ redirect: false });
       } else {
         await axios.post(
@@ -254,23 +255,28 @@ const Navbar: React.FC<NavbarProps> = ({
     }, 400);
   };
 
+  // ✅ FIXED: Manual price input handlers
   const handleMinPriceInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const value = e.target.value;
     if (!priceStats || !setTempPriceRange || !tempPriceRange) return;
 
+    // Allow empty input for better UX
     if (value === "") {
       setTempPriceRange([priceStats.min, tempPriceRange[1]]);
       return;
     }
 
-    const numValue = parseInt(value);
-    if (isNaN(numValue)) return;
+    const numValue = Number(value);
+    
+    // Prevent invalid numbers
+    if (isNaN(numValue) || numValue < 0) return;
 
+    // Clamp between priceStats.min and current max (tempPriceRange[1])
     const clampedMin = Math.max(
       priceStats.min,
-      Math.min(numValue, tempPriceRange[1]),
+      Math.min(numValue, tempPriceRange[1])
     );
 
     setTempPriceRange([clampedMin, tempPriceRange[1]]);
@@ -282,31 +288,43 @@ const Navbar: React.FC<NavbarProps> = ({
     const value = e.target.value;
     if (!priceStats || !setTempPriceRange || !tempPriceRange) return;
 
+    // Allow empty input for better UX
     if (value === "") {
       setTempPriceRange([tempPriceRange[0], priceStats.max]);
       return;
     }
 
-    const numValue = parseInt(value);
-    if (isNaN(numValue)) return;
+    const numValue = Number(value);
+    
+    // Prevent invalid numbers
+    if (isNaN(numValue) || numValue < 0) return;
 
+    // Clamp between current min (tempPriceRange[0]) and priceStats.max
     const clampedMax = Math.min(
       priceStats.max,
-      Math.max(numValue, tempPriceRange[0]),
+      Math.max(numValue, tempPriceRange[0])
     );
 
     setTempPriceRange([tempPriceRange[0], clampedMax]);
   };
 
+  // ✅ FIXED: Apply button handler
   const applyManualPriceInput = () => {
-    if (!handlePriceChangeCommitted) return;
-    handlePriceChangeCommitted();
+    if (!setPriceRange || !tempPriceRange) return;
+    
+    // Update the actual priceRange state
+    setPriceRange(tempPriceRange);
+    
+    // Call the parent's commit handler if it exists
+    if (handlePriceChangeCommitted) {
+      handlePriceChangeCommitted();
+    }
   };
 
   return (
     <div
       className={`
-        lg:relative w-full z-50 opacity-95 lg:opacity-100
+        relative w-full z-50 opacity-95 lg:opacity-100
         ${
           isFilterablePage
             ? ""
@@ -394,10 +412,10 @@ const Navbar: React.FC<NavbarProps> = ({
               {showFilters && (
                 <div
                   ref={filterDropdownRef}
-                  className="fixed top-12 right-2 w-[calc(100vw-1rem)] sm:w-80 md:w-96 lg:w-[28rem] bg-white rounded-2xl shadow-2xl border-2 border-primary/20 p-4 sm:p-6 z-50"
+                  className="fixed top-12 right-2 w-[calc(100vw-1rem)] sm:w-80 md:w-96 lg:w-[28rem] bg-white rounded-2xl shadow-2xl border-2 border-primary/20 p-4 sm:p-6 z-50 max-h-[calc(100vh-5rem)] overflow-y-auto"
                 >
                   {/* HEADER */}
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-4 sticky top-0 bg-white pb-2 border-b border-gray-100">
                     <div className="flex items-center gap-2 text-primary font-bold text-lg">
                       <Filter size={20} />
                       <span>Filters & Sort</span>
@@ -405,7 +423,10 @@ const Navbar: React.FC<NavbarProps> = ({
 
                     {hasActiveFilters() && clearAllFilters && (
                       <Button
-                        onClick={clearAllFilters}
+                        onClick={() => {
+                          clearAllFilters();
+                          if (setShowFilters) setShowFilters(false);
+                        }}
                         className="bg-primary text-white hover:bg-[#D6EED6] hover:text-[#393E46] text-xs px-3 py-1.5 cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97]"
                       >
                         <X size={14} className="mr-1" />
@@ -415,7 +436,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   </div>
 
                   {/* SORT */}
-                  {setSortBy && sortBy && (
+                  {setSortBy && sortBy !== undefined && (
                     <div className="mb-4">
                       <label className="block text-sm font-semibold text-primary mb-2">
                         Sort By
@@ -423,7 +444,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border-2 border-primary/30 bg-white text-primary font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl border-2 border-primary/30 bg-white text-primary font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
                       >
                         {sortOptions.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -438,108 +459,125 @@ const Navbar: React.FC<NavbarProps> = ({
                   {priceStats &&
                     tempPriceRange &&
                     setTempPriceRange &&
-                    handlePriceChange &&
-                    handlePriceChangeCommitted && (
+                    handlePriceChange && (
                       <div className="mb-4">
-                        <label className="text-sm font-semibold text-primary flex items-center gap-2 mb-2">
+                        <label className="text-sm font-semibold text-primary flex items-center gap-2 mb-3">
                           <DollarSign size={16} />
-                          Price: ${tempPriceRange[0]} - ${tempPriceRange[1]}
+                          Price Range: ${tempPriceRange[0]} - ${tempPriceRange[1]}
                         </label>
 
                         {/* Manual Input Fields */}
-                        <div className="flex items-center gap-3 mb-4">
+                        <div className="flex items-end gap-2 mb-4">
                           <div className="flex-1">
-                            <label className="block text-xs text-gray-600 mb-1">
+                            <label className="block text-xs text-gray-600 mb-1 font-medium">
                               Min Price
                             </label>
                             <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                                $
+                              </span>
                               <input
                                 type="number"
                                 value={tempPriceRange[0]}
                                 onChange={handleMinPriceInputChange}
                                 min={priceStats.min}
                                 max={priceStats.max}
-                                className="w-full pl-7 pr-3 py-2 rounded-lg border-2 border-primary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                                className="w-full pl-7 pr-3 py-2.5 rounded-lg border-2 border-primary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none font-medium"
                               />
                             </div>
                           </div>
 
-                          <div className="text-gray-400 font-bold pt-5">-</div>
+                          <div className="text-gray-400 font-bold pb-2.5">—</div>
 
                           <div className="flex-1">
-                            <label className="block text-xs text-gray-600 mb-1">
+                            <label className="block text-xs text-gray-600 mb-1 font-medium">
                               Max Price
                             </label>
                             <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                                $
+                              </span>
                               <input
                                 type="number"
                                 value={tempPriceRange[1]}
                                 onChange={handleMaxPriceInputChange}
                                 min={priceStats.min}
                                 max={priceStats.max}
-                                className="w-full pl-7 pr-3 py-2 rounded-lg border-2 border-primary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                                className="w-full pl-7 pr-3 py-2.5 rounded-lg border-2 border-primary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none font-medium"
                               />
                             </div>
                           </div>
 
                           <Button
                             onClick={applyManualPriceInput}
-                            className="bg-primary text-white hover:bg-primary/90 px-4 py-2 mt-5 transition-all hover:scale-105 cursor-pointer"
+                            className="bg-primary text-white hover:bg-primary/90 px-4 py-2.5 h-[42px] transition-all hover:scale-105 cursor-pointer font-semibold"
                           >
                             Apply
                           </Button>
                         </div>
 
                         {/* Slider */}
-                        <Slider
-                          value={tempPriceRange}
-                          onChange={handlePriceChange}
-                          onChangeCommitted={handlePriceChangeCommitted}
-                          valueLabelDisplay="auto"
-                          min={priceStats.min}
-                          max={priceStats.max}
-                          sx={{
-                            color: "#57B394",
-                            height: 8,
-                            "& .MuiSlider-thumb": {
-                              width: 20,
-                              height: 20,
-                              backgroundColor: "#fff",
-                              border: "3px solid #57B394",
-                              "&:hover, &.Mui-focusVisible": {
-                                boxShadow: "0 0 0 8px rgba(87, 179, 148, 0.16)",
+                        <div className="px-1">
+                          <Slider
+                            value={tempPriceRange}
+                            onChange={handlePriceChange}
+                            onChangeCommitted={() => {
+                              if (setPriceRange) {
+                                setPriceRange(tempPriceRange);
+                              }
+                              if (handlePriceChangeCommitted) {
+                                handlePriceChangeCommitted();
+                              }
+                            }}
+                            valueLabelDisplay="auto"
+                            min={priceStats.min}
+                            max={priceStats.max}
+                            sx={{
+                              color: "#57B394",
+                              height: 8,
+                              "& .MuiSlider-thumb": {
+                                width: 20,
+                                height: 20,
+                                backgroundColor: "#fff",
+                                border: "3px solid #57B394",
+                                "&:hover, &.Mui-focusVisible": {
+                                  boxShadow: "0 0 0 8px rgba(87, 179, 148, 0.16)",
+                                },
                               },
-                            },
-                            "& .MuiSlider-track": {
-                              backgroundColor: "#57B394",
-                              borderColor: "#57B394",
-                            },
-                            "& .MuiSlider-rail": {
-                              backgroundColor: "#d1d5db",
-                              opacity: 0.5,
-                            },
-                          }}
-                        />
+                              "& .MuiSlider-track": {
+                                backgroundColor: "#57B394",
+                                borderColor: "#57B394",
+                              },
+                              "& .MuiSlider-rail": {
+                                backgroundColor: "#d1d5db",
+                                opacity: 0.5,
+                              },
+                              "& .MuiSlider-valueLabelOpen": {
+                                backgroundColor: "#57B394",
+                              },
+                            }}
+                          />
 
-                        <div className="flex justify-between text-xs text-gray-600 mt-1">
-                          <span>${priceStats.min}</span>
-                          <span>${priceStats.max}</span>
+                          <div className="flex justify-between text-xs text-gray-600 mt-2 font-medium">
+                            <span>${priceStats.min}</span>
+                            <span>${priceStats.max}</span>
+                          </div>
                         </div>
                       </div>
                     )}
 
                   {/* EXTRA FILTERS */}
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {setShowOnSale !== undefined &&
                       showOnSale !== undefined && (
-                        <label className="flex items-center gap-3 cursor-pointer">
+                        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50 transition-colors">
                           <input
                             type="checkbox"
                             checked={showOnSale}
                             onChange={(e) => setShowOnSale(e.target.checked)}
-                            className="w-5 h-5 rounded border-2 border-primary/30 text-primary"
+                            className="w-5 h-5 rounded border-2 border-primary/30 text-primary cursor-pointer focus:ring-2 focus:ring-primary/20"
                           />
-                          <span className="text-sm font-medium text-primary">
+                          <span className="text-sm font-semibold text-primary">
                             Show Only On Sale
                           </span>
                         </label>
@@ -547,7 +585,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
                     {setMinRating !== undefined && minRating !== undefined && (
                       <div>
-                        <label className="block text-sm font-semibold text-primary mb-2">
+                        <label className="block text-sm font-semibold text-primary mb-3">
                           Minimum Rating
                         </label>
                         <div className="flex gap-2 flex-wrap">
@@ -555,10 +593,10 @@ const Navbar: React.FC<NavbarProps> = ({
                             <button
                               key={rating}
                               onClick={() => setMinRating(rating)}
-                              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
                                 minRating === rating
                                   ? "bg-primary text-white shadow-md scale-105"
-                                  : "bg-white text-primary border border-primary/30 hover:scale-105"
+                                  : "bg-white text-primary border-2 border-primary/30 hover:scale-105 hover:border-primary/50"
                               }`}
                             >
                               {rating === 0 ? "All" : `${rating}★`}
@@ -576,7 +614,7 @@ const Navbar: React.FC<NavbarProps> = ({
           {/* SEARCH - RESPONSIVE */}
           <div
             ref={searchRef}
-            className="relative w-32 sm:w-44 md:w-56 lg:w-64 xl:w-72"
+            className="relative w-52 sm:w-44 md:w-56 lg:w-64 xl:w-72"
           >
             <TextField
               placeholder="Search..."
@@ -608,58 +646,117 @@ const Navbar: React.FC<NavbarProps> = ({
                 },
               }}
             />
-            {isSearchFocused && (
-              <div className="absolute top-full left-0 w-56 md:w-full mt-1 z-50">
-                {loading && (
-                  <div className="bg-white rounded shadow p-2 text-sm">
-                    Searching...
-                  </div>
-                )}
-                {!loading && searchQuery && searchResults.length === 0 && (
-                  <div className="bg-white rounded shadow p-2 text-sm">
-                    No results found
-                  </div>
-                )}
-                {!loading && searchResults.length > 0 && (
-                  <div className="bg-white shadow-lg rounded max-h-60 overflow-y-auto">
-                    {searchResults.map((product) => (
-                      <Link
-                        key={product._id}
-                        href={`/Products/${product.slug}`}
-                        onClick={() => {
-                          setIsSearchFocused(false);
-                          setSearchResults([]);
-                          setSearchQuery("");
-                        }}
-                        className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 transition border-b last:border-b-0"
-                      >
-                        <div className="relative w-10 h-10 shrink-0">
-                          {product.image?.length ? (
-                            <Image
-                              src={product.image[0].url}
-                              alt={product.product_name}
-                              fill
-                              sizes="40px"
-                              className="rounded-md object-cover border"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs">
-                              N/A
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <span className="text-sm font-semibold truncate">
-                            {product.product_name}
-                          </span>
-                          <span className="text-sm font-bold text-color">
-                            ${product.price.toFixed(2)}
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
+            {/* Injected keyframes */}
+            <style>{`
+              @keyframes searchFadeIn {
+                from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+                to   { opacity: 1; transform: translateY(0) scale(1); }
+              }
+              @keyframes dotBounce {
+                0%, 60%, 100% { transform: translateY(0); }
+                30%            { transform: translateY(-5px); }
+              }
+            `}</style>
+
+            {isSearchFocused && (searchQuery || loading) && (
+              <div
+                className="absolute top-full right-0 w-64 sm:w-72 md:w-full mt-2 z-50"
+                style={{ animation: "searchFadeIn 0.2s ease forwards" }}
+              >
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+
+                  {/* ─── LOADING ─── */}
+                  {loading && (
+                    <div className="flex flex-col items-center justify-center gap-3 px-4 py-8">
+                      <div className="flex gap-1.5">
+                        {[0, 1, 2].map((i) => (
+                          <span
+                            key={i}
+                            className="inline-block w-2 h-2 rounded-full bg-[#57B394]"
+                            style={{ animation: `dotBounce 0.9s ease-in-out ${i * 0.15}s infinite` }}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-400 font-semibold tracking-widest uppercase">
+                        Searching…
+                      </span>
+                    </div>
+                  )}
+
+                  {/* ─── EMPTY STATE ─── */}
+                  {!loading && searchQuery && searchResults.length === 0 && (
+                    <div className="flex flex-col items-center gap-2 px-4 py-7">
+                      <div className="w-11 h-11 rounded-full bg-[#eaf7f2] flex items-center justify-center">
+                        <Search size={18} className="text-[#57B394]" />
+                      </div>
+                      <p className="text-sm font-bold text-gray-600">No results found</p>
+                      <p className="text-xs text-gray-400 text-center leading-relaxed">
+                        Try a different keyword or check your spelling
+                      </p>
+                    </div>
+                  )}
+
+                  {/* ─── RESULTS ─── */}
+                  {!loading && searchResults.length > 0 && (
+                    <div className="max-h-64 md:max-h-72 overflow-y-auto">
+
+                      {/* Results header */}
+                      <div className="px-4 pt-3 pb-2 bg-[#f9fafb] border-b border-gray-100">
+                        <span className="text-xs font-bold text-gray-400 tracking-widest uppercase">
+                          {searchResults.length} Result{searchResults.length !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+
+                      {searchResults.map((product) => (
+                        <Link
+                          key={product._id}
+                          href={`/Products/${product.slug}`}
+                          onClick={() => {
+                            setIsSearchFocused(false);
+                            setSearchResults([]);
+                            setSearchQuery("");
+                          }}
+                          className="group flex items-center gap-3 px-4 py-3 hover:bg-[#eaf7f2] transition-colors duration-150 border-b border-gray-50 last:border-b-0"
+                        >
+                          {/* Thumbnail */}
+                          <div className="relative w-11 h-11 shrink-0 rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
+                            {product.image?.length ? (
+                              <Image
+                                src={product.image[0].url}
+                                alt={product.product_name}
+                                fill
+                                sizes="44px"
+                                className="object-cover group-hover:scale-105 transition-transform duration-200"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Search size={14} className="text-gray-300" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex flex-col flex-1 min-w-0">
+                            <span className="text-sm font-semibold text-gray-700 truncate group-hover:text-[#57B394] transition-colors duration-150">
+                              {product.product_name}
+                            </span>
+                            <span className="text-xs text-gray-400 truncate">
+                              {product.description?.slice(0, 42)}
+                              {(product.description?.length ?? 0) > 42 ? "…" : ""}
+                            </span>
+                          </div>
+
+                          {/* Price badge */}
+                          <div className="shrink-0 bg-[#eaf7f2] group-hover:bg-[#57B394] rounded-lg px-2.5 py-1 transition-colors duration-200">
+                            <span className="text-xs font-bold text-[#57B394] group-hover:text-white transition-colors duration-200">
+                              ${product.price.toFixed(2)}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -678,28 +775,29 @@ const Navbar: React.FC<NavbarProps> = ({
             </DropdownButton>
             {isAuthenticated && (
               <div className="z-200">
-              <DropdownMenu>
-                <DropdownLabel>My Account</DropdownLabel>
-                <DropdownItem href="/my-profile">
-                  <AccountCircleIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Profile
-                </DropdownItem>
-                <DropdownItem
-                  href="/favorite"
-                  className="flex items-center gap-2"
-                >
-                  <FavoriteBorderIcon sx={{ color: "#A8D1B5" }} />
-                  <span>Favorite</span>
-                  <span className="text-xs font-bold bg-secondary text-color px-2 py-0.5 rounded-xl">
-                    {favorites.length}
-                  </span>
-                </DropdownItem>
-                <DropdownItem href="/my-orders">
-                  <ReceiptIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Orders
-                </DropdownItem>
-                <DropdownItem href="/settings">
-                  <SettingsIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Settings
-                </DropdownItem>
-              </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownLabel>My Account</DropdownLabel>
+                  <DropdownItem href="/my-profile">
+                    <AccountCircleIcon sx={{ color: "#A8D1B5", mr: 1 }} />{" "}
+                    Profile
+                  </DropdownItem>
+                  <DropdownItem
+                    href="/favorite"
+                    className="flex items-center gap-2"
+                  >
+                    <FavoriteBorderIcon sx={{ color: "#A8D1B5" }} />
+                    <span>Favorite</span>
+                    <span className="text-xs font-bold bg-secondary text-color px-2 py-0.5 rounded-xl">
+                      {favorites.length}
+                    </span>
+                  </DropdownItem>
+                  <DropdownItem href="/my-orders">
+                    <ReceiptIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Orders
+                  </DropdownItem>
+                  <DropdownItem href="/settings">
+                    <SettingsIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Settings
+                  </DropdownItem>
+                </DropdownMenu>
               </div>
             )}
           </Dropdown>

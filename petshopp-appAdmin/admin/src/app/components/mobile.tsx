@@ -57,8 +57,9 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
 
   const adminMenu: MenuItem[] = isAuthenticated
     ? [
-        { text: "Admin Profile", href: "/admin/profile", icon: <AccountCircleIcon sx={{ color: "#A8D1B5" }} /> },
-        { text: "Admin Settings", href: "/admin/settings", icon: <SettingsIcon sx={{ color: "#A8D1B5" }} /> }
+        { text: "Product Stats", href: "/ProductStats", icon: <AccountCircleIcon sx={{ color: "#A8D1B5" }} /> },
+        { text: "User Activity", href: "/UserActivity", icon: <AccountCircleIcon sx={{ color: "#A8D1B5" }} /> },
+        { text: "Order Stats", href: "/OrderStats", icon: <AccountCircleIcon sx={{ color: "#A8D1B5" }} /> },
       ]
     : [];
 

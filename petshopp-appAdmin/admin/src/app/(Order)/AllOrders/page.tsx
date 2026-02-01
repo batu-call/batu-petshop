@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import CircularText from "@/components/CircularText";
 import Image from "next/image";
-import CloseIcon from "@mui/icons-material/Close";
 import {
   Pagination,
   PaginationContent,
@@ -25,6 +24,7 @@ type OrderItems = {
         product_name: string;
         image: { url: string }[];
         price: number;
+        slug: string;
       };
   name: string;
   price: number;
@@ -44,6 +44,7 @@ type User = {
   _id: string;
   name: string;
   email: string;
+  avatar: string;
 };
 
 export type OrdersType = {
@@ -109,7 +110,7 @@ const AllOrders = () => {
       if (localFilter.maxPrice) params.set("maxPrice", localFilter.maxPrice);
 
       router.push(`?${params.toString()}`, { scroll: false });
-    }, 600); 
+    }, 600);
 
     return () => {
       if (debounceTimeoutRef.current) {
@@ -164,7 +165,6 @@ const AllOrders = () => {
     appliedFilter.maxPrice,
   ]);
 
-  // Clear all filters
   const clearFilters = () => {
     const emptyFilters = {
       search: "",
@@ -329,7 +329,9 @@ const AllOrders = () => {
           {/* ORDERS LIST */}
           {orders.length === 0 ? (
             <div className="text-center py-16">
-              <div className="text-6xl mb-4 flex justify-center"><Package className="w-16 h-16 text-color2" /></div>
+              <div className="text-6xl mb-4 flex justify-center">
+                <Package className="w-16 h-16 text-color2" />
+              </div>
               <h3 className="text-2xl font-bold text-gray-700 mb-2">
                 No orders found
               </h3>
@@ -355,7 +357,7 @@ const AllOrders = () => {
               >
                 {/* MAIN ORDER INFO */}
                 <div
-                  className="grid grid-cols-1 lg:grid-cols-7 gap-2 p-4 bg-secondary text-color items-center cursor-pointer hover:bg-opacity-90 transition-colors"
+                  className="grid grid-cols-1 lg:grid-cols-7 gap-2 p-4 bg-[#f6f7f9] text-color items-center cursor-pointer hover:bg-opacity-90 transition-colors"
                   onClick={() =>
                     setExpandedOrder(expandedOrder === o._id ? null : o._id)
                   }
@@ -398,7 +400,7 @@ const AllOrders = () => {
                     <p className="lg:hidden text-xs text-gray-500 mb-1">
                       Total
                     </p>
-                    <span className="font-bold text-green-600">
+                    <span className="font-bold text-color">
                       ${o.totalAmount.toFixed(2)}
                     </span>
                   </div>
@@ -410,7 +412,7 @@ const AllOrders = () => {
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${
                         o.status === "delivered"
-                          ? "bg-green-100 text-green-700"
+                          ? "bg-green-100 text-[#97cba9]"
                           : o.status === "pending"
                             ? "bg-yellow-100 text-yellow-700"
                             : o.status === "shipped"
@@ -437,26 +439,39 @@ const AllOrders = () => {
                       <h3 className="font-semibold text-lg mb-2 text-color">
                         Shipping Address
                       </h3>
-                      <Link href={`userDetails/${o.user?._id}`}> 
-                      <div className="bg-gray-50 p-3 rounded">
-                        <p className="font-medium">
-                          {o.shippingAddress.fullName}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {o.shippingAddress.email}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {o.shippingAddress.phoneNumber}
-                        </p>
-                        <p className="text-sm text-gray-600 mt-2">
-                          {o.shippingAddress.address}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {o.shippingAddress.city},{" "}
-                          {o.shippingAddress.postalCode}
-                        </p>
-                      </div>
-                      </Link>
+                      {o.user && (
+                        <Link
+                          href={`/userDetails/${o.user._id}`}
+                        >
+                          <div className="bg-gray-50 p-3 rounded"
+                          onClick={(e) => e.stopPropagation()}
+                          >
+                            <Image
+                              src={o.user.avatar || "/default-avatar.png"}
+                              alt="user-avatar"
+                              width={240}
+                              height={240}
+                              className="rounded-md"
+                            />
+                            <p className="font-medium">
+                              {o.shippingAddress.fullName}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {o.shippingAddress.email}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {o.shippingAddress.phoneNumber}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-2">
+                              {o.shippingAddress.address}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {o.shippingAddress.city},{" "}
+                              {o.shippingAddress.postalCode}
+                            </p>
+                          </div>
+                        </Link>
+                      )}
                     </div>
 
                     <div>
@@ -464,44 +479,64 @@ const AllOrders = () => {
                         Products
                       </h3>
                       <div className="space-y-2">
-                        {o.items.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="flex gap-3 items-center border rounded p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
-                          >
-                            <div className="relative w-16 h-16 shrink-0">
-                              <Image
-                                src={
-                                  item.product &&
-                                  typeof item.product !== "string" &&
-                                  item.product.image?.length
-                                    ? item.product.image[0].url
-                                    : "/default-product.png"
-                                }
-                                alt={
-                                  item.product &&
-                                  typeof item.product !== "string"
-                                    ? item.product.product_name
-                                    : item.name || "Product image"
-                                }
-                                fill
-                                className="object-cover rounded"
-                                unoptimized
-                              />
+                        {o.items.map((item, idx) => {
+                          const product =
+                            typeof item.product !== "string"
+                              ? item.product
+                              : null;
+
+                          return (
+                            <div key={idx}>
+                              {product ? (
+                                <Link href={`/Products/${product.slug}`}>
+                                  <div
+                                    className="flex gap-3 items-center border rounded p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <div className="relative w-16 h-16 shrink-0">
+                                      <Image
+                                        src={
+                                          product.image?.length
+                                            ? product.image[0].url
+                                            : "/default-product.png"
+                                        }
+                                        alt={product.product_name}
+                                        fill
+                                        className="object-cover rounded"
+                                        sizes="64px"
+                                      />
+                                    </div>
+
+                                    <div className="flex-1">
+                                      <p className="font-semibold text-color">
+                                        {item.name}
+                                      </p>
+                                      <p className="text-sm text-gray-600">
+                                        {item.quantity} x $
+                                        {item.price.toFixed(2)} ={" "}
+                                        <span className="font-semibold text-[#97cba9]">
+                                          $
+                                          {(item.quantity * item.price).toFixed(
+                                            2,
+                                          )}
+                                        </span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                </Link>
+                              ) : (
+                                // product string ise linksiz göster
+                                <div className="flex gap-3 items-center border rounded p-3 bg-gray-50">
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-color">
+                                      {item.name}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            <div className="flex-1">
-                              <p className="font-semibold text-color">
-                                {item.name}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                {item.quantity} x ${item.price.toFixed(2)} ={" "}
-                                <span className="font-semibold text-green-600">
-                                  ${(item.quantity * item.price).toFixed(2)}
-                                </span>
-                              </p>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

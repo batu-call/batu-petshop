@@ -1,5 +1,5 @@
 import express from 'express'
-import { deleteProduct, deleteProductImage, featuredProducts, getAdminAllProduct, getAdminProductBySlug, getAllProduct, getHotDeals, getLatestProduct, getPriceStats, getProductById, getProductBySlug, getSimilarProducts, newProduct, searchProducts, updateProductController } from '../Controller/productController.js';
+import { deleteProduct, deleteProductImage, featuredProducts, getAdminAllProduct, getAdminProductBySlug, getAllProduct, getHotDeals, getLatestProduct, getPriceStats, getProductById, getProductBySlug, getProductStats, getSimilarProducts, newProduct, searchProducts, updateProductController } from '../Controller/productController.js';
 import { isAdminAuthenticated } from '../Middlewares/Auth.js';
 import upload from "../Config/multer.js"
 
@@ -12,6 +12,7 @@ router.delete("/products/:id", isAdminAuthenticated, deleteProduct);
 router.delete("/:productId/image/:imageId", isAdminAuthenticated, deleteProductImage);
 
 router.get("/search", searchProducts);
+router.get("/stats", isAdminAuthenticated, getProductStats);
 router.get("/latest/products", getLatestProduct);
 router.get("/products/slug/:slug", getProductBySlug);
 router.get("/products/:id", getProductById);

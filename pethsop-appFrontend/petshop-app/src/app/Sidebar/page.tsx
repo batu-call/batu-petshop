@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import Logo from "./Logo";
 
 const categories = [
   { slug: "Cat", label: "Cat", icon: "/cat_7721779.png" },
@@ -22,16 +23,7 @@ const Sidebar = () => {
     <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:flex-col bg-white md:w-24 lg:w-40 z-40">
       {/* LOGO */}
       <div className="flex justify-center py-4 shrink-0">
-  <Link href="/"> 
-    <Image
-      src="/logo.png"
-      alt="Pet Shop Logo"
-      width={160} 
-      height={160} 
-      className="w-16 md:w-24 lg:w-32 h-auto object-contain" 
-      priority 
-    />
-  </Link>
+    <Logo />
 </div>
 
       {/* CATEGORY MENU */}

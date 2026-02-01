@@ -34,13 +34,13 @@ const CartHeader: React.FC<CartHeaderProps> = ({ onClearCart }) => {
         Product Name
       </p>
       <div className="flex p-2 sm:w-2/3 justify-between">
-        <p className="text-color text-lg font-semibold text-center flex justify-center">
+        <p className="text-color text-lg font-semibold text-center flex justify-center ml-4">
           Quantity
         </p>
         <p className="text-color text-lg font-semibold text-center flex justify-center ml-8">
           Price
         </p>
-        <p className="text-color text-lg font-semibold text-center flex justify-center mr-12">
+        <p className="text-color text-lg font-semibold text-center flex justify-center mr-8">
           Total Price
         </p>
       </div>

@@ -20,27 +20,47 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   discountPercent,
 }) => {
   return (
-    <div className="w-full md:w-1/2 flex gap-2">
+    <div className="w-full md:w-1/2 flex flex-col-reverse md:flex-row gap-2">
       {/* Thumbnails */}
       {images && images.length > 1 && (
-        <div className="flex flex-col gap-3 p-2">
+        <div className="flex
+  flex-row
+  md:flex-col
+  gap-3
+  p-2
+  justify-center
+  overflow-x-auto
+  md:overflow-visible">
           {images.slice(0, 5).map((img, index) => (
             <div
               key={img._id || index}
               onClick={() => setSelectedImageIndex(index)}
-              className={`relative h-20 w-20 cursor-pointer rounded-lg overflow-hidden transition-all duration-300 bg-gray-100
-                ${
-                  selectedImageIndex === index
-                    ? "ring-4 ring-[#A8D1B5] scale-105 shadow-xl"
-                    : "ring-2 ring-gray-200 opacity-70 hover:opacity-100 hover:scale-105"
-                }`}
+              className={` relative
+  cursor-pointer
+  rounded-lg
+  overflow-hidden
+  transition-all
+  duration-300
+  bg-gray-100
+
+  h-12 w-12
+  sm:h-16 sm:w-16
+  md:h-14 md:w-14
+  lg:h-20 lg:w-20
+
+  ${
+    selectedImageIndex === index
+      ? "ring-4 ring-[#A8D1B5] scale-105 shadow-xl"
+      : "ring-2 ring-gray-200 opacity-70 hover:opacity-100 hover:scale-105"
+  }
+`}
             >
               <Image
                 src={img.url}
                 alt={`${productName} thumbnail ${index + 1}`}
                 fill
-                className="object-cover" 
-                sizes="80px"
+                className="object-cover"
+                sizes="(max-width: 640px) 56px, (max-width: 1024px) 64px, 80px"
               />
             </div>
           ))}

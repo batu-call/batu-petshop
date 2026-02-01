@@ -93,9 +93,11 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
 
         <Button
           onClick={onAddToCart}
-          className="bg-white hover:bg-white text-color font-medium py-2 rounded-lg mt-3 cursor-pointer transition duration-300 ease-in-out hover:scale-[1.02] active:scale-[0.97]"
+          className="bg-white hover:bg-white text-color font-bold py-2 rounded-lg mt-3 cursor-pointer transition duration-300 ease-in-out hover:scale-[1.02] active:scale-[0.97]"
         >
-          <p className="text-color text-jost">Add To Cart ({quantity})</p>
+          <p className="text-color p-2">Add To Cart <span className="text-xs font-bold bg-secondary text-color px-2 py-0.5 rounded-xl ml-2">
+                    {quantity}
+                  </span></p>
         </Button>
       </div>
     </div>

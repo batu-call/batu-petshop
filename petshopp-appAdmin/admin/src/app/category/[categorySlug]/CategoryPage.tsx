@@ -7,16 +7,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
-import { X } from "lucide-react";
+import { ShoppingCart, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import CircularText from "@/components/CircularText";
 
-
 import { Heart } from "lucide-react";
 import { Star } from "@mui/icons-material";
 import { useConfirm } from "@/app/Context/confirmContext";
-
 
 import {
   Pagination,
@@ -48,6 +46,7 @@ type Product = {
   salePrice?: number | null;
   image: ProductImage[];
   slug: string;
+  stock?: number;
 };
 
 const CategoryPage = () => {
@@ -61,8 +60,7 @@ const CategoryPage = () => {
   const [product, setProduct] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewStats, setReviewStats] = useState<ReviewStats>({});
-   const {confirm} = useConfirm();
-
+  const { confirm } = useConfirm();
 
   // 🔹 FETCH PRODUCTS
   useEffect(() => {
@@ -78,7 +76,7 @@ const CategoryPage = () => {
               category: categorySlug,
               page,
             },
-          }
+          },
         );
 
         setProduct(res.data.products || []);
@@ -98,7 +96,7 @@ const CategoryPage = () => {
     const fetchReviewStats = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/stats`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/stats`,
         );
         setReviewStats(response.data.stats);
       } catch {
@@ -109,9 +107,8 @@ const CategoryPage = () => {
     fetchReviewStats();
   }, []);
 
-
-   const handlerRemove = async (id: string) => {
-     const ok = await confirm({
+  const handlerRemove = async (id: string) => {
+    const ok = await confirm({
       title: "Delete Product",
       description: "Are you sure you want to delete this product?",
       confirmText: "Yes, Delete",
@@ -123,7 +120,7 @@ const CategoryPage = () => {
     try {
       const response = await axios.delete(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products/${id}`,
-        { withCredentials: true }
+        { withCredentials: true },
       );
       if (response.data.success) {
         toast.success(response.data.message || "Product deleted ✅");
@@ -140,15 +137,12 @@ const CategoryPage = () => {
     }
   };
 
- 
-
   //  PAGINATION
 
- const goToPage = (p: number) => {
-  router.push(`/category/${categorySlug}?page=${p}`, { scroll: false });
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
+  const goToPage = (p: number) => {
+    router.push(`/category/${categorySlug}?page=${p}`, { scroll: false });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const visibleCount = 5;
   let start = Math.max(2, page - Math.floor(visibleCount / 2));
@@ -185,17 +179,7 @@ const CategoryPage = () => {
             )}
 
             {/* PRODUCTS */}
-            <div
-              className="
-  grid
-  grid-cols-2
-  md:grid-cols-2
-  lg:grid-cols-3
-  xl:grid-cols-4
-  2xl:grid-cols-5
-  gap-4 sm:gap-6 lg:gap-8
-"
-            >
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 [@media(min-width:1600px)]:grid-cols-5 gap-4 sm:gap-5 [@media(min-width:1600px)]:gap-4">
               {product.map((p) => {
                 const discountPercent =
                   p.salePrice && p.salePrice < p.price
@@ -204,110 +188,128 @@ const CategoryPage = () => {
 
                 const stats = reviewStats[p._id];
                 return (
-                  <Link
+                  <div
                     key={p._id}
-                    href={`/Products/${p.slug}`}
-                    className="bg-primary w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative"
+                    className="bg-primary w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative group"
                   >
-                    {/* DISCOUNT BADGE */}
-                    {discountPercent > 0 && (
-                      <span className="absolute top-2 left-1 sm:top-2 sm:left-2 bg-secondary text-color text-[8px] sm:text-xs font-bold px-2 py-1 rounded-full z-10">
-                        %{discountPercent} OFF
-                      </span>
-                    )}
+                    <div className="absolute top-3 left-1 sm:left-2 z-10 flex flex-col gap-1">
+                      {discountPercent > 0 && (
+                        <span className="bg-secondary text-color text-[8px] sm:text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                          %{discountPercent} OFF
+                        </span>
+                      )}
 
-                    {/* favorite */}
-                    <button
-                    className="absolute top-0 right-0 md:top-2 md:right-2 transition duration-300 ease-in-out hover:scale-[1.02] cursor-pointer hover:text-white"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handlerRemove(p._id);
-                    }}
-                  >
-                    <X className="shadow-2xl m-2 opacity-80" />
-                  </button>
-
-                    {/* image */}
-                    <div className="flex items-center justify-center p-2 sm:p-4">
-                      {p.image && p.image.length > 0 ? (
-                        <Image
-                          src={p.image[0].url}
-                          alt={p.product_name}
-                          width={400}
-                          height={400}
-                          sizes="
-    (max-width: 640px) 50vw,
-    (max-width: 1024px) 33vw,
-    (max-width: 1536px) 25vw,
-    20vw
-  "
-  loading="eager"
-                          className="rounded-full w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-44 lg:h-44 xl:w-44 xl:h-44 object-cover border-2 md:border-4 border-white shadow-2xl"
-                        />
-                      ) : (
-                        <p className="text-white text-sm">No image!</p>
+                      {Number(p.stock) > 0 && Number(p.stock) < 6 && (
+                        <span className="border border-red-200 text-color text-[8px] sm:text-xs font-medium px-2 py-1 rounded-full bg-white">
+                          Only {p.stock} left
+                        </span>
                       )}
                     </div>
 
-                    <div className="px-2 sm:px-4 py-1 sm:py-2 text-center">
-                      <h2 className="text-white text-xs sm:text-base md:text-lg truncate font-semibold">
-                        {p.product_name}
-                      </h2>
-                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlerRemove(p._id);
+                      }}
+                      className="
+    absolute 
+    top-1 right-1
+    sm:top-2 sm:right-2
+    md:top-3 md:right-3
+    z-10
+    rounded-full
+    bg-white/80
+    backdrop-blur
+    p-1.5
+    transition-all duration-200 ease-in-out
+    hover:scale-105 hover:bg-[#97cba9] hover:text-white
+    active:scale-95
+    cursor-pointer
+  "
+                    >
+                      <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
 
-                    {/* Review stars & count */}
-                    {stats && stats.count > 0 && (
-                      <div className="flex items-center justify-center gap-1 text-gray-200 mt-1">
-                        <div className="flex text-yellow-500">
-                          {[...Array(Math.round(stats.avgRating))].map(
-                            (_, i) => (
-                              <Star key={i} sx={{ fontSize: 16 }} />
-                            )
-                          )}
-                        </div>
-                        <span className="text-[10px] text-color3 font-semibold">
-                          ( {stats.count} )
-                        </span>
+                    <Link
+                      href={`/Products/${p.slug}`}
+                      className="flex-1 flex flex-col"
+                    >
+                      <div className="w-full shrink-0">
+                        {p.image && p.image.length > 0 ? (
+                          <div className="relative w-full h-50 md:w-36 md:h-36 lg:w-44 lg:h-44 mx-auto bg-white rounded-xs md:rounded-full overflow-hidden border border-white md:border-4">
+                            <Image
+                              src={p.image[0].url}
+                              alt={p.product_name}
+                              fill
+                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                              className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-110"
+                              priority={false}
+                            />
+                          </div>
+                        ) : (
+                          <p className="text-white text-sm text-center">
+                            No image!
+                          </p>
+                        )}
                       </div>
-                    )}
 
-                     <div className="px-4 py-3 sm:px-4 sm:py-2 h-12 sm:h-12 md:h-16 lg:h-20 overflow-hidden mt-1">
-                      <h2 className="text-[10px] sm:text-xs lg:text-sm text-color font-semibold line-clamp-2 md:line-clamp-3 leading-snug">
-                        {p.description}
-                      </h2>
-                    </div>
+                      <div className="px-2 sm:px-4 py-1 sm:py-2 text-center">
+                        <h2 className="text-white text-lg sm:text-base md:text-lg truncate font-semibold">
+                          {p.product_name}
+                        </h2>
+                      </div>
 
-                    <div className="flex flex-col sm:flex-row gap-2 justify-between items-center px-2 sm:px-4 py-2">
+                      {stats && stats.count > 0 && (
+                        <div className="flex items-center justify-center gap-1 text-gray-200 mt-1">
+                          <div className="flex text-yellow-500">
+                            {[...Array(Math.round(stats.avgRating))].map(
+                              (_, i) => (
+                                <Star key={i} sx={{ fontSize: 16 }} />
+                              ),
+                            )}
+                          </div>
+                          <span className="text-[10px] text-color3 font-semibold">
+                            ( {stats.count} )
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="px-4 py-3 sm:px-4 sm:py-2 h-12 sm:h-12 md:h-18 overflow-hidden mt-1">
+                        <h2 className="text-[10px] sm:text-xs lg:text-sm text-color font-semibold line-clamp-2 md:line-clamp-3 leading-snug">
+                          {p.description}
+                        </h2>
+                      </div>
+                    </Link>
+
+                    <div className="flex gap-2 justify-between items-center px-2 sm:px-4 py-2">
                       <div className="flex flex-col items-center">
                         {p.salePrice && p.salePrice < p.price ? (
                           <>
                             <span className="line-through text-color text-xs opacity-55 font-bold">
-                              ${(p.price).toFixed(2)}
+                              ${p.price.toFixed(2)}
                             </span>
-                            <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
-                              ${(p.salePrice).toFixed(2)}
+                            <span className="text-color text-md sm:text-base xl:text-lg font-semibold">
+                              ${p.salePrice.toFixed(2)}
                             </span>
                           </>
                         ) : (
-                          <span className="text-color text-sm sm:text-base xl:text-lg font-semibold">
-                            ${(p.price).toFixed(2)}
+                          <span className="text-color text-md sm:text-base xl:text-lg font-semibold">
+                            ${p.price.toFixed(2)}
                           </span>
                         )}
                       </div>
 
-                      <Button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                        className="w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400 ease-in-out
-    active:scale-[0.97]"
-                      >
+                      <Button className="hidden md:block w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400 ease-in-out active:scale-[0.97]">
                         Add To Cart
                       </Button>
+
+                      {/* mobil cart */}
+                      <Button className="flex md:hidden bg-secondary text-color cursor-pointer hover:bg-[#D6EED6]/90 transition-all duration-300 active:scale-95 rounded-full aspect-square p-0 min-w-[44px] min-h-[44px] w-11 h-11 shadow-sm">
+                        <ShoppingCart size={20} />
+                      </Button>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>

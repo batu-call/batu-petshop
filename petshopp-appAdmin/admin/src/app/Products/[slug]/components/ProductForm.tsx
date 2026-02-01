@@ -57,7 +57,8 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({
   onUpdate,
   onDelete,
 }) => {
-  const categoryValue = typeof category === 'string' ? category : category?.name || '';
+  const categoryValue =
+    typeof category === "string" ? category : category?.name || "";
 
   return (
     <div className="w-full md:w-1/2 p-8 flex flex-col justify-between gap-6">
@@ -73,50 +74,79 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({
         className="text-color text-lg bg-white border p-2 rounded"
       />
 
-      {/* Category Selector */}
-      <TextField
-        select
-        label="Category"
-        value={categoryValue}
-        onChange={(e) => onCategoryChange(e.target.value)}
-        fullWidth
-        sx={{
-          "& .MuiInputLabel-root.Mui-focused": { color: "#B1CBBB" },
-          "& .MuiOutlinedInput-root": {
-            backgroundColor: "white",
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#B1CBBB",
+      <div className="flex flex-col gap-2">
+        <label className="text-lg text-color font-semibold">Category</label>
+        <TextField
+          select
+          value={categoryValue}
+          onChange={(e) => onCategoryChange(e.target.value)}
+          fullWidth
+          size="medium"
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              backgroundColor: "#ffffff",
+              borderRadius: "14px",
+              fontSize: "15px",
+
+              "& fieldset": {
+                borderColor: "#E5E7EB",
+              },
+
+              "&:hover fieldset": {
+                borderColor: "#97cba9",
+              },
+
+              "&.Mui-focused fieldset": {
+                borderColor: "#97cba9",
+                borderWidth: "2px",
+              },
             },
-          },
-          "& .MuiSelect-select": { color: "#393E46" },
-        }}
-        SelectProps={{
-          MenuProps: {
-            PaperProps: {
-              sx: {
-                "& .MuiMenuItem-root": {
-                  color: "#393E46",
-                  "&:hover": {
-                    backgroundColor: "rgba(177, 203, 187, 0.2)",
-                  },
-                  "&.Mui-selected": {
-                    backgroundColor: "rgba(177, 203, 187, 0.3)",
-                  },
-                  "&.Mui-selected:hover": {
-                    backgroundColor: "rgba(177, 203, 187, 0.4)",
+
+            "& .MuiSelect-select": {
+              color: "#111827",
+              padding: "14px",
+            },
+          }}
+          SelectProps={{
+            MenuProps: {
+              PaperProps: {
+                sx: {
+                  mt: 1,
+                  borderRadius: "14px",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+
+                  "& .MuiMenuItem-root": {
+                    fontSize: "14px",
+                    color: "#111827",
+                    borderRadius: "10px",
+                    mx: 1,
+                    my: 0.5,
+
+                    "&:hover": {
+                      backgroundColor: "rgba(151, 203, 169, 0.15)",
+                    },
+
+                    "&.Mui-selected": {
+                      backgroundColor: "rgba(151, 203, 169, 0.25)",
+                      fontWeight: 600,
+                    },
+
+                    "&.Mui-selected:hover": {
+                      backgroundColor: "rgba(151, 203, 169, 0.35)",
+                    },
                   },
                 },
               },
             },
-          },
-        }}
-      >
-        {CATEGORIES.map((cat) => (
-          <MenuItem key={cat} value={cat}>
-            {cat}
-          </MenuItem>
-        ))}
-      </TextField>
+          }}
+        >
+          {CATEGORIES.map((cat) => (
+            <MenuItem key={cat} value={cat}>
+              {cat}
+            </MenuItem>
+          ))}
+        </TextField>
+      </div>
 
       <div className="flex flex-col gap-2">
         <label className="text-lg text-color font-semibold">Price ($)</label>

@@ -51,38 +51,37 @@ const Navbar = () => {
   };
 
   const NavbarMenu = [
-  {
-    key: "products",
-    label: "Products",
-    items: [
-      { label: "Add Product", href: "/AddProduct" },
-      { label: "All Products", href: "/AllProduct" },
-      { label: "Product Stats", href: "/ProductStats" },
-    ],
-  },
-  {
-    key: "users",
-    label: "Users",
-    items: [
-      { label: "All Users", href: "/AllUsers" },
-      { label: "All Admin", href: "/AllAdmin" },
-      { label: "Add Admin", href: "/AddAdmin" },
-      { label: "User Activity", href: "/UserActivity" },
-    ],
-  },
-  {
-    key: "orders",
-    label: "Orders",
-    items: [
-      { label: "All Orders", href: "/AllOrders" },
-      { label: "Processing Orders", href: "/ProcessingOrders" },
-      { label: "Completed Orders", href: "/CompletedOrders" },
-      { label: "Pricing & Promotions", href: "/AllCoupon" },
-      { label: "Order Stats", href: "/OrderStats" },
-    ],
-  },
-];
-
+    {
+      key: "products",
+      label: "Products",
+      items: [
+        { label: "Add Product", href: "/AddProduct" },
+        { label: "All Products", href: "/AllProduct" },
+        { label: "Product Stats", href: "/ProductStats" },
+      ],
+    },
+    {
+      key: "users",
+      label: "Users",
+      items: [
+        { label: "All Users", href: "/AllUsers" },
+        { label: "All Admin", href: "/AllAdmin" },
+        { label: "Add Admin", href: "/AddAdmin" },
+        { label: "User Activity", href: "/UserActivity" },
+      ],
+    },
+    {
+      key: "orders",
+      label: "Orders",
+      items: [
+        { label: "All Orders", href: "/AllOrders" },
+        { label: "Processing Orders", href: "/ProcessingOrders" },
+        { label: "Completed Orders", href: "/CompletedOrders" },
+        { label: "Pricing & Promotions", href: "/AllCoupon" },
+        { label: "Order Stats", href: "/OrderStats" },
+      ],
+    },
+  ];
 
   const handleLogout = async () => {
     try {
@@ -90,7 +89,7 @@ const Navbar = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/admin/logout`,
         {
           withCredentials: true,
-        }
+        },
       );
       if (response.data.success) {
         toast.success("Logged out successfully!");
@@ -116,7 +115,7 @@ const Navbar = () => {
             <MobileMenu anchor="left" />
           </div>
 
-            {/* Page Name */}
+          {/* Page Name */}
           <div className="hidden md:flex items-center p-4">
             <h1 className="text-xl font-bold text-white">{pageTitle()}</h1>
           </div>
@@ -147,104 +146,100 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Menu */}
-        <div
-         className="hidden lg:flex md:ml-24 gap-8 justify-center mb-12 mr-4 p-2 absolute top-2 right-2 z-100">
+        <div className="hidden lg:flex md:ml-24 gap-8 justify-center mb-12 mr-4 p-2 absolute top-2 right-2 z-100">
           {NavbarMenu.map((menu) => (
             <div key={menu.key} className="relative group">
               <button className="w-40 h-9 rounded-xl bg-secondary text-color flex items-center justify-center gap-2 transition duration-300 ease-in-out hover:scale-105">
                 <span>{menu.label}</span>
                 <ChevronDown
-          size={16}
-          className="transition-transform duration-300 group-hover:rotate-180"
-        />
-              </button>    
+                  size={16}
+                  className="transition-transform duration-300 group-hover:rotate-180"
+                />
+              </button>
               <div className="absolute top-full hidden group-hover:flex flex-col w-48 bg-white shadow-lg rounded-xl z-10">
-                {menu.items.map((item) =>(
-                  <Link key={item.href} 
-                  href={item.href} 
-                  className="px-4 py-2 hover:bg-gray-200 border-b last:border-b-0 border-secondary transition duration-200 rounded-xl hover:scale-[1.05]
+                {menu.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="px-4 py-2 hover:bg-gray-200 border-b last:border-b-0 border-secondary transition duration-200 rounded-xl hover:scale-[1.05]
     active:scale-[0.97]
      "
                   >
-                     {item.label}
+                    {item.label}
                   </Link>
                 ))}
-                </div> 
-                      
+              </div>
             </div>
-            
           ))}
-           <Button
-    onClick={handleLogout}
-    className="bg-secondary text-color w-40 text-base hover:bg-secondary cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05]
+          <Button
+            onClick={handleLogout}
+            className="bg-secondary text-color w-40 text-base hover:bg-secondary cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05]
     active:scale-[0.97]
      hover:shadow-md"
-  >
-    Logout
-  </Button>
+          >
+            Logout
+          </Button>
         </div>
       </div>
 
       {menuOpen && (
-  <div
-    className="fixed inset-0 bg-black/10 z-40 lg:hidden"
-    onClick={() => {
-      setMenuOpen(false);
-      setOpenDropdown(null);
-    }}
-  />
-)}
+        <div
+          className="fixed inset-0 bg-black/10 z-40 lg:hidden"
+          onClick={() => {
+            setMenuOpen(false);
+            setOpenDropdown(null);
+          }}
+        />
+      )}
 
       {/* Mobile Menu */}
-     {menuOpen && (
-  <div className="lg:hidden fixed top-14 left-0 right-0 flex flex-col pb-4 border-t border-gray-700 bg-primary z-50">
-    {NavbarMenu.map((menu) => {
-      const isOpen = openDropdown === menu.key;
+      {menuOpen && (
+        <div className="lg:hidden fixed top-14 left-0 right-0 flex flex-col pb-1 border-t border-gray-700 bg-primary z-50">
+          {NavbarMenu.map((menu) => {
+            const isOpen = openDropdown === menu.key;
 
-      return (
-        <div
-          key={menu.key}
-          className="border border-secondary rounded-md overflow-hidden md:ml-24 "
-        >
-          {/* HEADER */}
-          <button
-            onClick={() => toggleDropdown(menu.key)}
-            className="w-full flex items-center justify-between px-4 py-3 text-color bg-primary transition"
-          >
-            <span className="font-medium">{menu.label}</span>
-            <ChevronDown
-              size={18}
-              className={`transition-transform duration-300 ${
-                isOpen ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-
-          {/* ITEMS */}
-          {isOpen && (
-            <div className="flex flex-col bg-secondary">
-              {menu.items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setOpenDropdown(null);
-                  }}
-                  className="px-6 py-3 text-sm text-color border-t border-secondary transition hover:bg-primary/10"
+            return (
+              <div
+                key={menu.key}
+                className="border border-secondary rounded-md overflow-hidden md:ml-24 "
+              >
+                {/* HEADER */}
+                <button
+                  onClick={() => toggleDropdown(menu.key)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-color bg-primary transition"
                 >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          )}
+                  <span className="font-medium">{menu.label}</span>
+                  <ChevronDown
+                    size={18}
+                    className={`transition-transform duration-300 ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* ITEMS */}
+                {isOpen && (
+                  <div className="flex flex-col bg-secondary">
+                    {menu.items.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setOpenDropdown(null);
+                        }}
+                        className="px-6 py-3 text-sm text-color border-t border-secondary transition hover:bg-primary/10"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      );
-    })}
-  </div>
-)}
-
-
+      )}
     </div>
   );
 };

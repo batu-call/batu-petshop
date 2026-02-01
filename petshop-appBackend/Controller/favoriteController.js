@@ -47,7 +47,7 @@ export const getFavorite = catchAsyncError(async (req, res, next) => {
         { isActive: { $exists: false } },
       ],
     },
-    select: "product_name price salePrice description image slug",
+    select: "product_name price salePrice description image slug stock",
   });
 
   const favoriteProducts = favorites

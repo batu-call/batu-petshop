@@ -9,6 +9,7 @@ import Sidebar from "@/app/Sidebar/page";
 import { usePathname } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
 import ScrollToTop from "./components/ScrollToTop";
+import { useEffect } from "react";
 
 export default function Providers({
   children,
@@ -16,6 +17,10 @@ export default function Providers({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    window.scrollTo(0, 0); 
+  }, [pathname]);
 
   // Pages that have their own Navbar component with filters
   const hasCustomNavbar =
@@ -48,8 +53,8 @@ export default function Providers({
                 className={
                   !hideNavbarAndSidebar
                     ? hasCustomNavbar
-                      ? "md:ml-24 lg:ml-40" // ✅ Category sayfalarında pt yok
-                      : "md:ml-24 lg:ml-40 pt-14 lg:pt-0"
+                      ? "md:ml-24 lg:ml-40" 
+                      : "md:ml-24 lg:ml-40"
                     : ""
                 }
               >

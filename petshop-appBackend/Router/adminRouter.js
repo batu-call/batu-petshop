@@ -1,8 +1,6 @@
 import express from 'express'
 import { newAdmin, getAdminDetails, AdminLogout, getAllUser, getUserDetails, adminLogin, getAdmin, deleteAdmin } from '../Controller/userController.js';
 import { isAdminAuthenticated } from '../Middlewares/Auth.js';
-import { User } from '../Models/userSchema.js';
-import ErrorHandler from '../Middlewares/errorMiddleware.js';
 import upload from '../Config/multer.js';
 
 const router = express.Router();

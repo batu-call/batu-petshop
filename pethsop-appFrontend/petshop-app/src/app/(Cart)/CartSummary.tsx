@@ -158,15 +158,21 @@ const CartSummary: React.FC<CartSummaryProps> = ({
                   onClick={async (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const ok = await confirm({
-                      title: "Remove Coupon",
-                      description:
-                        "Are you sure you want to remove the applied coupon?",
-                      confirmText: "Yes, Remove",
-                      cancelText: "Cancel",
-                      variant: "destructive",
-                    });
-                    if (ok) removeCoupon();
+                    
+                    // Mobilde direkt sil, desktop'ta confirm göster
+                    if (window.innerWidth < 1024) {
+                      removeCoupon();
+                    } else {
+                      const ok = await confirm({
+                        title: "Remove Coupon",
+                        description:
+                          "Are you sure you want to remove the applied coupon?",
+                        confirmText: "Yes, Remove",
+                        cancelText: "Cancel",
+                        variant: "destructive",
+                      });
+                      if (ok) removeCoupon();
+                    }
                   }}
                   className="bg-white text-color py-1 rounded-md hover:opacity-80 cursor-pointer transition duration-300 ease-in-out active:scale-[0.97]"
                 >

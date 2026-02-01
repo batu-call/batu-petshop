@@ -19,7 +19,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 const Register = () => {
   const router = useRouter();
-  const { setUser, isAuthenticated ,setIsAuthenticated } = useContext(AuthContext);
+  const { setUser, isAuthenticated, setIsAuthenticated } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -43,14 +43,11 @@ const Register = () => {
 
   const [file, setFile] = useState<File | null>(null);
 
-   useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated) {
       router.replace("/");
     }
   }, [isAuthenticated, router]);
-
-
-
 
   type FormInputNames = keyof formDataType;
 
@@ -114,8 +111,8 @@ const Register = () => {
           />
         </div>
       ) : (
-        <div className="md:ml-24 lg:ml-40 p-4 flex justify-center">
-          <div className="w-full max-w-5xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[650px]">
+        <div className="p-4 flex items-center justify-center h-full">
+          <div className="w-full max-w-5xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row">
             {/* LEFT IMAGE */}
             <div className="hidden md:block w-1/2 relative">
               <div
@@ -135,10 +132,10 @@ const Register = () => {
             </div>
 
             {/* RIGHT FORM */}
-            <div className="w-full md:w-1/2 p-8 md:p-12 lg:p-16 bg-white">
-              <Box display="flex" flexDirection="column" gap={3} width="100%">
-                <div className="mb-8">
-                  <h2 className="text-3xl font-bold mb-2 text-color">
+            <div className="w-full md:w-1/2 p-8 md:p-10 lg:p-12 bg-white flex flex-col justify-center">
+              <Box display="flex" flexDirection="column" gap={2.5} width="100%">
+                <div className="mb-4">
+                  <h2 className="text-3xl font-bold mb-1 text-color">
                     Create Account
                   </h2>
                   <p className="text-[#6d7e73] text-sm">
@@ -146,7 +143,7 @@ const Register = () => {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <TextField
                     label="First Name"
                     name="firstName"
@@ -219,7 +216,7 @@ const Register = () => {
                       onChange={(phone) => setFormData({ ...formData, phone })}
                       inputStyle={{
                         width: "100%",
-                        height: "56px",
+                        height: "48px",
                         borderRadius: "8px",
                         border: "1px solid #B1CBBB",
                       }}
@@ -273,14 +270,14 @@ const Register = () => {
                 <Box
                   display="flex"
                   alignItems="center"
-                  gap={3}
-                  mt={4}
-                  p={2}
+                  gap={2}
+                  mt={2}
+                  p={1.5}
                   border="1px solid #eee"
                   borderRadius={2}
                 >
                   <div className="relative cursor-pointer">
-                    <div className="relative w-24 h-24 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden">
+                    <div className="relative w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden">
                       {file ? (
                         <Image
                           src={URL.createObjectURL(file)}
@@ -289,7 +286,7 @@ const Register = () => {
                           className="object-cover rounded-full"
                         />
                       ) : (
-                        <AddAPhotoIcon />
+                        <AddAPhotoIcon fontSize="small" />
                       )}
                       <input
                         type="file"
@@ -299,7 +296,7 @@ const Register = () => {
                     </div>
                   </div>
                   <div>
-                    <p className="font-bold text-sm">Profile Photo</p>
+                    <p className="font-bold text-xs">Profile Photo</p>
                     <p className="text-xs text-gray-500">
                       JPG or PNG supported
                     </p>
@@ -309,17 +306,17 @@ const Register = () => {
                 <Button
                   onClick={handlerSubmit}
                   className="
-    w-full 
-    mt-3 
-    rounded-[20px] 
-    bg-primary 
-    text-[#393E46] 
-    hover:bg-[#D6EED6]
-    cursor-pointer
-    transition duration-300 ease-in-out hover:scale-[1.05]
-    active:scale-[0.97]
-     hover:shadow-md
-  "
+                    w-full 
+                    mt-2
+                    rounded-[20px] 
+                    bg-primary 
+                    text-[#393E46] 
+                    hover:bg-[#D6EED6]
+                    cursor-pointer
+                    transition duration-300 ease-in-out hover:scale-[1.05]
+                    active:scale-[0.97]
+                    hover:shadow-md
+                  "
                 >
                   <span className="text-md font-semibold">Register</span>
                 </Button>

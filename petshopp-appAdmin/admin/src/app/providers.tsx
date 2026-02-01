@@ -8,9 +8,14 @@ import Navbar from "./Navbar/page";
 import Sidebar from "./Sidebar/page";
 import { usePathname } from "next/navigation";
 import ToastProvider from "@/components/ui/ToastProvider";
+import { useEffect } from "react";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    window.scrollTo(0, 0); 
+  }, [pathname]);
 
   const isLoginPage = pathname === "/";
 

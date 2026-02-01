@@ -15,6 +15,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import CircularText from "@/components/CircularText";
 
 type Message = {
   id: number;
@@ -286,10 +287,10 @@ const Page = () => {
   return (
     <div className="flex flex-col min-h-screen">
       {loading ? (
-        <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      ) : (
+          <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
+            <CircularText text="LOADING" spinDuration={20} className="text-white text-4xl" />
+          </div>
+        ) : (
         <>
           <div className="hidden md:flex justify-between items-center p-4 lg:p-6 sticky top-0 bg-white z-20 border-b border-border-light">
             <h2 className="text-lg lg:text-xl font-semibold text-color">
