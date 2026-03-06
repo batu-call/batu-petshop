@@ -1,8 +1,8 @@
 "use client";
 import axios from "axios";
-import { createContext, useState, ReactNode, useEffect, useRef } from "react";
+import { createContext, useState, ReactNode, useEffect, useRef, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
+import toast from "react-hot-toast";
 
 export interface User {
   _id: string;
@@ -22,6 +22,8 @@ interface AuthContextType {
   setIsAuthenticated: (auth: boolean) => void;
   loading: boolean;
   refreshUser: () => Promise<void>;
+  logout: () => Promise<void>;
+  deleteAccount: (userId: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -31,6 +33,8 @@ export const AuthContext = createContext<AuthContextType>({
   setIsAuthenticated: () => {},
   loading: true,
   refreshUser: async () => {},
+  logout: async () => {},
+  deleteAccount: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -44,7 +48,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const hasCheckedAuth = useRef(false);
   const isCheckingAuth = useRef(false);
 
-  // Public routes
   const publicRoutes = ["/Login", "/Register", "/forgot-password", "/reset-password"];
   const isPublicRoute = publicRoutes.some(route =>
     pathname?.startsWith(route)
@@ -74,14 +77,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(false);
       }
     } catch (error: any) {
-      const status = error.response?.status;
-
       setUser(null);
       setIsAuthenticated(false);
-
-      if ((status === 401 || status === 403) && !isPublicRoute) {
-        router.replace("/Login");
-      }
     } finally {
       setLoading(false);
       isCheckingAuth.current = false;
@@ -94,19 +91,61 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await checkAuth();
   };
 
+  const logout = useCallback(async () => {
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/logout`,
+        {},
+        { withCredentials: true }
+      );
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+      hasCheckedAuth.current = false;
+      
+      localStorage.removeItem("appliedCoupon");
+      
+      router.push("/");
+    }
+  }, [router]);
+
+  const deleteAccount = useCallback(async (userId: string) => {
+    try {
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/${userId}`,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        toast.success("Account deleted successfully");
+        
+        setUser(null);
+        setIsAuthenticated(false);
+        hasCheckedAuth.current = false;
+        
+        localStorage.removeItem("appliedCoupon");
+        
+        router.push("/");
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || "Failed to delete account");
+      } else {
+        throw new Error("Failed to delete account");
+      }
+    }
+  }, [router]);
+
   useEffect(() => {
     if (hasCheckedAuth.current) return;
-
     checkAuth();
   }, []);
 
-  useEffect(() => {
-    if (isPublicRoute) return;
-
-    if (!hasCheckedAuth.current) {
-      checkAuth();
-    }
-  }, [pathname]);
+ useEffect(() => {
+  checkAuth();
+}, [pathname]);
 
   return (
     <AuthContext.Provider
@@ -117,6 +156,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated,
         loading,
         refreshUser,
+        logout,
+        deleteAccount,
       }}
     >
       {children}

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export const viewport = {
   themeColor: "#97cba9",
-  colorScheme: "light",
+  colorScheme: "light only",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
       <body className={`antialiased ${jost.className}`}>
         <Providers>{children}</Providers>
       </body>

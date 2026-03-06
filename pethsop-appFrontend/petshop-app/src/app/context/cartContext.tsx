@@ -112,9 +112,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     if (loading) return;
     
     if (isAuthenticated && user) {
-      fetchCart(); // Artık güvenli
+      fetchCart();
     } else if (!isAuthenticated) {
-      // Logout durumu
       setCart([]);
       setCoupon(null);
       setSubtotal(0);

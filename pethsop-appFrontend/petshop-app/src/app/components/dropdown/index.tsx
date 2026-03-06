@@ -2,22 +2,9 @@
 import React, { useState, useRef, useEffect, createContext, useContext, ReactNode } from "react";
 import Link from "next/link";
 
-
-interface DropdownProps {
-  children: ReactNode;
-}
-
-interface DropdownItemProps {
-  children: ReactNode;
-  href?: string;
-  onClick?: () => void;
-  className?: string;
-}
-
-interface DropdownLabelProps {
-  children: ReactNode;
-}
-
+interface DropdownProps { children: ReactNode; }
+interface DropdownItemProps { children: ReactNode; href?: string; onClick?: () => void; className?: string; }
+interface DropdownLabelProps { children: ReactNode; }
 interface DropdownContextType {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,7 +12,6 @@ interface DropdownContextType {
 }
 
 const DropdownContext = createContext<DropdownContextType | undefined>(undefined);
-
 
 export const Dropdown = ({ children }: DropdownProps) => (
   <DropdownProvider>
@@ -39,10 +25,7 @@ export const DropdownButton = ({ children }: DropdownProps) => {
   const { setOpen } = context;
 
   return (
-    <button
-      onClick={() => setOpen((o) => !o)}
-      className="flex items-center cursor-pointer"
-    >
+    <button onClick={() => setOpen((o) => !o)} className="flex items-center cursor-pointer">
       {children}
     </button>
   );
@@ -58,7 +41,7 @@ export const DropdownMenu = ({ children }: DropdownProps) => {
   return (
     <div
       ref={menuRef}
-      className="absolute right-0 mt-2 w-56 bg-white shadow-xl rounded-xl py-2 z-50 border border-gray-200"
+      className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#162820] shadow-xl rounded-xl py-2 z-50 border border-gray-200 dark:border-white/10"
     >
       {children}
     </div>
@@ -68,9 +51,9 @@ export const DropdownMenu = ({ children }: DropdownProps) => {
 export const DropdownItem = ({ children, href, onClick, className }: DropdownItemProps) => {
   const context = useContext(DropdownContext);
   if (!context) throw new Error("DropdownItem must be used within Dropdown");
-
   const { setOpen } = context;
-  const base = "px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer block";
+
+  const base = "px-4 py-2 text-sm text-gray-700 dark:text-[#c8e6d0] hover:bg-gray-100 dark:hover:bg-[#1e3d2a] cursor-pointer block transition-colors duration-150";
 
   const handleClick = () => {
     setOpen(false);
@@ -92,13 +75,15 @@ export const DropdownItem = ({ children, href, onClick, className }: DropdownIte
   );
 };
 
-
-export const DropdownDivider = () => <div className="border-t border-gray-200 my-2" />;
-
-export const DropdownLabel = ({ children }: DropdownLabelProps) => (
-  <div className="px-4 py-2 text-xs text-gray-400 uppercase">{children}</div>
+export const DropdownDivider = () => (
+  <div className="border-t border-gray-200 dark:border-white/10 my-2" />
 );
 
+export const DropdownLabel = ({ children }: DropdownLabelProps) => (
+  <div className="px-4 py-2 text-xs text-gray-400 dark:text-[#7aab8a] uppercase tracking-wide">
+    {children}
+  </div>
+);
 
 const DropdownProvider = ({ children }: DropdownProps) => {
   const [open, setOpen] = useState(false);

@@ -19,20 +19,27 @@ const categories = [
 const Sidebar = () => {
   const pathname = usePathname();
 
+  const handleLogoClick = () => {
+    if (pathname === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
-    <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:flex-col bg-white md:w-24 lg:w-40 z-40">
+    <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:flex-col bg-white dark:bg-[#1a3d2a] md:w-24 lg:w-40 z-40">
       {/* LOGO */}
-      <div className="flex justify-center py-4 shrink-0">
-    <Logo />
-</div>
+      <div
+        className="flex justify-center py-4 shrink-0 cursor-pointer"
+        onClick={handleLogoClick}
+      >
+        <Logo />
+      </div>
 
       {/* CATEGORY MENU */}
       <nav className="flex-1 overflow-y-auto px-2">
         <ul className="flex flex-col gap-3 py-4">
           {categories.map((cat) => {
-           const href = `/category/${cat.slug}`;
-
-     
+            const href = `/category/${cat.slug}`;
             const active = pathname.startsWith(href);
 
             return (
@@ -41,9 +48,9 @@ const Sidebar = () => {
                   <div
                     className={`flex items-center justify-center lg:justify-start
                     gap-3 px-3 py-2 rounded-2xl transition duration-300 ease-in-out hover:scale-[1.05]
-    active:scale-[0.97]
-                    ${active ? "bg-[#DDEEDD]" : "bg-primary"}
-                    hover:bg-[#DDEEDD] hover:scale-105`}
+                    active:scale-[0.97] 
+                    ${active ? "bg-[#DDEEDD] dark:bg-[#0b8457]" : "bg-primary"}
+                    hover:bg-[#DDEEDD] hover:dark:bg-[#0b8457] hover:scale-105`}
                   >
                     <div className="relative w-6 h-6 lg:w-8 lg:h-8 shrink-0">
                       <Image
@@ -54,8 +61,9 @@ const Sidebar = () => {
                         className="object-contain"
                       />
                     </div>
-
-                    <span className="hidden lg:block text-white text-lg font-semibold">
+                    <span
+                      className={`hidden lg:block text-lg text-white hover:text-[#B1CBBB] font-semibold ${active ? "text-color2" : "text-white"}`}
+                    >
                       {cat.label}
                     </span>
                   </div>
@@ -71,10 +79,16 @@ const Sidebar = () => {
         <Link href="/Contact">
           <div
             className={`flex justify-center lg:justify-start px-3 py-2 rounded-2xl
-            transition-all hover:scale-105
-            ${pathname === "/Contact" ? "bg-[#DDEEDD]" : "bg-primary"}`}
+            transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97]
+            ${pathname === "/Contact"
+              ? "bg-[#DDEEDD] dark:bg-[#0b8457]"
+              : "bg-primary dark:bg-primary"
+            }
+            hover:bg-[#DDEEDD] hover:dark:bg-[#0b8457]`}
           >
-            <span className="text-white text-lg font-semibold">Contact</span>
+            <span className={`text-lg font-semibold ${pathname === "/Contact" ? "text-color2" : "text-white"}`}>
+              Contact
+            </span>
           </div>
         </Link>
       </div>

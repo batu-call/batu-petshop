@@ -15,6 +15,8 @@ import couponRouter from "./Router/couponRoutes.js";
 import shippingRouter from "./Router/shippingRouter.js";
 import messageRouter from "./Router/messageRouter.js";
 import mailRouter from "./Router/mailRouter.js";
+import stripeRoutes from "./Router/stripeRoutes.js"
+import aiRoutes from "./Router/aiRoutes.js"
 import { errorMiddleware } from "./Middlewares/errorMiddleware.js";
 
 const app = express();
@@ -24,10 +26,10 @@ config({ path: "./Config/config.env" });
 
 // Middleware
 const allowedOrigins = [
-        "https://batu-petshop-app.vercel.app",
-         "https://batu-petshop-admin.vercel.app",
-      //  process.env.FRONTEND_URL,
-      //   process.env.ADMIN_URL,
+        // "https://batu-petshop-app.vercel.app",
+        //  "https://batu-petshop-admin.vercel.app",
+        process.env.FRONTEND_URL,
+         process.env.ADMIN_URL,
 ].filter(Boolean);
 
 const corsOptions = {
@@ -59,16 +61,18 @@ dbConncetion();
 // Routes
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/admin", adminRouter);
-app.use("/api/v1/product", productRouter);
+app.use("/api/v1/product",productRouter);
 app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/order", orderRouter);
-app.use("/api/v1/analytics", analyticsRouter);
+app.use("/api/v1/analytics",analyticsRouter);
 app.use("/api/v1/reviews", reviewsRouter);
 app.use("/api/v1/favorite", favoriteRouter);
 app.use("/api/v1/coupon", couponRouter);
 app.use("/api/v1/shipping", shippingRouter);
 app.use("/api/v1/message", messageRouter);
 app.use("/api/v1/mail", mailRouter);
+app.use("/api/v1/stripe", stripeRoutes);
+app.use("/api/v1/ai", aiRoutes);
 app.use(errorMiddleware);
 
 export default app;

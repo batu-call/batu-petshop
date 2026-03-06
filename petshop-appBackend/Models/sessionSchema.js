@@ -16,6 +16,8 @@ const sessionSchema = new mongoose.Schema({
   duration: {
     type: Number,
   },
+  ipAddress: { type: String, default: "Unknown" },
+  userAgent: { type: String, default: "Unknown" },
 });
 
 sessionSchema.pre("save", function (next) {

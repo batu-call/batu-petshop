@@ -29,6 +29,7 @@ const CartSchema = new mongoose.Schema(
     appliedCoupon: {
       code: String,
       percent: Number,
+      discountAmount: Number,
     },
   },
   { timestamps: true }

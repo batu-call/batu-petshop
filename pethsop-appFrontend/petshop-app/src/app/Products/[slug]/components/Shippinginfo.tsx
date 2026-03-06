@@ -4,10 +4,10 @@ import React from "react";
 const ShippingInfo: React.FC = () => {
   return (
     <div className="mx-auto max-w-[800px] px-6 py-4">
-      <h2 className="text-color2 text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
+      <h2 className="text-color2 dark:text-[#0E5F44]! text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
         Returns Policy
       </h2>
-      <div className="text-xl md:text-2xl text-color text-jost leading-relaxed mb-12">
+      <div className="text-xl md:text-2xl text-color dark:text-[#0b8457]! leading-relaxed mb-12">
         <ul className="list-disc list-inside space-y-3">
           <li>You can return your order within 14 days of delivery.</li>
           <li>
@@ -32,10 +32,10 @@ const ShippingInfo: React.FC = () => {
           </li>
         </ul>
       </div>
-      <h2 className="text-color2 text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
+      <h2 className="text-color2 dark:text-[#0b8457]! text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
         Shipping Information
       </h2>
-      <div className="text-xl md:text-2xl text-color text-jost leading-relaxed">
+      <div className="text-xl md:text-2xl text-color dark:text-[#0b8457]! leading-relaxed">
         <ul className="list-disc list-inside space-y-3">
           <li>Orders are processed within 1–3 business days.</li>
           <li>

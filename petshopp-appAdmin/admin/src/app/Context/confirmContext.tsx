@@ -52,7 +52,7 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
       <Dialog open={open} onOpenChange={(o) => !o && close(false)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-color">{options.title || "Are you sure?"}</DialogTitle>
+            <DialogTitle className="text-color dark:text-[#0E5F44]!">{options.title || "Are you sure?"}</DialogTitle>
             {options.description && (
               <DialogDescription>{options.description}</DialogDescription>
             )}

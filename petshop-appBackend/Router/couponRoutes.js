@@ -8,14 +8,19 @@ import {
   updateCoupon,
 } from '../Controller/couponController.js';
 import { isUserAuthenticated, isAdminAuthenticated } from '../Middlewares/Auth.js';
+import { couponLimiter, adminActionLimiter } from '../Middlewares/Ratelimiter.js';
 
 const router = express.Router();
 
-router.post("/apply", isUserAuthenticated, applyCoupon); 
-router.post("/", isUserAuthenticated, isAdminAuthenticated, createCoupon);
+router.post("/apply", isUserAuthenticated, couponLimiter, applyCoupon); 
+
+// Admin
+router.post("/", isAdminAuthenticated, adminActionLimiter, createCoupon);
+router.put("/:id", isAdminAuthenticated, adminActionLimiter, updateCoupon);
+router.delete("/:id", isAdminAuthenticated, adminActionLimiter, deleteCoupon);
+
+// Public/Read 
 router.get("/", getCoupons); 
-router.get("/:id", getCouponById); 
-router.put("/:id", isUserAuthenticated, isAdminAuthenticated, updateCoupon);
-router.delete("/:id", isUserAuthenticated, isAdminAuthenticated, deleteCoupon);
+router.get("/:id", getCouponById);
 
 export default router;

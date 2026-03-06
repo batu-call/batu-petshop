@@ -1,0 +1,34 @@
+services:
+  backend:
+    build:
+      context: ./petshop-appBackend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./petshop-appBackend/Config/config.env
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./pethsop-appFrontend/petshop-app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./pethsop-appFrontend/petshop-app/.env.local
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: ./petshopp-appAdmin/admin
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./petshopp-appAdmin/admin/.env
+    depends_on:
+      - backend
+    restart: unless-stopped

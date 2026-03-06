@@ -53,12 +53,17 @@ export const isUserAuthenticated = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("User not found", 404));
   }
 
-  if (user.role !== "User") {
-    return next(
-      new ErrorHandler(`${user.role} not authorized for this resource!`, 403)
-    );
-  }
-
   req.user = user;
   next();
 });
+
+export const isAuthorized = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!allowedRoles.includes(req.user.role)) {
+      return next(
+        new ErrorHandler(`Role ${req.user.role} is not authorized for this resource`, 403)
+      );
+    }
+    next();
+  };
+};

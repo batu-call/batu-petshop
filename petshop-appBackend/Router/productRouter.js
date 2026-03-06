@@ -1,28 +1,81 @@
-import express from 'express'
-import { deleteProduct, deleteProductImage, featuredProducts, getAdminAllProduct, getAdminProductBySlug, getAllProduct, getHotDeals, getLatestProduct, getPriceStats, getProductById, getProductBySlug, getProductStats, getSimilarProducts, newProduct, searchProducts, updateProductController } from '../Controller/productController.js';
-import { isAdminAuthenticated } from '../Middlewares/Auth.js';
-import upload from "../Config/multer.js"
+import express from "express";
+import {
+  deleteProduct,
+  deleteProductImage,
+  featuredProducts,
+  getAdminAllProduct,
+  getAdminProductBySlug,
+  getAllProduct,
+  getHotDeals,
+  getLatestProduct,
+  getPriceStats,
+  getProductById,
+  getProductBySlug,
+  getProductStats,
+  getSimilarProducts,
+  newProduct,
+  searchProducts,
+  updateProductController,
+} from "../Controller/product/index.js";
+import { isAdminAuthenticated } from "../Middlewares/Auth.js";
+import upload from "../Config/multer.js";
+import {
+  productBrowseLimiter,
+  searchLimiter,
+  adminWriteLimiter,
+} from "../Middlewares/Ratelimiter.js";
 
 const router = express.Router();
 
-router.post("/products", isAdminAuthenticated, upload.array("images", 6), newProduct);
-router.put("/update/:id", isAdminAuthenticated, upload.array("images", 6), updateProductController);
-router.delete("/products/:id", isAdminAuthenticated, deleteProduct);
+// PUBLIC ROUTES
+router.get("/latest/products", productBrowseLimiter, getLatestProduct);
+router.get("/products/slug/:slug", productBrowseLimiter, getProductBySlug);
+router.get("/products/:id", productBrowseLimiter, getProductById);
+router.get("/products", productBrowseLimiter, getAllProduct);
+router.get("/similar/:productId", productBrowseLimiter, getSimilarProducts);
+router.get("/hot-deals", productBrowseLimiter, getHotDeals);
+router.get("/featured-product", productBrowseLimiter, featuredProducts);
+router.get("/price-stats", productBrowseLimiter, getPriceStats);
 
-router.delete("/:productId/image/:imageId", isAdminAuthenticated, deleteProductImage);
+router.get("/search", searchLimiter, searchProducts);
 
-router.get("/search", searchProducts);
+// ADMIN READ ROUTES
 router.get("/stats", isAdminAuthenticated, getProductStats);
-router.get("/latest/products", getLatestProduct);
-router.get("/products/slug/:slug", getProductBySlug);
-router.get("/products/:id", getProductById);
-router.get("/products", getAllProduct);
-router.get("/similar/:productId", getSimilarProducts);
-router.get("/hot-deals", getHotDeals);
-router.get("/featured-product", featuredProducts);
-router.get("/price-stats", getPriceStats);
-
 router.get("/admin/products", isAdminAuthenticated, getAdminAllProduct);
-router.get("/admin/products/slug/:slug", isAdminAuthenticated, getAdminProductBySlug);
+router.get(
+  "/admin/products/slug/:slug",
+  isAdminAuthenticated,
+  getAdminProductBySlug,
+);
+
+// ADMIN WRITE
+router.post(
+  "/products",
+  isAdminAuthenticated,
+  adminWriteLimiter,
+  upload.array("images", 6),
+  newProduct,
+);
+
+router.put(
+  "/update/:id",
+  isAdminAuthenticated,
+  adminWriteLimiter,
+  upload.array("images", 6),
+  updateProductController,
+);
+
+router.delete(
+  "/products/:id",
+  isAdminAuthenticated,
+  adminWriteLimiter,
+  deleteProduct,
+);
+router.delete(
+  "/:productId/image/:imageId",
+  isAdminAuthenticated,
+  adminWriteLimiter,
+  deleteProductImage,
+);
 
 export default router;

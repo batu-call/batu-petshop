@@ -1,4 +1,4 @@
-import NextAuth, { AuthOptions, Session } from "next-auth";
+import NextAuth, { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions: AuthOptions = {
@@ -11,11 +11,19 @@ export const authOptions: AuthOptions = {
 
   secret: process.env.NEXTAUTH_SECRET, 
 
-  callbacks: {
-    async session({ session }: { session: Session }) {
-      return session;
-    },
+callbacks: {
+  async jwt({ token, account }) {
+    if (account?.provider === "google") {
+      token.idToken = account.id_token;
+    }
+    return token;
   },
+
+  async session({ session, token }) {
+    session.idToken = token.idToken as string;
+    return session;
+  },
+},
 };
 
 const handler = NextAuth(authOptions);

@@ -1,14 +1,16 @@
 import express from "express"
 import { isUserAuthenticated } from "../Middlewares/Auth.js"
-import { addFavorite, getFavorite, removeFavorite } from "../Controller/favoriteController.js"
+import { addFavorite, clearFavorites, getFavorite, removeFavorite } from "../Controller/favoriteController.js"
+import { favoriteLimiter } from "../Middlewares/Ratelimiter.js"
 
 
     const router = express.Router()
 
 
-router.post("/add",isUserAuthenticated,addFavorite)
+router.post("/add",isUserAuthenticated,favoriteLimiter,addFavorite)
 router.get("/",isUserAuthenticated,getFavorite)
-router.delete("/remove/:productId",isUserAuthenticated,removeFavorite)
+router.delete("/clear", isUserAuthenticated,favoriteLimiter, clearFavorites);
+router.delete("/remove/:productId",isUserAuthenticated,favoriteLimiter,removeFavorite)
 
 
 export default router

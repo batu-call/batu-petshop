@@ -1,13 +1,11 @@
 import axios from "axios";
 
-export const saveGoogleUser = async (profile: any) => {
+export const saveGoogleUser = async (session: any) => {
   try {
     const { data } = await axios.post(
       `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/google-login`,
       {
-        email: profile.email,
-        name: profile.name,
-        image: profile.picture,
+        idToken: session.idToken,
       },
       { withCredentials: true }
     );

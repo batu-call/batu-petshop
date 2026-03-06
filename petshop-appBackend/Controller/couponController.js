@@ -2,6 +2,11 @@ import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import ErrorHandler from "../Middlewares/errorMiddleware.js";
 import { Cart } from "../Models/CartSchema.js";
 import Coupon from "../Models/couponSchema.js";
+import {
+  sanitizeString,
+  sanitizeObjectId,
+  sanitizeNumber,
+} from "../utils/securityHelper.js";
 
 export const createCoupon = catchAsyncError(async (req, res, next) => {
   const code = req.body.code?.trim().toUpperCase();
@@ -10,15 +15,44 @@ export const createCoupon = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Coupon code is required", 400));
   }
 
-  const exists = await Coupon.findOne({ code });
+  const sanitizedCode = sanitizeString(code);
+
+  const exists = await Coupon.findOne({ code: sanitizedCode });
   if (exists) {
     return next(new ErrorHandler("Coupon already exists", 400));
   }
 
-  const coupon = await Coupon.create({
-    ...req.body,
-    code,
-  });
+  const couponData = {
+    code: sanitizedCode,
+  };
+
+  if (req.body.percent) {
+    try {
+      couponData.percent = sanitizeNumber(req.body.percent, 1, 100);
+    } catch (error) {
+      return next(new ErrorHandler("Invalid percent value (1-100)", 400));
+    }
+  } else {
+    return next(new ErrorHandler("Percent is required", 400));
+  }
+
+  if (req.body.minAmount) {
+    try {
+      couponData.minAmount = sanitizeNumber(req.body.minAmount, 0, 1000000);
+    } catch (error) {
+      return next(new ErrorHandler("Invalid minimum amount", 400));
+    }
+  }
+
+  if (req.body.expiryDate) {
+    const expiryDate = new Date(req.body.expiryDate);
+    if (isNaN(expiryDate.getTime())) {
+      return next(new ErrorHandler("Invalid expiry date", 400));
+    }
+    couponData.validUntil = expiryDate;
+  }
+
+  const coupon = await Coupon.create(couponData);
 
   res.status(201).json({
     success: true,
@@ -28,17 +62,49 @@ export const createCoupon = catchAsyncError(async (req, res, next) => {
 
 export const getCoupons = catchAsyncError(async (req, res, next) => {
   const coupons = await Coupon.find();
+
+  const enrichedCoupons = coupons.map((coupon) => {
+    const couponObj = coupon.toObject();
+
+    let status = "active";
+    if (couponObj.validUntil) {
+      const now = new Date();
+      const expiryDate = new Date(couponObj.validUntil);
+
+      if (now > expiryDate) {
+        status = "expired";
+      } else if (couponObj.validFrom && now < new Date(couponObj.validFrom)) {
+        status = "scheduled";
+      }
+    }
+
+    return {
+      ...couponObj,
+      expiryDate: couponObj.validUntil || null,
+      status,
+      usageCount: couponObj.usedCount || 0,
+    };
+  });
+
   res.status(200).json({
     success: true,
-    data: coupons,
+    data: enrichedCoupons,
   });
 });
 
 export const getCouponById = catchAsyncError(async (req, res, next) => {
-  const coupon = await Coupon.findById(req.params.id);
+  let couponId;
+  try {
+    couponId = sanitizeObjectId(req.params.id);
+  } catch (error) {
+    return next(new ErrorHandler("Invalid coupon ID", 400));
+  }
+
+  const coupon = await Coupon.findById(couponId);
   if (!coupon) {
     return next(new ErrorHandler("Coupon not found", 404));
   }
+
   res.status(200).json({
     success: true,
     data: coupon,
@@ -46,12 +112,22 @@ export const getCouponById = catchAsyncError(async (req, res, next) => {
 });
 
 export const updateCoupon = catchAsyncError(async (req, res, next) => {
+  let couponId;
+  try {
+    couponId = sanitizeObjectId(req.params.id);
+  } catch (error) {
+    return next(new ErrorHandler("Invalid coupon ID", 400));
+  }
+
+  const updateData = {};
+
   if (req.body.code) {
-    req.body.code = req.body.code.trim().toUpperCase();
+    const sanitizedCode = sanitizeString(req.body.code.trim().toUpperCase());
+    updateData.code = sanitizedCode;
 
     const exists = await Coupon.findOne({
-      code: req.body.code,
-      _id: { $ne: req.params.id },
+      code: sanitizedCode,
+      _id: { $ne: couponId },
     });
 
     if (exists) {
@@ -59,7 +135,31 @@ export const updateCoupon = catchAsyncError(async (req, res, next) => {
     }
   }
 
-  const coupon = await Coupon.findByIdAndUpdate(req.params.id, req.body, {
+  if (req.body.percent) {
+    try {
+      updateData.percent = sanitizeNumber(req.body.percent, 1, 100);
+    } catch (error) {
+      return next(new ErrorHandler("Invalid percent value (1-100)", 400));
+    }
+  }
+
+  if (req.body.minAmount !== undefined) {
+    try {
+      updateData.minAmount = sanitizeNumber(req.body.minAmount, 0, 1000000);
+    } catch (error) {
+      return next(new ErrorHandler("Invalid minimum amount", 400));
+    }
+  }
+
+  if (req.body.expiryDate) {
+    const expiryDate = new Date(req.body.expiryDate);
+    if (isNaN(expiryDate.getTime())) {
+      return next(new ErrorHandler("Invalid expiry date", 400));
+    }
+    updateData.validUntil = expiryDate;
+  }
+
+  const coupon = await Coupon.findByIdAndUpdate(couponId, updateData, {
     new: true,
   });
 
@@ -74,10 +174,18 @@ export const updateCoupon = catchAsyncError(async (req, res, next) => {
 });
 
 export const deleteCoupon = catchAsyncError(async (req, res, next) => {
-  const coupon = await Coupon.findByIdAndDelete(req.params.id);
+  let couponId;
+  try {
+    couponId = sanitizeObjectId(req.params.id);
+  } catch (error) {
+    return next(new ErrorHandler("Invalid coupon ID", 400));
+  }
+
+  const coupon = await Coupon.findByIdAndDelete(couponId);
   if (!coupon) {
     return next(new ErrorHandler("Coupon not found", 404));
   }
+
   res.status(200).json({
     success: true,
     message: "Coupon deleted",
@@ -87,12 +195,14 @@ export const deleteCoupon = catchAsyncError(async (req, res, next) => {
 export const applyCoupon = catchAsyncError(async (req, res, next) => {
   const { code } = req.body;
 
-  if (!code) {
+  if (!code || typeof code !== "string") {
     return next(new ErrorHandler("Coupon code is required", 400));
   }
 
+  const sanitizedCode = sanitizeString(code.toUpperCase());
+
   const coupon = await Coupon.findOne({
-    code: code.toUpperCase(),
+    code: sanitizedCode,
     status: true,
   });
 
@@ -100,7 +210,6 @@ export const applyCoupon = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Invalid or expired coupon", 400));
   }
 
-  
   if (coupon.percent <= 0 || coupon.percent > 100) {
     return next(new ErrorHandler("Invalid coupon percent", 400));
   }
@@ -115,18 +224,24 @@ export const applyCoupon = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Coupon expired", 400));
   }
 
-  const cart = await Cart.findOne({ user: req.user._id });
+  
+  const cart = await Cart.findOne({ user: req.user._id }).populate(
+    "items.product",
+    "price salePrice"
+  );
 
   if (!cart || cart.items.length === 0) {
     return next(new ErrorHandler("Cart is empty", 400));
   }
 
-  const subTotal = cart.items.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
 
-  if (coupon.minAmount && subTotal < coupon.minAmount) {
+  const subTotal = cart.items.reduce((acc, item) => {
+    const price = item.product?.salePrice ?? item.product?.price ?? 0;
+    return acc + price * item.quantity;
+  }, 0);
+
+
+  if (coupon.minAmount && coupon.minAmount > 0 && subTotal < coupon.minAmount) {
     return next(
       new ErrorHandler(
         `Minimum order amount is $${coupon.minAmount}`,
@@ -139,15 +254,18 @@ export const applyCoupon = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Coupon already applied", 400));
   }
 
-  let discountAmount = Math.round(
-    (subTotal * coupon.percent) / 100
-  );
+  const discountAmount = Math.round((subTotal * coupon.percent) / 100);
 
   cart.appliedCoupon = {
     code: coupon.code,
     percent: coupon.percent,
-    discountAmount,
+    discountAmount, 
   };
+
+  if (coupon.usedCount !== undefined) {
+    coupon.usedCount += 1;
+    await coupon.save();
+  }
 
   await cart.save();
 

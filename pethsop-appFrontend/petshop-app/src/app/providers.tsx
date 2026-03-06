@@ -10,6 +10,9 @@ import { usePathname } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
 import ScrollToTop from "./components/ScrollToTop";
 import { useEffect } from "react";
+import ScrollToTopButton from "./components/ScrollToTopButton";
+import CustomerChatWidget from "./chat/page";
+import { ThemeProvider } from "next-themes";
 
 export default function Providers({
   children,
@@ -19,52 +22,58 @@ export default function Providers({
   const pathname = usePathname();
 
   useEffect(() => {
-    window.scrollTo(0, 0); 
+    window.scrollTo(0, 0);
   }, [pathname]);
 
-  // Pages that have their own Navbar component with filters
   const hasCustomNavbar =
     pathname === "/AllProduct" ||
     pathname.startsWith("/category");
 
-  // Pages that don't need navbar or sidebar at all
   const hideNavbarAndSidebar =
     pathname === "/forgot-password" ||
     pathname.startsWith("/reset-password") ||
-    pathname === "/Success";
+    pathname === "/Success" ||
+    !pathname;
 
   return (
-    <SessionProvider>
-      <AuthProvider>
-        <ScrollToTop />
-        <CartProvider>
-          <FavoriteProvider>
-            <ConfirmProvider>
-              {!hideNavbarAndSidebar && (
-                <>
-                  {/* Show default Navbar only if page doesn't have custom navbar */}
-                  {!hasCustomNavbar && <Navbar />}
-                  
-                  <Sidebar />
-                </>
-              )}
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      disableTransitionOnChange={true}
+    >
+      <SessionProvider>
+        <CustomerChatWidget />
+        <AuthProvider>
+          <ScrollToTop />
+          <CartProvider>
+            <FavoriteProvider>
+              <ConfirmProvider>
+                {!hideNavbarAndSidebar && (
+                  <>
+                    {!hasCustomNavbar && <Navbar />}
+                    <Sidebar />
+                  </>
+                )}
 
-              <main
-                className={
-                  !hideNavbarAndSidebar
-                    ? hasCustomNavbar
-                      ? "md:ml-24 lg:ml-40" 
-                      : "md:ml-24 lg:ml-40"
-                    : ""
-                }
-              >
-                {children}
-              </main>
-            </ConfirmProvider>
-          </FavoriteProvider>
-        </CartProvider>
-        <ToastProvider />
-      </AuthProvider>
-    </SessionProvider>
+                <main
+                  className={
+                    !hideNavbarAndSidebar
+                      ? hasCustomNavbar
+                        ? "md:ml-24 lg:ml-40"
+                        : "md:ml-24 lg:ml-40"
+                      : ""
+                  }
+                >
+                  {children}
+                </main>
+              </ConfirmProvider>
+            </FavoriteProvider>
+          </CartProvider>
+          <ToastProvider />
+          <ScrollToTopButton />
+        </AuthProvider>
+      </SessionProvider>
+    </ThemeProvider>
   );
 }

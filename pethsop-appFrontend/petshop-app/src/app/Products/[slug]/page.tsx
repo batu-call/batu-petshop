@@ -52,6 +52,7 @@ type Product = {
   slug: string;
   category: Category;
   productFeatures: Features[];
+  stock?: string | number; 
 };
 
 const ProductDetails = () => {
@@ -72,6 +73,7 @@ const ProductDetails = () => {
   const { confirm } = useConfirm();
   const [reviewStats, setReviewStats] = useState<ReviewStats>({});
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -145,52 +147,62 @@ const ProductDetails = () => {
   }, [product?._id]);
 
   const handlerAddToCart = async () => {
-    if (user || isAuthenticated) {
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`,
-          { productId: product?._id, quantity: quantity },
-          { withCredentials: true },
-        );
-        if (response.data.success) {
-          toast.success(response.data.message || "Added to cart!");
-          setCart(response.data.cart.items);
-          return;
-        }
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error) && error.response) {
-          toast.error(error.response.data.message);
-        } else {
-          toast.error("Something went wrong!");
-        }
-      }
-    } else {
+    if (!user && !isAuthenticated) {
       router.push("/Login");
+      return;
+    }
+
+    if (!product?._id || addingToCart === product._id) return;
+
+    try {
+      setAddingToCart(product._id);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`,
+        { productId: product._id, quantity: quantity },
+        { withCredentials: true },
+      );
+      if (response.data.success) {
+        toast.success(response.data.message || "Added to cart!");
+        setCart(response.data.cart.items);
+      }
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Something went wrong!");
+      }
+    } finally {
+      setAddingToCart(null);
     }
   };
 
   const handlerSimilarAddCart = async (item: Product) => {
-    if (user || isAuthenticated) {
-      if (!item._id) return toast.error("Product not found!");
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`,
-          { productId: item._id, quantity: quantity },
-          { withCredentials: true },
-        );
-        if (response.data.success) {
-          setCart(response.data.cart.items);
-          toast.success(response.data.message || "Added to cart!");
-        }
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error) && error.response) {
-          toast.error(error.response.data.message);
-        } else {
-          toast.error("Something went wrong!");
-        }
-      }
-    } else {
+    if (!user && !isAuthenticated) {
       router.push("/Login");
+      return;
+    }
+
+    if (!item._id || addingToCart === item._id) return;
+
+    try {
+      setAddingToCart(item._id);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/cart/addCart`,
+        { productId: item._id, quantity: 1 },
+        { withCredentials: true },
+      );
+      if (response.data.success) {
+        setCart(response.data.cart.items);
+        toast.success(response.data.message || "Added to cart!");
+      }
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Something went wrong!");
+      }
+    } finally {
+      setAddingToCart(null);
     }
   };
 
@@ -347,6 +359,7 @@ const ProductDetails = () => {
             onAddToCart={handlerSimilarAddCart}
             isFavorite={isFavorite}
             onToggleFavorite={handleFavorite}
+            addingToCart={addingToCart}
           />
         );
       default:
@@ -356,7 +369,7 @@ const ProductDetails = () => {
 
   return (
     <div className="h-screen relative">
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen p-4">
         {loading ? (
           <div className="lg:ml-40 fixed inset-0 flex justify-center items-center bg-primary z-50">
             <CircularText
@@ -368,16 +381,16 @@ const ProductDetails = () => {
         ) : (
           <>
             {product && (
-              <div className="bg-primary shadow-lg rounded-2xl flex flex-col md:flex-row max-w-6xl mx-auto overflow-hidden relative">
+              <div className="bg-primary shadow-lg rounded-2xl flex flex-col md:flex-row max-w-6xl mx-auto overflow-hidden relative items-stretch">
                 <ProductImageGallery
                   images={product.image}
                   productName={product.product_name}
                   selectedImageIndex={selectedImageIndex}
                   setSelectedImageIndex={setSelectedImageIndex}
                   discountPercent={discountPercent}
+                  stock={product.stock}
                 />
 
-              
                 <ProductInfo
                   productName={product.product_name}
                   description={product.description}
@@ -388,19 +401,20 @@ const ProductDetails = () => {
                   onAddToCart={handlerAddToCart}
                   isFavorite={isFavorite(product._id)}
                   onToggleFavorite={() => handleFavorite(product._id)}
+                  isAddingToCart={addingToCart === product._id}
                 />
               </div>
             )}
 
             <div className="w-full h-20 flex justify-center items-center mt-8">
-              <ul className="flex gap-5 items-center sm:justify-center justify-start overflow-x-auto whitespace-nowrap px-2 pb-2 text-jost">
+              <ul className="flex gap-1.5 sm:gap-5 items-center justify-center px-2 pb-2 text-jost w-full sm:w-auto">
                 {["shipping", "features", "reviews", "similar"].map((tab) => (
                   <Button
                     key={tab}
                     onClick={() => setSelectedTab(tab)}
-                    className={`bg-white text-color text-xs lg:text-sm border-2 shadow-2xl p-2 w-20 min-w-[120px] lg:w-40 lg:h-12 flex justify-center
-                      items-center hover:bg-[#A8D1B5] cursor-pointer transition duration-300 ease-in-out hover:scale-105 active:scale-[0.97]
-                      ${selectedTab === tab ? "bg-[#A8D1B5]" : ""}`}
+                    className={`bg-white dark:bg-[#1e3d2a] text-color dark:text-[#a8d4b8] text-[10px] sm:text-xs lg:text-sm border-2 dark:border-[#2d5a3d] shadow-2xl p-1 sm:p-2 flex-1 sm:w-20 sm:min-w-[120px] lg:w-40 lg:h-12 flex justify-center
+                      items-center hover:bg-[#A8D1B5] dark:hover:bg-[#2d5a3d] dark:hover:text-[#c8e6d0] cursor-pointer transition duration-300 ease-in-out hover:scale-105 active:scale-[0.97]
+                      ${selectedTab === tab ? "bg-[#A8D1B5] dark:bg-[#0b8457] dark:text-[#c8e6d0] dark:border-[#0b8457]" : ""}`}
                   >
                     {tab === "shipping"
                       ? "Shipping & Returns"

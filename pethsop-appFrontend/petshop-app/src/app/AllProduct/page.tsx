@@ -1,6 +1,5 @@
 import { Suspense } from "react";
-import AllProduct from "./allProduct";
-
+import AllProduct from "./components/allProduct";
 
 export default function Page() {
   return (

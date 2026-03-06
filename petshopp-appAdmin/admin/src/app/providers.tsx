@@ -3,40 +3,49 @@
 import { AdminAuthProvider } from "./Context/AdminAuthContext";
 import { AdminGuard } from "./Context/AdminGuard";
 import { ConfirmProvider } from "./Context/confirmContext";
-import { Toaster } from "react-hot-toast";
 import Navbar from "./Navbar/page";
 import Sidebar from "./Sidebar/page";
 import { usePathname } from "next/navigation";
 import ToastProvider from "@/components/ui/ToastProvider";
 import { useEffect } from "react";
+import AdminChatWidget from "./chat/page";
+import { ThemeProvider } from "next-themes";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    window.scrollTo(0, 0); 
+    window.scrollTo(0, 0);
   }, [pathname]);
 
   const isLoginPage = pathname === "/";
 
   return (
-    <AdminAuthProvider>
-      <AdminGuard>
-        <ConfirmProvider>
-          {!isLoginPage && (
-            <>
-              <Navbar />
-              <Sidebar />
-            </>
-          )}
-          <main
-            className={!isLoginPage ? "md:ml-24 lg:ml-40 pt-14 lg:pt-0" : ""}
-          >
-            {children}
-          </main>
-        </ConfirmProvider>
-      </AdminGuard>
-      <ToastProvider />
-    </AdminAuthProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      disableTransitionOnChange={true}
+    >
+      <AdminAuthProvider>
+        <AdminGuard>
+          <ConfirmProvider>
+            {!isLoginPage && (
+              <>
+                <AdminChatWidget />
+                <Navbar />
+                <Sidebar />
+              </>
+            )}
+            <main
+              className={!isLoginPage ? "md:ml-24 lg:ml-40 pt-14 lg:pt-0" : ""}
+            >
+              {children}
+            </main>
+          </ConfirmProvider>
+        </AdminGuard>
+        <ToastProvider />
+      </AdminAuthProvider>
+    </ThemeProvider>
   );
 }

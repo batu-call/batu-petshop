@@ -178,3 +178,13 @@ Environment variables prefixed with `NEXT_PUBLIC_` are exposed to the browser.
 Admin Access: For security reasons, new admin accounts cannot be created from the admin panel. The first admin account must be manually updated in the database (MongoDB) by setting the user’s role value to Admin.
 
 Architecture: The Frontend (User Application) and Admin Panel are completely independent applications. Regular users cannot access the admin panel; only accounts with the Admin role can log in.
+
+
+### Third-Party Assets
+
+This project includes several animations sourced from LottieFiles.
+
+All animations are used under the **Lottie Simple License**, which allows free use in commercial projects, including client work and distributed applications.
+
+These assets are integrated as part of the UI and are not redistributed, resold, or used as standalone products.
+

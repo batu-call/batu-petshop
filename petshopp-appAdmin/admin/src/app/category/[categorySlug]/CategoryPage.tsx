@@ -12,7 +12,6 @@ import { ShoppingCart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CircularText from "@/components/CircularText";
 
-import { Heart } from "lucide-react";
 import { Star } from "@mui/icons-material";
 import { useConfirm } from "@/app/Context/confirmContext";
 
@@ -62,7 +61,6 @@ const CategoryPage = () => {
   const [reviewStats, setReviewStats] = useState<ReviewStats>({});
   const { confirm } = useConfirm();
 
-  // 🔹 FETCH PRODUCTS
   useEffect(() => {
     if (!categorySlug) return;
 
@@ -79,7 +77,31 @@ const CategoryPage = () => {
           },
         );
 
-        setProduct(res.data.products || []);
+        const fetchedProducts = res.data.products || [];
+
+        // 🔥 Sort products: low stock first, then discount (same as frontend)
+        const sortedProducts = [...fetchedProducts].sort((a, b) => {
+          const aStock = Number(a.stock ?? 0);
+          const bStock = Number(b.stock ?? 0);
+
+          // Priority 1: Low stock (0 < stock < 6)
+          const aLowStock = aStock > 0 && aStock < 6;
+          const bLowStock = bStock > 0 && bStock < 6;
+
+          if (aLowStock && !bLowStock) return -1;
+          if (!aLowStock && bLowStock) return 1;
+
+          // Priority 2: On sale (has discount)
+          const aDiscount = a.salePrice && a.salePrice < a.price;
+          const bDiscount = b.salePrice && b.salePrice < b.price;
+
+          if (aDiscount && !bDiscount) return -1;
+          if (!aDiscount && bDiscount) return 1;
+
+          return 0;
+        });
+
+        setProduct(sortedProducts);
         setTotalPages(res.data.totalPages || 1);
       } catch {
         toast.error("Products could not be loaded");
@@ -192,15 +214,14 @@ const CategoryPage = () => {
                     key={p._id}
                     className="bg-primary w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative group"
                   >
-                    <div className="absolute top-3 left-1 sm:left-2 z-10 flex flex-col gap-1">
+                    <div className="absolute top-3 left-0 z-10 flex flex-col gap-1.5">
                       {discountPercent > 0 && (
-                        <span className="bg-secondary text-color text-[8px] sm:text-xs font-bold px-2 py-1 rounded-full shadow-md">
-                          %{discountPercent} OFF
+                        <span className="bg-secondary text-color text-[9px] sm:text-[11px] font-bold pl-2.5 pr-3 py-1 rounded-r-full shadow-md tracking-wide">
+                          {discountPercent}% OFF
                         </span>
                       )}
-
                       {Number(p.stock) > 0 && Number(p.stock) < 6 && (
-                        <span className="border border-red-200 text-color text-[8px] sm:text-xs font-medium px-2 py-1 rounded-full bg-white">
+                        <span className="bg-white/90 backdrop-blur-sm border-r border-t border-b border-red-200 text-red-400 text-[9px] sm:text-[11px] font-semibold pl-2.5 pr-3 py-1 rounded-r-full shadow-sm tracking-wide">
                           Only {p.stock} left
                         </span>
                       )}
@@ -223,12 +244,12 @@ const CategoryPage = () => {
     backdrop-blur
     p-1.5
     transition-all duration-200 ease-in-out
-    hover:scale-105 hover:bg-[#97cba9] hover:text-white
+    hover:scale-105 hover:bg-[#97cba9] hover:text-white hover:border hover:border-white
     active:scale-95
     cursor-pointer
   "
                     >
-                      <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <X className="w-4 h-4 sm:w-5 sm:h-5 dark:text-[#162820]" />
                     </button>
 
                     <Link
@@ -254,26 +275,26 @@ const CategoryPage = () => {
                         )}
                       </div>
 
-                      <div className="px-2 sm:px-4 py-1 sm:py-2 text-center">
-                        <h2 className="text-white text-lg sm:text-base md:text-lg truncate font-semibold">
+                      {/* Name + Star */}
+                      <div className="px-2 sm:px-4 pt-2 pb-1 flex flex-col items-center justify-center gap-1 min-h-[56px]">
+                        <h2 className="text-white text-lg sm:text-base md:text-lg truncate font-semibold text-center w-full">
                           {p.product_name}
                         </h2>
-                      </div>
-
-                      {stats && stats.count > 0 && (
-                        <div className="flex items-center justify-center gap-1 text-gray-200 mt-1">
-                          <div className="flex text-yellow-500">
-                            {[...Array(Math.round(stats.avgRating))].map(
-                              (_, i) => (
-                                <Star key={i} sx={{ fontSize: 16 }} />
-                              ),
-                            )}
+                        {stats && stats.count > 0 && (
+                          <div className="flex items-center gap-1">
+                            <div className="flex text-yellow-500">
+                              {[...Array(Math.round(stats.avgRating))].map(
+                                (_, i) => (
+                                  <Star key={i} sx={{ fontSize: 14 }} />
+                                ),
+                              )}
+                            </div>
+                            <span className="text-[10px] text-color3 font-semibold">
+                              ({stats.count})
+                            </span>
                           </div>
-                          <span className="text-[10px] text-color3 font-semibold">
-                            ( {stats.count} )
-                          </span>
-                        </div>
-                      )}
+                        )}
+                      </div>
 
                       <div className="px-4 py-3 sm:px-4 sm:py-2 h-12 sm:h-12 md:h-18 overflow-hidden mt-1">
                         <h2 className="text-[10px] sm:text-xs lg:text-sm text-color font-semibold line-clamp-2 md:line-clamp-3 leading-snug">
@@ -286,7 +307,7 @@ const CategoryPage = () => {
                       <div className="flex flex-col items-center">
                         {p.salePrice && p.salePrice < p.price ? (
                           <>
-                            <span className="line-through text-color text-xs opacity-55 font-bold">
+                            <span className="text-xs line-through text-red-400 dark:text-black opacity-60 dark:opacity-100 font-semibold">
                               ${p.price.toFixed(2)}
                             </span>
                             <span className="text-color text-md sm:text-base xl:text-lg font-semibold">

@@ -1,18 +1,38 @@
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import Message from "../Models/messageSchema.js";
+import {
+  sanitizeString,
+  sanitizeEmail,
+  sanitizeObjectId,
+  buildSafePagination,
+  createSafeRegex,
+  validateRequiredFields,
+} from "../utils/securityHelper.js";
+
+const VALID_STATUSES = ["New", "Read", "Replied"];
+const ALLOWED_SORT_FIELDS = ["createdAt", "name", "email", "status"];
 
 export const createMessage = catchAsyncError(async (req, res, next) => {
   const { name, email, subject, message } = req.body;
 
-  if (!name || !email || !subject || !message) {
-    return res.status(400).json({ error: "All fields are required." });
+  try {
+    validateRequiredFields(req.body, ['name', 'email', 'subject', 'message']);
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
+
+  let sanitizedEmail;
+  try {
+    sanitizedEmail = sanitizeEmail(email);
+  } catch (error) {
+    return res.status(400).json({ error: "Invalid email format" });
   }
 
   const newMessage = await Message.create({
-    name,
-    email,
-    subject,
-    message,
+    name: sanitizeString(name),
+    email: sanitizedEmail,
+    subject: sanitizeString(subject),
+    message: sanitizeString(message),
     status: "New",
     user: req.user?._id,
   });
@@ -35,52 +55,50 @@ export const getAllMessages = catchAsyncError(async (req, res, next) => {
     sortOrder = "desc",
   } = req.query;
 
-  const limit = 15;
-  const skip = (Number(page) - 1) * limit;
+  const { page: safePage, limit, skip } = buildSafePagination(page, 15);
 
-  // Build query
   let query = {};
 
-  // Search filter (name, email, subject, message)
-  const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
   if (search && typeof search === "string") {
-    const safeSearch = escapeRegex(search.trim().slice(0, 50));
-
-    query.$or = [
-      { name: { $regex: safeSearch, $options: "i" } },
-      { email: { $regex: safeSearch, $options: "i" } },
-      { subject: { $regex: safeSearch, $options: "i" } },
-      { message: { $regex: safeSearch, $options: "i" } },
-    ];
+    const regex = createSafeRegex(search, 50);
+    
+    if (regex) {
+      query.$or = [
+        { name: regex },
+        { email: regex },
+        { subject: regex },
+        { message: regex },
+      ];
+    }
   }
 
- const allowedStatuses = ["New", "Read", "Replied"];
-if (status && allowedStatuses.includes(status)) {
-  query.status = status;
-}
+  if (status && VALID_STATUSES.includes(status)) {
+    query.status = status;
+  }
 
-  // Date range filter
   if (dateFrom || dateTo) {
     query.createdAt = {};
     if (dateFrom) {
-      query.createdAt.$gte = new Date(dateFrom);
+      const start = new Date(dateFrom);
+      if (!isNaN(start.getTime())) {
+        query.createdAt.$gte = start;
+      }
     }
     if (dateTo) {
-      const endDate = new Date(dateTo);
-      endDate.setHours(23, 59, 59, 999);
-      query.createdAt.$lte = endDate;
+      const end = new Date(dateTo);
+      if (!isNaN(end.getTime())) {
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
     }
   }
 
-  // Get total count
   const totalMessages = await Message.countDocuments(query);
 
-  // Build sort
+  const safeSortBy = ALLOWED_SORT_FIELDS.includes(sortBy) ? sortBy : "createdAt";
   const sortOptions = {};
-  sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
+  sortOptions[safeSortBy] = sortOrder === "asc" ? 1 : -1;
 
-  // Get messages with pagination
   const messages = await Message.find(query)
     .sort(sortOptions)
     .skip(skip)
@@ -113,39 +131,51 @@ if (status && allowedStatuses.includes(status)) {
     success: true,
     totalPages: Math.ceil(totalMessages / limit),
     totalMessages,
-    currentPage: Number(page),
+    currentPage: safePage,
     messages: mappedMessages,
   });
 });
 
 export const updateMessageStatus = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
+  let messageId;
+  try {
+    messageId = sanitizeObjectId(req.params.id);
+  } catch (error) {
+    return res.status(400).json({ error: "Invalid message ID" });
+  }
+
   const { status } = req.body;
 
-  if (!["New", "Read", "Replied"].includes(status)) {
-    return res.status(400).json({ error: "Invalid status value." });
+  if (!VALID_STATUSES.includes(status)) {
+    return res.status(400).json({ error: "Invalid status value" });
   }
 
   const updated = await Message.findByIdAndUpdate(
-    id,
+    messageId,
     { status },
     { new: true },
   );
 
   if (!updated) {
-    return res.status(404).json({ error: "Message not found." });
+    return res.status(404).json({ error: "Message not found" });
   }
 
   res.status(200).json({
     success: true,
-    message: "Status updated successfully.",
+    message: "Status updated successfully",
     data: updated,
   });
 });
 
 export const getUserMessages = catchAsyncError(async (req, res, next) => {
-  const { email } = req.params;
-  const messages = await Message.find({ email }).sort({ createdAt: -1 });
+  let userEmail;
+  try {
+    userEmail = sanitizeEmail(req.params.email);
+  } catch (error) {
+    return res.status(400).json({ error: "Invalid email format" });
+  }
+
+  const messages = await Message.find({ email: userEmail }).sort({ createdAt: -1 });
 
   const mappedMessages = messages.map((msg) => ({
     id: msg._id,
@@ -174,15 +204,102 @@ export const getUserMessages = catchAsyncError(async (req, res, next) => {
 });
 
 export const deleteMessage = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
-  const deleted = await Message.findByIdAndDelete(id);
+  let messageId;
+  try {
+    messageId = sanitizeObjectId(req.params.id);
+  } catch (error) {
+    return res.status(400).json({ error: "Invalid message ID" });
+  }
+
+  const deleted = await Message.findByIdAndDelete(messageId);
 
   if (!deleted) {
-    return res.status(404).json({ error: "Message not found." });
+    return res.status(404).json({ error: "Message not found" });
   }
 
   res.status(200).json({
     success: true,
-    message: "Message deleted successfully.",
+    message: "Message deleted successfully",
   });
+});
+
+export const replyToMessage = catchAsyncError(async (req, res, next) => {
+  const { messageId } = req.params;
+  const { replyMessage } = req.body;
+
+  if (!replyMessage) {
+    return res.status(400).json({ error: "Reply message is required" });
+  }
+
+  let validMessageId;
+  try {
+    validMessageId = sanitizeObjectId(messageId);
+  } catch (error) {
+    return res.status(400).json({ error: "Invalid message ID" });
+  }
+
+  const message = await Message.findById(validMessageId);
+
+  if (!message) {
+    return res.status(404).json({ error: "Message not found" });
+  }
+
+  const { sendAutoMail } = await import("./mailController.js");
+  
+  try {
+    await sendAutoMail({
+      to: message.email,
+      subject: `Re: ${message.subject}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #97cba9 0%, #7fb894 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">Reply from Petshop Support</h1>
+          </div>
+          
+          <div style="background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px; color: #333;">Hello ${sanitizeString(message.name)}!</p>
+            
+            <p style="font-size: 15px; color: #666; line-height: 1.6; margin: 20px 0;">
+              Thank you for contacting us. Here's our response to your inquiry:
+            </p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #97cba9; margin: 20px 0;">
+              <p style="color: #333; line-height: 1.8; margin: 0;">
+                ${sanitizeString(replyMessage).replace(/\n/g, '<br/>')}
+              </p>
+            </div>
+            
+            <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="color: #666; font-size: 13px; margin: 0;"><strong>Your original message:</strong></p>
+              <p style="color: #666; font-size: 13px; margin: 5px 0 0 0;">"${sanitizeString(message.message)}"</p>
+            </div>
+            
+            <p style="font-size: 15px; color: #666; line-height: 1.6; margin: 20px 0;">
+              If you have any further questions, please don't hesitate to reach out to us again.
+            </p>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+              <p style="color: #97cba9; font-weight: bold;">Best regards,</p>
+              <p style="color: #666;">Petshop Support Team</p>
+            </div>
+          </div>
+          
+          <div style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">
+            <p>© ${new Date().getFullYear()} Petshop. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    message.status = "Replied";
+    await message.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Reply sent successfully",
+    });
+  } catch (error) {
+    console.error("Failed to send reply:", error);
+    return res.status(500).json({ error: "Failed to send reply email" });
+  }
 });

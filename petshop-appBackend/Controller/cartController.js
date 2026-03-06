@@ -2,13 +2,14 @@ import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import ErrorHandler from "../Middlewares/errorMiddleware.js";
 import { Cart } from "../Models/CartSchema.js";
 import { Product } from "../Models/ProductSchema.js";
-
+import {
+  sanitizeObjectId,
+  sanitizeNumber,
+} from "../utils/securityHelper.js";
 
 const calculateCartTotals = (cart) => {
   const subtotal = cart.items.reduce((acc, item) => {
-    const price =
-      item.product?.salePrice ?? item.product?.price ?? 0;
-
+    const price = item.product?.salePrice ?? item.product?.price ?? 0;
     return acc + price * item.quantity;
   }, 0);
 
@@ -25,15 +26,24 @@ const calculateCartTotals = (cart) => {
   };
 };
 
-
 export const addToCart = catchAsyncError(async (req, res, next) => {
   const { productId, quantity = 1 } = req.body;
 
-  if (quantity < 1) {
+  let validProductId;
+  try {
+    validProductId = sanitizeObjectId(productId);
+  } catch (error) {
+    return next(new ErrorHandler("Invalid product ID", 400));
+  }
+
+  let validQuantity;
+  try {
+    validQuantity = sanitizeNumber(quantity, 1, 999);
+  } catch (error) {
     return next(new ErrorHandler("Invalid quantity", 400));
   }
 
-  const product = await Product.findById(productId);
+  const product = await Product.findById(validProductId);
   if (!product) {
     return next(new ErrorHandler("Product not found", 404));
   }
@@ -49,15 +59,15 @@ export const addToCart = catchAsyncError(async (req, res, next) => {
   }
 
   const itemIndex = cart.items.findIndex(
-    (item) => item.product.toString() === productId
+    (item) => item.product.toString() === validProductId
   );
 
   if (itemIndex > -1) {
-    cart.items[itemIndex].quantity += quantity;
+    cart.items[itemIndex].quantity += validQuantity;
   } else {
     cart.items.push({
       product: product._id,
-      quantity,
+      quantity: validQuantity,
     });
   }
 
@@ -79,10 +89,9 @@ export const addToCart = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
 export const getCart = catchAsyncError(async (req, res) => {
   let cart = await Cart.findOne({ user: req.user._id })
-    .populate("items.product", "product_name description price  salePrice image slug");
+    .populate("items.product", "product_name description price salePrice image slug");
 
   if (!cart) {
     cart = await Cart.create({
@@ -103,11 +112,20 @@ export const getCart = catchAsyncError(async (req, res) => {
   });
 });
 
-
 export const updateQuantity = catchAsyncError(async (req, res, next) => {
   const { productId, quantity } = req.body;
 
-  if (quantity < 1) {
+  let validProductId;
+  try {
+    validProductId = sanitizeObjectId(productId);
+  } catch (error) {
+    return next(new ErrorHandler("Invalid product ID", 400));
+  }
+
+  let validQuantity;
+  try {
+    validQuantity = sanitizeNumber(quantity, 1, 999);
+  } catch (error) {
     return next(new ErrorHandler("Invalid quantity", 400));
   }
 
@@ -119,14 +137,14 @@ export const updateQuantity = catchAsyncError(async (req, res, next) => {
   }
 
   const item = cart.items.find(
-    (item) => item.product._id.toString() === productId
+    (item) => item.product._id.toString() === validProductId
   );
 
   if (!item) {
     return next(new ErrorHandler("Product not in cart", 404));
   }
 
-  item.quantity = quantity;
+  item.quantity = validQuantity;
   await cart.save();
 
   const totals = calculateCartTotals(cart);
@@ -140,9 +158,13 @@ export const updateQuantity = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
 export const removeFromCart = catchAsyncError(async (req, res, next) => {
-  const { productId } = req.params;
+  let validProductId;
+  try {
+    validProductId = sanitizeObjectId(req.params.productId);
+  } catch (error) {
+    return next(new ErrorHandler("Invalid product ID", 400));
+  }
 
   const cart = await Cart.findOne({ user: req.user._id })
     .populate("items.product", "price salePrice");
@@ -152,7 +174,7 @@ export const removeFromCart = catchAsyncError(async (req, res, next) => {
   }
 
   cart.items = cart.items.filter(
-    (item) => item.product._id.toString() !== productId
+    (item) => item.product._id.toString() !== validProductId
   );
 
   if (cart.items.length === 0) {
@@ -171,7 +193,6 @@ export const removeFromCart = catchAsyncError(async (req, res, next) => {
     total: totals.total,
   });
 });
-
 
 export const clearCart = catchAsyncError(async (req, res, next) => {
   const cart = await Cart.findOne({ user: req.user._id });
@@ -192,7 +213,6 @@ export const clearCart = catchAsyncError(async (req, res, next) => {
     total: 0,
   });
 });
-
 
 export const removeCoupon = catchAsyncError(async (req, res, next) => {
   const cart = await Cart.findOne({ user: req.user._id })

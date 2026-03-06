@@ -1,16 +1,13 @@
 import { Suspense } from "react";
-import CategoryPage from "./CategoryPage";
+import CategoryPage from "./components/CategoryPage";
 import type { Metadata } from "next";
 
 type Props = {
   params: Promise<{ categorySlug: string }>;
 };
 
-export async function generateMetadata(
-  { params }: Props
-): Promise<Metadata> {
-
-  const { categorySlug } = await params; 
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { categorySlug } = await params;
 
   if (!categorySlug) {
     return {

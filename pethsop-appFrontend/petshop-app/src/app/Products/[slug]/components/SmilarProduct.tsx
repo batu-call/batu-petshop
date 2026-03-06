@@ -24,22 +24,18 @@ type Product = {
   slug: string;
   category: Category;
   productFeatures: Features[];
-    stock?: string;
+  stock?: string | number;
 };
-
 type ReviewStats = {
-  [productId: string]: {
-    count: number;
-    avgRating: number;
-  };
+  [productId: string]: { count: number; avgRating: number };
 };
-
 interface SimilarProductsProps {
   products: Product[];
   reviewStats: ReviewStats;
   onAddToCart: (item: Product) => void;
   isFavorite: (productId: string) => boolean;
   onToggleFavorite: (productId: string) => void;
+  addingToCart?: string | null;
 }
 
 const SimilarProducts: React.FC<SimilarProductsProps> = ({
@@ -48,16 +44,17 @@ const SimilarProducts: React.FC<SimilarProductsProps> = ({
   onAddToCart,
   isFavorite,
   onToggleFavorite,
+  addingToCart = null,
 }) => {
   const swiperRef = useRef<SwiperType>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
     <div className="p-4">
-      <h2 className="text-color2 text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
+      <h2 className="text-color2 dark:text-[#0E5F44]! text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 mb-6">
         Similar Products
       </h2>
-    <Swiper
+      <Swiper
         onSwiper={(swiper) => (swiperRef.current = swiper)}
         onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
         style={
@@ -72,7 +69,7 @@ const SimilarProducts: React.FC<SimilarProductsProps> = ({
           1280: { slidesPerView: 4, spaceBetween: 5 },
           1600: { slidesPerView: 5, spaceBetween: 5 },
         }}
-        loop
+        loop={products.length > 4}
         modules={[Autoplay, Navigation]}
         autoplay={{ delay: 2500, disableOnInteraction: false }}
         navigation
@@ -85,33 +82,35 @@ const SimilarProducts: React.FC<SimilarProductsProps> = ({
             item.salePrice && item.salePrice < item.price
               ? Math.round(((item.price - item.salePrice) / item.price) * 100)
               : 0;
-
           const stats = reviewStats[item._id];
+          const hasStats = stats && stats.count > 0;
+          const stockNumber =
+            typeof item.stock === "string" ? Number(item.stock) : item.stock;
+          const showStockWarning =
+            stockNumber && stockNumber > 0 && stockNumber < 6;
 
           return (
             <SwiperSlide key={item._id} className="p-2">
-              <div
-                key={item._id}
-                className="bg-primary w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative group"
-              >
-                <div className="absolute top-3 left-1 sm:left-2 z-10 flex flex-col gap-1">
+              <div className="bg-primary w-full rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative group">
+                {/* Badges */}
+                <div className="absolute top-3 left-0 z-10 flex flex-col gap-1.5">
                   {discountPercent > 0 && (
-                    <span className="bg-secondary text-color text-[8px] sm:text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                    <span className="bg-secondary text-color text-[9px] sm:text-[11px] font-bold pl-2.5 pr-3 py-1 rounded-r-full shadow-md tracking-wide">
                       %{discountPercent} OFF
                     </span>
                   )}
-
-                  {Number(item.stock) > 0 && Number(item.stock) < 6 && (
-                    <span className="border border-red-200 text-color text-[8px] sm:text-xs font-medium px-2 py-1 rounded-full bg-white">
-                      Only {item.stock} left
+                  {showStockWarning && (
+                    <span className="bg-white/90 backdrop-blur-sm border-r border-t border-b border-red-200 text-red-400 text-[9px] sm:text-[11px] font-semibold pl-2.5 pr-3 py-1 rounded-r-full shadow-sm tracking-wide">
+                      Only {stockNumber} left
                     </span>
                   )}
                 </div>
 
+                {/* Favorite — desktop */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="p-2 rounded-full hover:bg-[#D6EED6] absolute top-2 right-2 z-10 cursor-pointer transition-all duration-300"
+                  className="hidden md:block p-2 rounded-full hover:bg-[#D6EED6] absolute top-2 right-2 z-10 cursor-pointer transition-all duration-300"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -119,10 +118,26 @@ const SimilarProducts: React.FC<SimilarProductsProps> = ({
                   }}
                 >
                   <Heart
-                    className={`w-3 h-3 transition-colors duration-300 ${
-                      isFavorite(item._id) ? "text-gray-600" : "text-gray-400"
-                    }`}
+                    className={`w-3 h-3 transition-colors duration-300 ${isFavorite(item._id) ? "text-gray-600" : "text-gray-400"}`}
                     fill={isFavorite(item._id) ? "currentColor" : "none"}
+                  />
+                </Button>
+
+                {/* Favorite — mobile */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden w-8 h-8 absolute top-2 right-2 z-10 cursor-pointer transition-all duration-300 bg-white/40 backdrop-blur-[2px] hover:bg-white/60 border border-white/30 shadow-sm group"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onToggleFavorite(item._id);
+                  }}
+                >
+                  <Heart
+                    className={`w-3.5 h-3.5 transition-all duration-300 ${isFavorite(item._id) ? "text-gray-600 scale-110" : "text-gray-400 group-hover:text-gray-700"}`}
+                    fill={isFavorite(item._id) ? "#393E46" : "none"}
+                    strokeWidth={isFavorite(item._id) ? 2.5 : 2}
                   />
                 </Button>
 
@@ -149,43 +164,41 @@ const SimilarProducts: React.FC<SimilarProductsProps> = ({
                     )}
                   </div>
 
-                  <div className="px-2 sm:px-4 py-1 sm:py-2 text-center">
-                    <h2 className="text-white text-lg sm:text-base md:text-lg truncate font-semibold">
+                  {/* Name + Star  */}
+                  <div className="px-2 sm:px-4 pt-2 pb-1 flex flex-col items-center justify-center gap-1 h-14">
+                    <h2 className="text-white text-lg sm:text-base md:text-lg truncate font-semibold text-center w-full">
                       {item.product_name}
                     </h2>
-                  </div>
-
-                  <div className="h-[22px] flex items-center justify-center mt-1">
-                    {stats && stats.count > 0 ? (
-                      <>
+                    {hasStats && (
+                      <div className="flex items-center gap-1">
                         <div className="flex text-yellow-500">
                           {[...Array(Math.round(stats.avgRating))].map(
                             (_, i) => (
-                              <Star key={i} sx={{ fontSize: 16 }} />
+                              <Star key={i} sx={{ fontSize: 14 }} />
                             ),
                           )}
                         </div>
-                        <span className="text-[10px] ml-1">
-                          ( {stats.count} )
+                        <span className="text-[10px] text-color3 font-semibold">
+                          ({stats.count})
                         </span>
-                      </>
-                    ) : (
-                      <span className="opacity-0">no rating</span>
+                      </div>
                     )}
                   </div>
 
-                  <div className="px-4 py-3 sm:px-4 sm:py-2 h-12 sm:h-12 md:h-18 overflow-hidden mt-1">
+                  {/* Description */}
+                  <div className="px-4 py-2 h-12 sm:h-12 md:h-18 overflow-hidden">
                     <h2 className="text-[10px] sm:text-xs lg:text-sm text-color font-semibold line-clamp-2 md:line-clamp-3 leading-snug">
                       {item.description}
                     </h2>
                   </div>
                 </Link>
 
+                {/* Price + Cart */}
                 <div className="flex gap-2 justify-between items-center px-2 sm:px-4 py-2">
                   <div className="flex flex-col items-center">
                     {item.salePrice && item.salePrice < item.price ? (
                       <>
-                        <span className="line-through text-color text-xs opacity-55 font-bold">
+                        <span className="text-xs line-through text-red-400 dark:text-black opacity-60 dark:opacity-100 font-semibold">
                           ${item.price.toFixed(2)}
                         </span>
                         <span className="text-color text-md sm:text-base xl:text-lg font-semibold">
@@ -198,28 +211,31 @@ const SimilarProducts: React.FC<SimilarProductsProps> = ({
                       </span>
                     )}
                   </div>
-
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       onAddToCart(item);
                     }}
-                    className="hidden md:block w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400 ease-in-out active:scale-[0.97]"
+                    disabled={addingToCart === item._id}
+                    className="hidden md:block w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white text-sm sm:text-base transition-colors duration-400 ease-in-out active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Add To Cart
+                    {addingToCart === item._id ? "Adding..." : "Add To Cart"}
                   </Button>
-
-                  {/* mobil cart */}
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       onAddToCart(item);
                     }}
-                    className="flex md:hidden bg-secondary text-color cursor-pointer hover:bg-[#D6EED6]/90 transition-all duration-300 active:scale-95 rounded-full aspect-square p-0 min-w-[44px] min-h-[44px] w-11 h-11 shadow-sm"
+                    disabled={addingToCart === item._id}
+                    className="flex md:hidden bg-secondary text-color cursor-pointer hover:bg-[#D6EED6]/90 transition-all duration-300 active:scale-95 rounded-full aspect-square p-0 min-w-[44px] min-h-[44px] w-11 h-11 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <ShoppingCart size={20} />
+                    {addingToCart === item._id ? (
+                      <span className="text-xs">...</span>
+                    ) : (
+                      <ShoppingCart size={20} />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -227,7 +243,8 @@ const SimilarProducts: React.FC<SimilarProductsProps> = ({
           );
         })}
       </Swiper>
-      {/* Custom Pagination */}
+
+      {/* Pagination */}
       <div className="flex justify-center mt-8 gap-2">
         {products.map((_, index) => (
           <div

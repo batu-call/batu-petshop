@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@variant dark (&:where(.dark, .dark *));
+
 @layer utilities {
   .bg-primary {
     background-color: #97cba9;
@@ -45,11 +47,104 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* ── Dark mode overrides for custom utility classes ── */
+  .dark .bg-primary {
+    background-color: #0E5F44;
+  }
+  .dark .bg-secondary {
+    background-color: #0b8457;
+  }
+  .dark .bg-secondary_20 {
+    background-color: rgba(45, 90, 61, 0.2);
+  }
+  .dark .text-color {
+    color: #141010;
+  }
+  .dark .text-color2 {
+    color: #393e46;
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: inherit !important;
+  transition: background-color 9999s ease-in-out 0s !important;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #162820 inset !important;
+  -webkit-text-fill-color: #c8e6d0 !important;
+}
+
+/* PhoneInput dark mode dropdown */
+.dark .react-tel-input .country-list {
+  background-color: #162820 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .react-tel-input .country-list .country:hover {
+  background-color: #1e3d2a !important;
+}
+
+.dark .react-tel-input .country-list .country.highlight {
+  background-color: #2d5a3d !important;
+}
+
+.dark .react-tel-input .country-list .country-name {
+  color: #c8e6d0 !important;
+}
+
+.dark .react-tel-input .country-list .dial-code {
+  color: #7aab8a !important;
+}
+
+.dark .react-tel-input .country-list .search {
+  background-color: #162820 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .react-tel-input .country-list .search-box {
+  background-color: #0d1f18 !important;
+  border: 1px solid #B1CBBB !important;
+  color: #c8e6d0 !important;
+}
+
+.dark .react-tel-input .flag-dropdown {
+  background-color: #162820 !important;
+  border: 1px solid #B1CBBB !important;
+}
+
+.dark .react-tel-input .flag-dropdown.open {
+  background-color: #1e3d2a !important;
+}
+
+.dark .react-tel-input .selected-flag:hover,
+.dark .react-tel-input .selected-flag:focus {
+  background-color: #1e3d2a !important;
+}
+.dark .react-tel-input .form-control {
+  background-color: #1e3d2a !important;
+  border: 1px solid #B1CBBB !important;
+  color: #c8e6d0 !important;
+}
+
+.dark .react-tel-input .form-control::placeholder {
+  color: #7aab8a !important;
+}
+
+.dark .react-tel-input .form-control:focus {
+  border-color: #7aab8a !important;
+  box-shadow: none !important;
 }
 
 body {
   font-family: 'Jost', Arial, Helvetica, sans-serif;
-  /* Renk profilini zorla */
   color-scheme: light;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -144,43 +239,43 @@ body {
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
-  
+
   color-scheme: light;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.14 0.02 160);
+  --foreground: oklch(0.92 0.03 150);
+  --card: oklch(0.18 0.025 160);
+  --card-foreground: oklch(0.92 0.03 150);
+  --popover: oklch(0.18 0.025 160);
+  --popover-foreground: oklch(0.92 0.03 150);
+  --primary: oklch(0.55 0.1 155);
+  --primary-foreground: oklch(0.14 0.02 160);
+  --secondary: oklch(0.22 0.03 158);
+  --secondary-foreground: oklch(0.85 0.04 150);
+  --muted: oklch(0.22 0.03 158);
+  --muted-foreground: oklch(0.6 0.05 155);
+  --accent: oklch(0.25 0.04 158);
+  --accent-foreground: oklch(0.85 0.04 150);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.55 0.1 155);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-  
+  --sidebar: oklch(0.18 0.025 160);
+  --sidebar-foreground: oklch(0.92 0.03 150);
+  --sidebar-primary: oklch(0.55 0.1 155);
+  --sidebar-primary-foreground: oklch(0.14 0.02 160);
+  --sidebar-accent: oklch(0.22 0.03 158);
+  --sidebar-accent-foreground: oklch(0.85 0.04 150);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.55 0.1 155);
+
   color-scheme: dark;
 }
 

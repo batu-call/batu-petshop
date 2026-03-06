@@ -6,7 +6,6 @@ export const addFavorite = catchAsyncError(async (req, res, next) => {
   const userId = req.user._id;
   const { productId } = req.body;
 
-
   const exist = await Favorite.findOne({ userId, productId });
   if (exist) {
     return next(new ErrorHandler("Already favorited", 400));
@@ -35,11 +34,25 @@ export const removeFavorite = catchAsyncError(async (req, res, next) => {
   });
 });
 
+export const clearFavorites = catchAsyncError(async (req, res, next) => {
+  const userId = req.user._id;
+
+  await Favorite.deleteMany({ userId });
+
+  res.status(200).json({
+    success: true,
+    message: "All favorites cleared",
+  });
+});
 
 export const getFavorite = catchAsyncError(async (req, res, next) => {
   const userId = req.user._id;
+  
+  const page = parseInt(req.query.page) || 1;
+  const limit = 15;
+  const skip = (page - 1) * limit;
 
-  const favorites = await Favorite.find({ userId }).populate({
+  const allFavorites = await Favorite.find({ userId }).populate({
     path: "productId",
     match: {
       $or: [
@@ -50,12 +63,19 @@ export const getFavorite = catchAsyncError(async (req, res, next) => {
     select: "product_name price salePrice description image slug stock",
   });
 
-  const favoriteProducts = favorites
-    .filter((fav) => fav.productId) 
-    .map((fav) => fav.productId);
+  const activeFavorites = allFavorites.filter((fav) => fav.productId);
+  
+  const totalFavorites = activeFavorites.length;
+  const totalPages = Math.ceil(totalFavorites / limit);
+  
+  const paginatedFavorites = activeFavorites.slice(skip, skip + limit);
+  const favoriteProducts = paginatedFavorites.map((fav) => fav.productId);
 
   res.status(200).json({
     success: true,
     favorites: favoriteProducts,
+    currentPage: page,
+    totalPages: totalPages,
+    totalFavorites: totalFavorites,
   });
 });
