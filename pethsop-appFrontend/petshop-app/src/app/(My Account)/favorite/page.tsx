@@ -63,10 +63,14 @@ const FavoritePage = () => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    const check = () => setIsDark(document.documentElement.classList.contains("dark"));
+    const check = () =>
+      setIsDark(document.documentElement.classList.contains("dark"));
     check();
     const observer = new MutationObserver(check);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -197,7 +201,7 @@ const FavoritePage = () => {
                 favorites
               </div>
 
-              {/* Desktop clear button  */}
+              {/* Desktop clear button */}
               <button
                 onClick={handleClearFavorites}
                 className="hidden sm:flex items-center gap-2 px-4 py-2
@@ -211,7 +215,7 @@ const FavoritePage = () => {
                 <Trash2 className="w-4 h-4" /> Clear All Favorites
               </button>
 
-              {/* Mobile clear button  */}
+              {/* Mobile clear button */}
               <button
                 onClick={handleClearFavorites}
                 className="sm:hidden flex items-center gap-2 px-3 py-2
@@ -263,12 +267,35 @@ const FavoritePage = () => {
                       )}
                     </div>
 
-                    {/* Favorite Button */}
+                    {/* Favorite Button — desktop */}
                     <Button
                       variant="ghost"
                       size="icon"
                       disabled={loadingFav[p._id]}
-                      className="p-2 rounded-full hover:bg-[#D6EED6] absolute top-2 right-2 z-10 cursor-pointer transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group/fav"
+                      className="hidden md:flex p-2 rounded-full hover:bg-[#D6EED6] dark:hover:bg-white/20 absolute top-2 right-2 z-10 cursor-pointer transition-all duration-300 justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleFavorite(p._id, p.product_name);
+                      }}
+                    >
+                      <Heart
+                        className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors duration-300 ${
+                          isFavorite(p._id)
+                            ? "text-gray-600 dark:!text-black"
+                            : "text-gray-400 dark:!text-black"
+                        }`}
+                        fill={isFavorite(p._id) ? "currentColor" : "none"}
+                        strokeWidth={2.5}
+                      />
+                    </Button>
+
+                    {/* Favorite Button — mobile */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={loadingFav[p._id]}
+                      className="md:hidden w-8 h-8 absolute top-2 right-2 z-10 cursor-pointer transition-all duration-300 bg-white/40 backdrop-blur-[2px] hover:bg-white/60 border border-white/30 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -277,12 +304,17 @@ const FavoritePage = () => {
                     >
                       <Heart
                         style={{ color: mobileFavColor, fill: mobileFavFill }}
-                        className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${isFavorite(p._id) ? "scale-110" : ""}`}
+                        className={`w-3.5 h-3.5 transition-all duration-300 ${
+                          isFavorite(p._id) ? "scale-110" : ""
+                        }`}
                         strokeWidth={2.5}
                       />
                     </Button>
 
-                    <Link href={`/Products/${p.slug}`} className="flex-1 flex flex-col">
+                    <Link
+                      href={`/Products/${p.slug}`}
+                      className="flex-1 flex flex-col"
+                    >
                       {/* Image */}
                       <div className="w-full shrink-0">
                         {p.image && p.image.length > 0 ? (
@@ -299,7 +331,9 @@ const FavoritePage = () => {
                             />
                           </div>
                         ) : (
-                          <p className="text-white text-sm text-center">No image!</p>
+                          <p className="text-white text-sm text-center">
+                            No image!
+                          </p>
                         )}
                       </div>
 
@@ -311,9 +345,11 @@ const FavoritePage = () => {
                         {hasStats && (
                           <div className="flex items-center gap-1">
                             <div className="flex text-yellow-500">
-                              {[...Array(Math.round(stats.avgRating))].map((_, i) => (
-                                <Star key={i} sx={{ fontSize: 14 }} />
-                              ))}
+                              {[...Array(Math.round(stats.avgRating))].map(
+                                (_, i) => (
+                                  <Star key={i} sx={{ fontSize: 14 }} />
+                                ),
+                              )}
                             </div>
                             <span className="text-[10px] text-color3 font-semibold">
                               ({stats.count})
@@ -348,6 +384,8 @@ const FavoritePage = () => {
                           </span>
                         )}
                       </div>
+
+                      {/* Desktop Add to Cart */}
                       <Button
                         onClick={(e) => {
                           e.preventDefault();
@@ -355,10 +393,15 @@ const FavoritePage = () => {
                           handlerAddToCart(p);
                         }}
                         disabled={addingToCart === p._id}
-                        className="hidden md:block w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer hover:bg-white dark:hover:!bg-[#0b8457] dark:hover:!text-white text-sm sm:text-base transition-colors duration-400 ease-in-out active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="hidden md:block w-full sm:w-auto h-auto bg-secondary text-color cursor-pointer
+                          hover:bg-white dark:hover:bg-[#c8e6d0]!
+                          text-sm sm:text-base transition-colors duration-400 ease-in-out active:scale-[0.97]
+                          disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {addingToCart === p._id ? "Adding..." : "Add To Cart"}
                       </Button>
+
+                      {/* Mobile Add to Cart */}
                       <Button
                         onClick={(e) => {
                           e.preventDefault();
@@ -366,7 +409,11 @@ const FavoritePage = () => {
                           handlerAddToCart(p);
                         }}
                         disabled={addingToCart === p._id}
-                        className="flex md:hidden bg-secondary text-color cursor-pointer hover:bg-[#D6EED6]/90 dark:hover:!bg-[#0b8457] dark:hover:!text-white transition-all duration-300 active:scale-95 rounded-full aspect-square p-0 min-w-[44px] min-h-[44px] w-11 h-11 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex md:hidden bg-secondary text-color cursor-pointer
+                          hover:bg-[#D6EED6]/90 dark:hover:!bg-[#0b8457] dark:hover:!text-white
+                          transition-all duration-300 active:scale-95
+                          rounded-full aspect-square p-0 min-w-[44px] min-h-[44px] w-11 h-11 shadow-sm
+                          disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {addingToCart === p._id ? (
                           <span className="text-xs">...</span>
@@ -400,7 +447,9 @@ const FavoritePage = () => {
                   </PaginationItem>
                   {start > 2 && (
                     <PaginationItem>
-                      <span className="px-2 text-sm text-gray-400 dark:text-[#7aab8a]">…</span>
+                      <span className="px-2 text-sm text-gray-400 dark:text-[#7aab8a]">
+                        …
+                      </span>
                     </PaginationItem>
                   )}
                   {pages.map((p) => (
@@ -416,7 +465,9 @@ const FavoritePage = () => {
                   ))}
                   {end < totalPages - 1 && (
                     <PaginationItem>
-                      <span className="px-2 text-sm text-gray-400 dark:text-[#7aab8a]">…</span>
+                      <span className="px-2 text-sm text-gray-400 dark:text-[#7aab8a]">
+                        …
+                      </span>
                     </PaginationItem>
                   )}
                   <PaginationItem className="cursor-pointer">
