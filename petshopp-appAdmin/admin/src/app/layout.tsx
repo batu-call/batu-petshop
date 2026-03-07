@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Jost } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
+import { Suspense } from "react";
 
 const jost = Jost({
   subsets: ["latin"],
@@ -31,7 +32,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`antialiased ${jost.className}`}>
+        <Suspense fallback={null}>
         <Providers>{children}</Providers>
+        </Suspense>
       </body>
     </html>
   );
