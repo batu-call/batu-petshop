@@ -11,8 +11,9 @@ export type Product = {
   _id: string;
   product_name: string;
   description: string;
-  price: string;
-  stock: string;
+  price: number;
+  salePrice?: number | null;
+  stock: number;
   sold: number;
   isActive: boolean;
   isFeatured?: boolean;
@@ -35,6 +36,7 @@ export type Filters = {
   maxStock: string;
   isActive: string;
   isFeatured: string;
+  onSale: string;
 };
 
 export const useAdminProducts = () => {
@@ -54,15 +56,16 @@ export const useAdminProducts = () => {
     maxStock:   searchParams.get("maxStock")   || "",
     isActive:   searchParams.get("isActive")   || "",
     isFeatured: searchParams.get("isFeatured") || "",
+    onSale:     searchParams.get("onSale")     || "", 
   });
 
-  const [products, setProducts]               = useState<Product[]>([]);
-  const [totalPages, setTotalPages]           = useState(1);
-  const [totalProducts, setTotalProducts]     = useState(0);
+  const [products, setProducts]                 = useState<Product[]>([]);
+  const [totalPages, setTotalPages]             = useState(1);
+  const [totalProducts, setTotalProducts]       = useState(0);
   const [filteredProducts, setFilteredProducts] = useState(0);
-  const [loading, setLoading]                 = useState(true);
-  const [localFilter, setLocalFilter]         = useState<Filters>(getInitialFilters);
-  const [appliedFilter, setAppliedFilter]     = useState<Filters>(getInitialFilters);
+  const [loading, setLoading]                   = useState(true);
+  const [localFilter, setLocalFilter]           = useState<Filters>(getInitialFilters);
+  const [appliedFilter, setAppliedFilter]       = useState<Filters>(getInitialFilters);
 
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isFirstMount       = useRef(true);
@@ -81,7 +84,7 @@ export const useAdminProducts = () => {
     searchParams.get("maxPrice"), searchParams.get("minSold"),
     searchParams.get("maxSold"),  searchParams.get("minStock"),
     searchParams.get("maxStock"), searchParams.get("isActive"),
-    searchParams.get("isFeatured"),
+    searchParams.get("isFeatured"), searchParams.get("onSale"), 
   ]);
 
   useEffect(() => {
@@ -102,6 +105,7 @@ export const useAdminProducts = () => {
       if (localFilter.maxStock)   params.set("maxStock",   localFilter.maxStock);
       if (localFilter.isActive)   params.set("isActive",   localFilter.isActive);
       if (localFilter.isFeatured) params.set("isFeatured", localFilter.isFeatured);
+      if (localFilter.onSale)     params.set("onSale",     localFilter.onSale); 
       router.push(`?${params.toString()}`, { scroll: false });
     }, 600);
 
@@ -110,7 +114,7 @@ export const useAdminProducts = () => {
     localFilter.search,   localFilter.category, localFilter.minPrice,
     localFilter.maxPrice, localFilter.minSold,  localFilter.maxSold,
     localFilter.minStock, localFilter.maxStock, localFilter.isActive,
-    localFilter.isFeatured, router,
+    localFilter.isFeatured, localFilter.onSale, router, 
   ]);
 
   useEffect(() => {
@@ -128,6 +132,7 @@ export const useAdminProducts = () => {
         if (appliedFilter.maxStock)   params.maxStock   = appliedFilter.maxStock;
         if (appliedFilter.isActive)   params.isActive   = appliedFilter.isActive;
         if (appliedFilter.isFeatured) params.isFeatured = appliedFilter.isFeatured;
+        if (appliedFilter.onSale)     params.onSale     = appliedFilter.onSale; 
 
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/admin/products`,
@@ -151,7 +156,7 @@ export const useAdminProducts = () => {
     appliedFilter.search,   appliedFilter.category, appliedFilter.minPrice,
     appliedFilter.maxPrice, appliedFilter.minSold,  appliedFilter.maxSold,
     appliedFilter.minStock, appliedFilter.maxStock, appliedFilter.isActive,
-    appliedFilter.isFeatured,
+    appliedFilter.isFeatured, appliedFilter.onSale, 
   ]);
 
   const removeProduct = async (id: string) => {
@@ -175,7 +180,7 @@ export const useAdminProducts = () => {
     const emptyFilters: Filters = {
       search: "", category: "", minPrice: "", maxPrice: "",
       minStock: "", minSold: "", maxSold: "", maxStock: "",
-      isActive: "", isFeatured: "",
+      isActive: "", isFeatured: "", onSale: "", // ✅
     };
     setLocalFilter(emptyFilters);
     setAppliedFilter(emptyFilters);
@@ -202,6 +207,7 @@ export const useAdminProducts = () => {
     if (appliedFilter.maxStock)   params.set("maxStock",   appliedFilter.maxStock);
     if (appliedFilter.isActive)   params.set("isActive",   appliedFilter.isActive);
     if (appliedFilter.isFeatured) params.set("isFeatured", appliedFilter.isFeatured);
+    if (appliedFilter.onSale)     params.set("onSale",     appliedFilter.onSale); // ✅
     router.push(`?${params.toString()}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };

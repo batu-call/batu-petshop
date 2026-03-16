@@ -52,10 +52,7 @@ const AdminProductDetails = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
-  const [newFeature, setNewFeature] = useState<Features>({
-    name: "",
-    description: "",
-  });
+  const [newFeature, setNewFeature] = useState<Features>({ name: "", description: "" });
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -150,14 +147,10 @@ const AdminProductDetails = () => {
         toast.success("Image deleted successfully!");
         setProduct((prev) =>
           prev
-            ? {
-                ...prev,
-                image: prev.image.filter((img) => img._id !== imageId),
-              }
+            ? { ...prev, image: prev.image.filter((img) => img._id !== imageId) }
             : prev,
         );
-        if (selectedImageIndex >= product.image.length - 1)
-          setSelectedImageIndex(0);
+        if (selectedImageIndex >= product.image.length - 1) setSelectedImageIndex(0);
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response)
@@ -171,42 +164,27 @@ const AdminProductDetails = () => {
     try {
       setUploading(true);
       const formData = new FormData();
-
       formData.append("product_name", product.product_name);
       formData.append("description", product.description);
       formData.append("price", product.price.toString());
-      formData.append(
-        "salePrice",
-        product.salePrice != null ? product.salePrice.toString() : "",
-      );
+      formData.append("salePrice", product.salePrice != null ? product.salePrice.toString() : "");
       formData.append("stock", product.stock.toString());
       formData.append("isActive", product.isActive.toString());
       formData.append("isFeatured", product.isFeatured.toString());
-      formData.append(
-        "productFeatures",
-        JSON.stringify(product.productFeatures),
-      );
-
+      formData.append("productFeatures", JSON.stringify(product.productFeatures));
       if (product.category) {
         formData.append(
           "category",
-          typeof product.category === "string"
-            ? product.category
-            : product.category.name,
+          typeof product.category === "string" ? product.category : product.category.name,
         );
       }
-
       formData.append("subCategory", product.subCategory ?? "");
-
       newFiles.forEach((file) => formData.append("images", file));
 
       const res = await axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/update/${product._id}`,
         formData,
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "multipart/form-data" },
-        },
+        { withCredentials: true, headers: { "Content-Type": "multipart/form-data" } },
       );
 
       if (res.data.success) {
@@ -233,19 +211,13 @@ const AdminProductDetails = () => {
     if (!newFeature.name || !newFeature.description)
       return toast.error("Please fill out both fields");
     setProduct((prev) =>
-      prev
-        ? { ...prev, productFeatures: [...prev.productFeatures, newFeature] }
-        : prev,
+      prev ? { ...prev, productFeatures: [...prev.productFeatures, newFeature] } : prev,
     );
     setNewFeature({ name: "", description: "" });
     toast.success("Feature added!");
   };
 
-  const handleFeatureUpdate = (
-    index: number,
-    field: "name" | "description",
-    value: string,
-  ) => {
+  const handleFeatureUpdate = (index: number, field: "name" | "description", value: string) => {
     if (!product) return;
     const updated = [...product.productFeatures];
     updated[index][field] = value;
@@ -292,6 +264,38 @@ const AdminProductDetails = () => {
     }
   };
 
+
+  const handleBulkDeleteReviews = async (ids: string[]) => {
+    const ok = await confirm({
+      title: "Delete Reviews",
+      description: `${ids.length} review(s) will be permanently deleted. Are you sure?`,
+      confirmText: "Yes, Delete All",
+      cancelText: "Cancel",
+      variant: "destructive",
+    });
+    if (!ok) return;
+
+    const results = await Promise.allSettled(
+      ids.map((id) =>
+        axios.delete(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/admin/${id}`,
+          { withCredentials: true },
+        ),
+      ),
+    );
+
+    const succeeded = ids.filter((_, i) => results[i].status === "fulfilled");
+    const failedCount = ids.length - succeeded.length;
+
+    if (succeeded.length > 0) {
+      setReviews((prev) => prev.filter((r) => !succeeded.includes(r._id)));
+      toast.success(`${succeeded.length} review(s) deleted successfully`);
+    }
+    if (failedCount > 0) {
+      toast.error(`${failedCount} review(s) could not be deleted`);
+    }
+  };
+
   const handleProductDelete = async () => {
     if (!product) return;
     const ok = await confirm({
@@ -331,13 +335,9 @@ const AdminProductDetails = () => {
       {uploading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4 text-center">
-              Updating Product...
-            </h3>
+            <h3 className="text-lg font-semibold mb-4 text-center">Updating Product...</h3>
             <LinearProgress
-              sx={{
-                "& .MuiLinearProgress-bar": { backgroundColor: "#B1CBBB" },
-              }}
+              sx={{ "& .MuiLinearProgress-bar": { backgroundColor: "#B1CBBB" } }}
             />
             <p className="text-sm text-gray-500 text-center mt-3">
               Please wait while we update your product
@@ -348,11 +348,7 @@ const AdminProductDetails = () => {
 
       {loading ? (
         <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
-          <CircularText
-            text="LOADING"
-            spinDuration={20}
-            className="text-white text-4xl"
-          />
+          <CircularText text="LOADING" spinDuration={20} className="text-white text-4xl" />
         </div>
       ) : (
         <div className="py-8 px-4 md:px-6 max-w-7xl mx-auto">
@@ -370,7 +366,6 @@ const AdminProductDetails = () => {
                   onDeleteExisting={deleteExistingImage}
                   productName={product.product_name}
                 />
-
                 <ProductForm
                   productName={product.product_name}
                   description={product.description}
@@ -383,31 +378,31 @@ const AdminProductDetails = () => {
                   isFeatured={product.isFeatured}
                   discountPercent={discountPercent}
                   onProductNameChange={(v) =>
-                    setProduct({ ...product, product_name: v })
+                    setProduct((prev) => prev ? { ...prev, product_name: v } : prev)
                   }
                   onDescriptionChange={(v) =>
-                    setProduct({ ...product, description: v })
+                    setProduct((prev) => prev ? { ...prev, description: v } : prev)
                   }
                   onCategoryChange={(v) =>
-                    setProduct({
-                      ...product,
-                      category: v as any,
-                      subCategory: null,
-                    })
+                    setProduct((prev) => prev ? { ...prev, category: v, subCategory: null } : prev)
                   }
                   onSubCategoryChange={(v) =>
-                    setProduct({ ...product, subCategory: v })
-                  } 
-                  onPriceChange={(v) => setProduct({ ...product, price: v })}
-                  onSalePriceChange={(v) =>
-                    setProduct({ ...product, salePrice: v })
+                    setProduct((prev) => prev ? { ...prev, subCategory: v } : prev)
                   }
-                  onStockChange={(v) => setProduct({ ...product, stock: v })}
+                  onPriceChange={(v) =>
+                    setProduct((prev) => prev ? { ...prev, price: v } : prev)
+                  }
+                  onSalePriceChange={(v) =>
+                    setProduct((prev) => prev ? { ...prev, salePrice: v } : prev)
+                  }
+                  onStockChange={(v) =>
+                    setProduct((prev) => prev ? { ...prev, stock: v } : prev)
+                  }
                   onIsActiveChange={(v) =>
-                    setProduct({ ...product, isActive: v })
+                    setProduct((prev) => prev ? { ...prev, isActive: v } : prev)
                   }
                   onIsFeaturedChange={(v) =>
-                    setProduct({ ...product, isFeatured: v })
+                    setProduct((prev) => prev ? { ...prev, isFeatured: v } : prev)
                   }
                   onUpdate={handleUpdate}
                   onDelete={handleProductDelete}
@@ -428,6 +423,7 @@ const AdminProductDetails = () => {
               <ReviewList
                 reviews={reviews}
                 onDeleteReview={handleReviewDelete}
+                onBulkDeleteReviews={handleBulkDeleteReviews}
                 formatDate={formatDate}
               />
             </>

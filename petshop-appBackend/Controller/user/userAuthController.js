@@ -67,6 +67,21 @@ const saveLoginActivity = (userId, ipAddress, userAgent) => {
   ]).catch((err) => console.error("Login activity error:", err.message));
 };
 
+const closeUserSessions = async (userId) => {
+  try {
+    const now = new Date();
+    // endedAt: null olan tüm sessionları bul ve kapat
+    const openSessions = await Session.find({ userId, endedAt: null });
+    for (const session of openSessions) {
+      session.endedAt = now;
+      session.duration = now.getTime() - session.startedAt.getTime();
+      await session.save(); // pre("save") hook'u duration hesaplar
+    }
+  } catch (err) {
+    console.error("Session close error:", err.message);
+  }
+};
+
 export const UserRegister = catchAsyncError(async (req, res, next) => {
   const { firstName, lastName, email, phone, password } = req.body;
 
@@ -210,9 +225,14 @@ export const googleLogin = catchAsyncError(async (req, res, next) => {
   generateToken(user, "Google login successful", 200, res);
 });
 
+
 export const Logout = catchAsyncError(async (req, res, next) => {
-  res.status(200).cookie("UserToken", "", getClearCookieOptions()).json({
-    success: true,
-    message: "User Logged Out Successfully!",
-  });
+  if (req.user?._id) {
+    await closeUserSessions(req.user._id);
+  }
+
+  res
+    .status(200)
+    .cookie("UserToken", "", getClearCookieOptions())
+    .json({ success: true, message: "User Logged Out Successfully!" });
 });

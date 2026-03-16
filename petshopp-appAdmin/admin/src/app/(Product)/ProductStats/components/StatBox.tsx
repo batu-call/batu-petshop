@@ -12,7 +12,7 @@ interface Props {
 
 const StatBox = ({ title, value, href, icon, gradient }: Props) => (
   <Link href={href} aria-label={`View details for ${title}`}>
-    <div className="group relative bg-white dark:bg-[#162820] rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-[#2d5a3d] hover:border-[#97cba9]/30 dark:hover:border-[#7aab8a]/40 overflow-hidden cursor-pointer">
+    <div className="group relative bg-white dark:bg-[#162820] rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-[#2d5a3d] hover:border-[#97cba9]/30 dark:hover:border-[#7aab8a]/40 overflow-hidden cursor-pointer h-60">
       <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-[#97cba9]/10 to-transparent dark:from-[#0b8457]/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
       <div className="relative">
         <div className={`w-12 h-12 rounded-2xl bg-linear-to-br ${gradient} flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300`}>

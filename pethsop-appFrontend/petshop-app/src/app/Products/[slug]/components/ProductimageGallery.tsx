@@ -42,6 +42,8 @@ const getObjectFit = (
 ): "object-cover" | "object-contain" =>
   Math.abs(nw / nh - cw / ch) > 0.4 ? "object-contain" : "object-cover";
 
+const SLIDE_DURATION = 380;
+
 const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   images,
   productName,
@@ -54,17 +56,13 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   const showStockWarning = stockNumber && stockNumber > 0 && stockNumber < 6;
 
   const [isZoomed, setIsZoomed] = useState(false);
-  const [imageMetaMap, setImageMetaMap] = useState<Record<string, ImageMeta>>(
-    {},
-  );
-  const [imageReadyMap, setImageReadyMap] = useState<Record<string, boolean>>(
-    {},
-  );
+  const [imageMetaMap, setImageMetaMap] = useState<Record<string, ImageMeta>>({});
+  const [imageReadyMap, setImageReadyMap] = useState<Record<string, boolean>>({});
 
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const [isSliding, setIsSliding] = useState(false);
-  const [displayIndex, setDisplayIndex] = useState(selectedImageIndex);
-  const [prevIndex, setPrevIndex] = useState<number | null>(null);
+  const [currentIdx, setCurrentIdx] = useState(selectedImageIndex);
+  const [nextIdx, setNextIdx] = useState<number | null>(null);
 
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -75,10 +73,10 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const slidingRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const visibleImages = useMemo(() => images.slice(0, 6), [images]);
 
-  // Intersection Observer: reveal on scroll into view
   useEffect(() => {
     const el = wrapperRef.current;
     if (!el) return;
@@ -95,7 +93,6 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
     return () => observer.disconnect();
   }, [hasRevealed]);
 
-  // Scroll parallax
   useEffect(() => {
     const handleScroll = () => {
       const el = wrapperRef.current;
@@ -110,7 +107,6 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Preload image metadata
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -140,22 +136,28 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images]);
 
-  // Slide transition on index change
   useEffect(() => {
-    if (selectedImageIndex === displayIndex || slidingRef.current) return;
-    const dir = selectedImageIndex > displayIndex ? "left" : "right";
+    if (selectedImageIndex === currentIdx) return;
+
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    const dir = selectedImageIndex > currentIdx ? "left" : "right";
     slidingRef.current = true;
-    setPrevIndex(displayIndex);
+    setNextIdx(selectedImageIndex);
     setSlideDir(dir);
     setIsSliding(true);
-    const t = setTimeout(() => {
-      setDisplayIndex(selectedImageIndex);
-      setPrevIndex(null);
+
+    timerRef.current = setTimeout(() => {
+      setCurrentIdx(selectedImageIndex);
+      setNextIdx(null);
       setSlideDir(null);
       setIsSliding(false);
       slidingRef.current = false;
-    }, 50);
-    return () => clearTimeout(t);
+    }, SLIDE_DURATION);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [selectedImageIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const navigateGallery = useCallback(
@@ -174,23 +176,14 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
     [images.length, selectedImageIndex, setSelectedImageIndex],
   );
 
-  const swipeLogic = (
-    sx: number | null,
-    sy: number | null,
-    ex: number,
-    ey: number,
-  ) => {
+  const swipeLogic = (sx: number | null, sy: number | null, ex: number, ey: number) => {
     if (images.length <= 1 || !sx || !sy) return;
-    const dx = ex - sx,
-      dy = ey - sy;
+    const dx = ex - sx, dy = ey - sy;
     if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
     navigateGallery(dx < 0 ? "next" : "prev");
   };
 
-  const handleImageLoad = (
-    url: string,
-    e: React.SyntheticEvent<HTMLImageElement>,
-  ) => {
+  const handleImageLoad = (url: string, e: React.SyntheticEvent<HTMLImageElement>) => {
     if (!imageMetaMap[url]) {
       const img = e.currentTarget;
       const cw = containerRef.current?.offsetWidth;
@@ -208,12 +201,16 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
     setImageReadyMap((prev) => ({ ...prev, [url]: true }));
   };
 
-  const currentImageUrl = images[displayIndex]?.url || images[0]?.url;
+  const currentImageUrl = images[currentIdx]?.url || images[0]?.url;
+  const nextImageUrl = nextIdx !== null ? images[nextIdx]?.url : null;
   const currentMeta = imageMetaMap[currentImageUrl];
   const currentFit = currentMeta?.fit ?? "object-cover";
   const showBlur = currentMeta?.blur ?? false;
   const currentImageReady = imageReadyMap[currentImageUrl] ?? false;
   const parallaxY = scrollProgress * 18;
+
+  const enterFrom = slideDir === "left" ? "translateX(100%)" : "translateX(-100%)";
+  const exitTo = slideDir === "left" ? "translateX(-100%)" : "translateX(100%)";
 
   return (
     <>
@@ -230,6 +227,14 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
           0%   { transform: translateX(-100%) skewX(-12deg); }
           100% { transform: translateX(250%) skewX(-12deg); }
         }
+        @keyframes slide-enter {
+          from { transform: var(--enter-from); }
+          to   { transform: translateX(0%); }
+        }
+        @keyframes slide-exit {
+          from { transform: translateX(0%); }
+          to   { transform: var(--exit-to); }
+        }
         .gallery-image-reveal  { animation: gallery-reveal-image 0.65s cubic-bezier(0.22,1,0.36,1) forwards; }
         .gallery-thumbs-reveal { animation: gallery-reveal-thumbs 0.55s cubic-bezier(0.22,1,0.36,1) 0.12s both; }
         .gallery-hidden        { opacity: 0; transform: translateY(28px) scale(0.97); }
@@ -243,8 +248,6 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
           border-radius: inherit;
           z-index: 25;
         }
-        .gi-enter-left, .gi-enter-right { opacity: 1; }
-        .gi-exit-left,  .gi-exit-right  { opacity: 0; }
       `}</style>
 
       <div
@@ -253,29 +256,24 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
       >
         {/* Thumbnails */}
         {images.length > 1 && (
-          <div
-            className={`flex flex-row md:flex-col gap-3 p-2 justify-center items-center h-20 sm:h-30 md:h-auto overflow-x-auto md:overflow-y-auto ${isVisible ? "gallery-thumbs-reveal" : "gallery-hidden"}`}
-          >
+          <div className={`flex flex-row md:flex-col gap-3 p-2 justify-center items-center h-20 sm:h-30 md:h-auto overflow-x-auto md:overflow-y-auto ${isVisible ? "gallery-thumbs-reveal" : "gallery-hidden"}`}>
             {visibleImages.map((img, index) => (
               <div
                 key={img._id || index}
-                onClick={() =>
-                  !slidingRef.current && setSelectedImageIndex(index)
-                }
+                onClick={() => !slidingRef.current && setSelectedImageIndex(index)}
                 className={`relative cursor-pointer rounded-lg overflow-hidden transition-all duration-300 bg-gray-100 flex-shrink-0 h-12 w-12 sm:h-16 sm:w-16 md:h-14 md:w-14 lg:h-20 lg:w-20 ${
                   selectedImageIndex === index
                     ? "ring-4 ring-[#97cba9] scale-105 shadow-xl"
                     : "ring-2 ring-[#c8e6d4] opacity-70 hover:opacity-100 hover:scale-105"
                 }`}
-                style={{
-                  transitionDelay: isVisible ? `${index * 55}ms` : "0ms",
-                }}
+                style={{ transitionDelay: isVisible ? `${index * 55}ms` : "0ms" }}
               >
                 <Image
                   src={img.url}
                   alt={`${productName} ${index + 1}`}
                   fill
-                  sizes="(max-width: 640px) 48px, (max-width: 768px) 64px, (max-width: 1024px) 56px, 80px"
+                  sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, (max-width: 1024px) 112px, 160px"
+                  quality={95}
                   className="object-cover"
                 />
               </div>
@@ -326,7 +324,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
               )
             }
           >
-            {/* Blur background */}
+            {/* Blur bg */}
             <div
               className={`absolute inset-0 transition-opacity duration-300 ${showBlur ? "opacity-100" : "opacity-0"}`}
               style={{ backgroundColor: "#edf7f1" }}
@@ -341,68 +339,72 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
               />
             )}
 
-            {/* Exiting image */}
-            {prevIndex !== null && isSliding && (
+            <div
+              key={`current-${currentIdx}`}
+              className="absolute inset-0 z-10"
+              style={
+                isSliding
+                  ? {
+                      animation: `slide-exit ${SLIDE_DURATION}ms cubic-bezier(0.4,0,0.2,1) forwards`,
+                      ["--exit-to" as string]: exitTo,
+                    }
+                  : {}
+              }
+            >
               <div
-                key={`exit-${prevIndex}-${slideDir}`}
-                className={`absolute inset-0 z-10 ${slideDir === "left" ? "gi-exit-left" : "gi-exit-right"}`}
+                style={{
+                  position: "absolute",
+                  top: `-${parallaxY + 18}px`,
+                  bottom: `-${parallaxY + 18}px`,
+                  left: 0,
+                  right: 0,
+                  opacity: currentImageReady ? 1 : 0,
+                  transition: "opacity 0.18s ease",
+                }}
               >
                 <Image
-                  src={images[prevIndex]?.url}
+                  src={currentImageUrl}
                   alt={productName}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 560px"
-                  className={
-                    imageMetaMap[images[prevIndex]?.url]?.fit ?? "object-cover"
-                  }
+                  priority
+                  className={currentFit}
+                  onLoad={(e) => handleImageLoad(currentImageUrl, e)}
+                />
+              </div>
+            </div>
+
+            {isSliding && nextImageUrl && nextIdx !== null && (
+              <div
+                key={`next-${nextIdx}`}
+                className="absolute inset-0 z-20"
+                style={{
+                  animation: `slide-enter ${SLIDE_DURATION}ms cubic-bezier(0.4,0,0.2,1) forwards`,
+                  ["--enter-from" as string]: enterFrom,
+                }}
+              >
+                <Image
+                  src={nextImageUrl}
+                  alt={productName}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 560px"
+                  className={imageMetaMap[nextImageUrl]?.fit ?? "object-cover"}
                 />
               </div>
             )}
-
-            {/* Entering image with parallax */}
-            <div
-              key={`enter-${displayIndex}-${slideDir}`}
-              className={`absolute z-20 ${isSliding ? (slideDir === "left" ? "gi-enter-left" : "gi-enter-right") : ""}`}
-              style={{
-                top: `-${parallaxY + 18}px`,
-                bottom: `-${parallaxY + 18}px`,
-                left: 0,
-                right: 0,
-                opacity: currentImageReady ? 1 : 0,
-                transition: isSliding ? "none" : "opacity 0.18s ease",
-                transform: `translateY(${-parallaxY}px)`,
-                willChange: "transform",
-              }}
-            >
-              <Image
-                src={currentImageUrl}
-                alt={productName}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 560px"
-                priority
-                className={currentFit}
-                onLoad={(e) => handleImageLoad(currentImageUrl, e)}
-              />
-            </div>
 
             {/* Nav arrows */}
             {images.length > 1 && (
               <>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigateGallery("prev");
-                  }}
+                  onClick={(e) => { e.stopPropagation(); navigateGallery("prev"); }}
                   className="absolute left-2 top-1/2 -translate-y-1/2 z-30 bg-black/30 hover:bg-black/55 text-white rounded-full p-1 transition-all hover:scale-110 active:scale-95"
                   aria-label="Previous image"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigateGallery("next");
-                  }}
+                  onClick={(e) => { e.stopPropagation(); navigateGallery("next"); }}
                   className="absolute right-2 top-1/2 -translate-y-1/2 z-30 bg-black/30 hover:bg-black/55 text-white rounded-full p-1 transition-all hover:scale-110 active:scale-95"
                   aria-label="Next image"
                 >

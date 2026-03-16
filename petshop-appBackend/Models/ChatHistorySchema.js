@@ -7,7 +7,7 @@ const messageSchema = new mongoose.Schema({
     required: true,
   },
   content: {
-    type: mongoose.Schema.Types.Mixed, // string veya array (tool calls için)
+    type: mongoose.Schema.Types.Mixed,
     required: true,
   },
   tool_calls: {
@@ -50,7 +50,6 @@ const chatHistorySchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-    // Rate limiting için
     dailyMessageCount: {
       type: Number,
       default: 0,
@@ -58,21 +57,19 @@ const chatHistorySchema = new mongoose.Schema(
     dailyResetAt: {
       type: Date,
       default: () => {
-        const tomorrow = new Date();
-        tomorrow.setHours(24, 0, 0, 0);
-        return tomorrow;
+        const t = new Date();
+        t.setHours(24, 0, 0, 0);
+        return t;
       },
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// 7 gün sonra otomatik sil
+// TTL: auto-delete sessions after 7 days of inactivity
 chatHistorySchema.index({ lastActivity: 1 }, { expireAfterSeconds: 7 * 24 * 60 * 60 });
 
-// SessionId + userId üzerinden hızlı arama
+// Compound index for session + user lookups
 chatHistorySchema.index({ sessionId: 1, userId: 1 });
 
 export const ChatHistory = mongoose.model("ChatHistory", chatHistorySchema);

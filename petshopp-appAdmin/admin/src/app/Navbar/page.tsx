@@ -40,15 +40,11 @@ const Navbar = () => {
       "/": "Dashboard",
       "/AddProduct": "Add Product",
       "/AllProduct": "All Products",
-      "/ProductStats": "Product Statistics",
       "/AllUsers": "All Users",
       "/AllAdmin": "All Admins",
       "/AddAdmin": "Add Admin",
-      "/UserActivity": "User Activity",
       "/AllOrders": "All Orders",
-      "/OrderManagement": "Order Management",
       "/AllCoupon": "Pricing & Promotions",
-      "/OrderStats": "Order Statistics",
       "/Contact": "Admin Contact",
     };
 

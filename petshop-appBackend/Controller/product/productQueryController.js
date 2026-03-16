@@ -47,7 +47,6 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
 
   const filter = { isActive: true, stock: { $gt: 0 } };
 
-
   if (category) {
     const categories = category.split(",").map((c) => sanitizeString(c.trim()));
     const validCats = categories.filter((c) => VALID_CATEGORIES.includes(c));
@@ -295,6 +294,7 @@ export const getAdminAllProduct = catchAsyncError(async (req, res, next) => {
     maxStock,
     isActive,
     isFeatured,
+    onSale,
     limit = 15,
   } = req.query;
 
@@ -323,6 +323,8 @@ export const getAdminAllProduct = catchAsyncError(async (req, res, next) => {
     const v = sanitizeBoolean(isFeatured);
     if (v !== null) filter.isFeatured = v;
   }
+  if (onSale === "true") filter.salePrice = { $ne: null };
+
   if (search && typeof search === "string") {
     const rx = createSafeRegex(search, 50);
     if (rx) filter.$or = [{ product_name: rx }, { description: rx }];

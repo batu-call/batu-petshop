@@ -167,6 +167,9 @@ body {
 .swiper-pagination-bullet-active {
   background: white;
 }
+input, textarea, select {
+  font-size: 16px !important;
+}
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);

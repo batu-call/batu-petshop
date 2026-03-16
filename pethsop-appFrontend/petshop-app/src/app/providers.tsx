@@ -14,26 +14,24 @@ import ScrollToTopButton from "./components/ScrollToTopButton";
 import CustomerChatWidget from "./chat/page";
 import { ThemeProvider } from "next-themes";
 
-export default function Providers({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+ useEffect(() => {
+  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+}, [pathname]);
 
   const hasCustomNavbar =
-    pathname === "/AllProduct" ||
-    pathname.startsWith("/category");
+    pathname === "/AllProduct" || pathname.startsWith("/category");
 
   const hideNavbarAndSidebar =
     pathname === "/forgot-password" ||
     pathname.startsWith("/reset-password") ||
     pathname === "/Success" ||
     !pathname;
+
+  const chatHiddenPages = ["/Order", "/Success"];
+  const hideChat = chatHiddenPages.includes(pathname);
 
   return (
     <ThemeProvider
@@ -43,7 +41,6 @@ export default function Providers({
       disableTransitionOnChange={true}
     >
       <SessionProvider>
-        <CustomerChatWidget />
         <AuthProvider>
           <ScrollToTop />
           <CartProvider>
@@ -55,7 +52,6 @@ export default function Providers({
                     <Sidebar />
                   </>
                 )}
-
                 <main
                   className={
                     !hideNavbarAndSidebar
@@ -67,11 +63,12 @@ export default function Providers({
                 >
                   {children}
                 </main>
+                {!hideChat && <CustomerChatWidget />} 
+                <ScrollToTopButton />
               </ConfirmProvider>
             </FavoriteProvider>
           </CartProvider>
           <ToastProvider />
-          <ScrollToTopButton />
         </AuthProvider>
       </SessionProvider>
     </ThemeProvider>

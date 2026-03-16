@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useContext, ChangeEvent } from "react";
-import { usePathname } from "next/navigation";
+import { useState, useRef, useEffect, useContext, ChangeEvent, KeyboardEvent } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import toast from "react-hot-toast";
 
@@ -17,6 +17,7 @@ export const useNavbar = (
   handlePriceChangeCommitted: (() => void) | undefined,
 ) => {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = useSession();
   const { setUser, setIsAuthenticated, logout } = useContext(AuthContext);
 
@@ -132,6 +133,15 @@ export const useNavbar = (
     }, 400);
   };
 
+  const handleEnterSearch = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+    const q = searchQuery.trim();
+    if (!q) return;
+    setIsSearchFocused(false);
+    setSearchResults([]);
+    router.push(`/Products?search=${encodeURIComponent(q)}`);
+  };
+
   const handleMinPriceInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!setTempPriceRange || !tempPriceRange) return;
     const value = e.target.value;
@@ -173,6 +183,7 @@ export const useNavbar = (
     filterDropdownRef,
     handleLogout,
     handleSearch,
+    handleEnterSearch, 
     handleMinPriceInputChange,
     handleMaxPriceInputChange,
     applyManualPriceInput,

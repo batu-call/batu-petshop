@@ -1,6 +1,6 @@
 "use client";
 
-import { Filter, ChevronDown, Star, Trash2 } from "lucide-react";
+import { Filter, ChevronDown, Star, Trash2, Tag } from "lucide-react";
 import { useState } from "react";
 import { Filters } from "./useAdminProducts";
 
@@ -32,6 +32,12 @@ const ProductFilters = ({
   const set = (key: keyof Filters, value: string) =>
     setLocalFilter({ ...localFilter, [key]: value });
 
+  const toggleOnSale = () =>
+    setLocalFilter({
+      ...localFilter,
+      onSale: localFilter.onSale === "true" ? "" : "true",
+    });
+
   const featuredButtons = (size: "sm" | "lg") => (
     <div className={`flex gap-2 ${size === "lg" ? "items-center" : ""}`}>
       {size === "lg" && (
@@ -62,6 +68,31 @@ const ProductFilters = ({
     </div>
   );
 
+  const onSaleButton = (size: "sm" | "lg") => (
+    <div className={`flex gap-2 ${size === "lg" ? "items-center" : ""}`}>
+      {size === "lg" && (
+        <span className="text-sm font-semibold text-gray-600 dark:text-[#a8d4b8] flex items-center gap-1.5">
+          <Tag className="w-4 h-4 text-red-400" /> On Sale:
+        </span>
+      )}
+      {size === "sm" && (
+        <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-[#a8d4b8] mb-2">
+          On Sale
+        </p>
+      )}
+      <button
+        onClick={toggleOnSale}
+        className={`flex items-center gap-1.5 px-4 ${size === "lg" ? "py-1.5" : "py-2"} rounded-lg text-sm font-semibold border transition-all duration-200 cursor-pointer ${
+          localFilter.onSale === "true"
+            ? "bg-red-400 border-red-400 text-white shadow-sm"
+            : "bg-white dark:bg-[#1e3d2a] border-gray-300 dark:border-[#2d5a3d] text-gray-600 dark:text-[#a8d4b8] hover:border-red-400 hover:text-red-500"
+        }`}
+      >
+        <Tag className="w-3.5 h-3.5" /> Discounted
+      </button>
+    </div>
+  );
+
   return (
     <div className="bg-white dark:bg-[#162820] p-4 rounded-lg shadow-md mb-6 border border-transparent dark:border-[#2d5a3d]">
       {/* Mobile toggle */}
@@ -81,9 +112,7 @@ const ProductFilters = ({
       </button>
 
       {/* Mobile filters */}
-      <div
-        className={`${showFilters ? "block" : "hidden"} lg:hidden space-y-3`}
-      >
+      <div className={`${showFilters ? "block" : "hidden"} lg:hidden space-y-3`}>
         <input
           type="text"
           placeholder="Search by name or description..."
@@ -117,12 +146,8 @@ const ProductFilters = ({
           </select>
         </div>
 
-        <div>
-          <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-[#a8d4b8] mb-2">
-            Featured
-          </p>
-          {featuredButtons("sm")}
-        </div>
+        <div>{featuredButtons("sm")}</div>
+        <div>{onSaleButton("sm")}</div>
 
         {(["Price", "Stock", "Sold"] as const).map((label) => {
           const minKey = `min${label}` as keyof Filters;
@@ -186,29 +211,22 @@ const ProductFilters = ({
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </select>
-          {(
-            [
-              "minPrice",
-              "maxPrice",
-              "minSold",
-              "maxSold",
-              "minStock",
-              "maxStock",
-            ] as const
-          ).map((key) => (
+          {(["minPrice", "maxPrice", "minSold", "maxSold", "minStock", "maxStock"] as const).map((key) => (
             <input
               key={key}
               type="number"
-              placeholder={key
-                .replace(/([A-Z])/g, " $1")
-                .replace(/^./, (s) => s.toUpperCase())}
+              placeholder={key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}
               value={localFilter[key]}
               onChange={(e) => set(key, e.target.value)}
               className={`${INPUT_CLASS} w-28`}
             />
           ))}
         </div>
-        {featuredButtons("lg")}
+        <div className="flex flex-wrap items-center gap-4">
+          {featuredButtons("lg")}
+          <div className="w-px h-6 bg-gray-200 dark:bg-[#2d5a3d]" />
+          {onSaleButton("lg")}
+        </div>
       </div>
 
       {/* Footer */}

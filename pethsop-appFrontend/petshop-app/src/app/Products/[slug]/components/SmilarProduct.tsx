@@ -91,7 +91,7 @@ const SimilarProducts: React.FC<SimilarProductsProps> = ({
 
           return (
             <SwiperSlide key={item._id} className="p-2">
-              <div className="bg-primary w-full rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative group">
+              <div className="bg-primary h-92 w-full rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative group">
                 {/* Badges */}
                 <div className="absolute top-3 left-0 z-10 flex flex-col gap-1.5">
                   {discountPercent > 0 && (

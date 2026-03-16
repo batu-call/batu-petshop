@@ -57,7 +57,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "/favorite": "Favorite",
   "/orders": "My Orders",
   "/Cart": "Shopping Cart",
-  "/Order": "All Users",
+  "/Order": "Order",
   "/AllProduct": "All Product",
   "/Contact": "Contact Us",
   "/settings": "Setting",

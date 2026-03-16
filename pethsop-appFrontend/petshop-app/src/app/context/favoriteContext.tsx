@@ -158,17 +158,15 @@ export const FavoriteProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    if (authLoading) return;
+  if (authLoading) return;
 
-    if (!isAuthenticated) {
-      setFavorites([]);
-      setTotalPages(1);
-      setCurrentPage(1);
-      setTotalFavorites(0);
-    } else if (user) {
-      fetchFavorites(1);
-    }
-  }, [isAuthenticated, user, authLoading, fetchFavorites]);
+  if (!isAuthenticated) {
+    setFavorites([]);
+    setTotalPages(1);
+    setCurrentPage(1);
+    setTotalFavorites(0);
+  }
+}, [isAuthenticated, user, authLoading]);
 
   return (
     <FavoriteContext.Provider

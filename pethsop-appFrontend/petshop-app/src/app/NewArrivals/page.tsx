@@ -126,8 +126,12 @@ const NewArrivals = ({ reviewStats }: Props) => {
 
   const getMobileFavColor = (productId: string) =>
     isFavorite(productId)
-      ? isDark ? "black" : "#393E46"
-      : isDark ? "black" : "#9ca3af";
+      ? isDark
+        ? "black"
+        : "#393E46"
+      : isDark
+        ? "black"
+        : "#9ca3af";
 
   return (
     <div className="flex-1 p-4">
@@ -176,7 +180,7 @@ const NewArrivals = ({ reviewStats }: Props) => {
           preventClicksPropagation={false}
           className="py-4 lg:mt-12 custom-swiper items-center min-h-[320px] md:min-h-[420px]"
         >
-          {product.map((item) => {
+          {product.map((item, itemIndex) => {
             const discountPercent =
               item.salePrice && item.salePrice < item.price
                 ? Math.round(((item.price - item.salePrice) / item.price) * 100)
@@ -186,7 +190,7 @@ const NewArrivals = ({ reviewStats }: Props) => {
 
             return (
               <SwiperSlide key={item._id} className="p-2">
-                <div className="bg-primary w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative group">
+                <div className="bg-primary h-92 w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative group">
                   {/* Badges */}
                   <div className="absolute top-3 left-0 z-10 flex flex-col gap-1.5">
                     {discountPercent > 0 && (
@@ -259,7 +263,7 @@ const NewArrivals = ({ reviewStats }: Props) => {
                             fill
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                             className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-110"
-                            priority={false}
+                            priority={itemIndex === 0}
                           />
                         </div>
                       ) : (

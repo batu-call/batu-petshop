@@ -181,25 +181,30 @@ const AllAdmin = () => {
               <SortableHeader
                 field="lastName"
                 label="Last Name"
-                className="flex-1 lg:w-28"
+                className="flex-1 lg:w-28 lg:flex lg:justify-center"
               />
               <SortableHeader
                 field="email"
                 label="Email"
-                className="flex-1 lg:w-44 lg:flex lg:justify-center"
+                className="flex-1 lg:w-44 lg:flex lg:justify-center lg:items-center"
               />
-              <div className="flex-1 lg:w-36 lg:flex lg:justify-center">
+              <div className="flex-1 lg:w-36 lg:flex lg:justify-center lg:items-center">
                 Phone
               </div>
-              <div className="flex-1 lg:w-56 lg:flex lg:justify-center">
+              <div className="flex-1 lg:w-60 lg:flex lg:justify-center lg:items-center">
                 Address
               </div>
-              <div className="flex-1 lg:w-20 flex justify-center">Role</div>
+              <div className="flex-1 lg:w-20 lg:flex lg:justify-center lg:items-center">
+                Role
+              </div>
               <SortableHeader
                 field="createdAt"
                 label="Created"
-                className="flex-1 lg:w-28"
+                className="flex-1 lg:w-28 lg:flex lg:items-center lg:justify-center"
               />
+              {/* delete button */}
+              <div className="w-8"> 
+              </div>
             </div>
 
             {/* LIST */}

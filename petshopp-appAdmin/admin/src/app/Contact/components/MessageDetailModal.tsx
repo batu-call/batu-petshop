@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, Eye, CheckCircle, Reply } from "lucide-react";
+import { Mail, Eye, CheckCircle, Reply, X } from "lucide-react";
 import { Message } from "../hooks/useMessages";
 
 type Props = {
@@ -26,69 +26,72 @@ const MessageDetailModal = ({ openMessage, onClose, onReply, formatDate }: Props
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-card w-full max-w-lg rounded-xl shadow-lg p-6 flex flex-col overflow-y-auto max-h-[85vh] transform transition-transform duration-300 border border-transparent dark:border-border"
+        className="bg-white dark:bg-[#1e3d2a] w-full max-w-lg rounded-xl shadow-lg overflow-hidden max-h-[85vh] flex flex-col border border-gray-200 dark:border-[#2d5a3d]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-border pb-4">
-          <h2 className="text-xl font-bold text-color dark:text-foreground">Message Detail</h2>
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 dark:border-[#2d5a3d] bg-gray-50 dark:bg-[#162820]">
+          <h2 className="text-lg font-bold text-color dark:text-[#c8e6d0]">Message Detail</h2>
           <button
-            className="text-gray-500 dark:text-muted-foreground hover:text-gray-800 dark:hover:text-foreground text-2xl font-bold cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-accent transition-colors"
+            className="text-gray-500 dark:text-[#7aab8a] hover:text-gray-800 dark:hover:text-[#c8e6d0] w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-[#2d5a3d] transition-colors cursor-pointer"
             onClick={onClose}
           >
-            ×
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex flex-col gap-4 text-sm">
-          <div>
-            <span className="font-semibold text-color dark:text-foreground">Name: </span>
-            <span className="text-color/80 dark:text-muted-foreground">{openMessage.name}</span>
-          </div>
-          <div>
-            <span className="font-semibold text-color dark:text-foreground">Email: </span>
-            <span className="text-color/80 dark:text-muted-foreground">{openMessage.email}</span>
-          </div>
-          <div>
-            <span className="font-semibold text-color dark:text-foreground">Subject: </span>
-            <span className="text-color/80 dark:text-muted-foreground">{openMessage.subject}</span>
-          </div>
-          <div className="bg-gray-50 dark:bg-accent p-4 rounded-lg overflow-auto whitespace-pre-wrap break-words max-h-60 border border-gray-100 dark:border-border">
-            <p className="font-semibold text-color dark:text-foreground mb-2">Message:</p>
-            <p className="text-color/80 dark:text-muted-foreground leading-relaxed">{openMessage.message}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-color dark:text-foreground">Date: </span>
-            <span className="text-color/80 dark:text-muted-foreground">{formatDate(openMessage.date)}</span>
-          </div>
-          <div>
-            <span className="font-semibold text-color dark:text-foreground">Current Status: </span>
-            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ml-2 ${
+        <div className="flex flex-col gap-3 text-sm p-6 overflow-y-auto">
+
+          {[
+            { label: "Name", value: openMessage.name },
+            { label: "Email", value: openMessage.email },
+            { label: "Subject", value: openMessage.subject },
+            { label: "Date", value: formatDate(openMessage.date) },
+          ].map(({ label, value }) => (
+            <div key={label} className="flex flex-col gap-0.5 border-b border-gray-100 dark:border-[#2d5a3d] pb-3">
+              <span className="text-xs text-gray-400 dark:text-[#7aab8a] uppercase tracking-wide">{label}</span>
+              <span className="text-gray-800 dark:text-[#c8e6d0] font-medium">{value}</span>
+            </div>
+          ))}
+
+          {/* Status */}
+          <div className="flex flex-col gap-0.5 border-b border-gray-100 dark:border-[#2d5a3d] pb-3">
+            <span className="text-xs text-gray-400 dark:text-[#7aab8a] uppercase tracking-wide">Status</span>
+            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium w-fit mt-0.5 ${
               openMessage.status === "New"
-                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
                 : openMessage.status === "Read"
-                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300"
-                : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
+                : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
             }`}>
               {getStatusIcon(openMessage.status)}
               {openMessage.status || "New"}
             </span>
           </div>
+
+          {/* Message box */}
+          <div className="mt-1 bg-gray-50 dark:bg-[#162820] border border-gray-200 dark:border-[#2d5a3d] rounded-lg p-4">
+            <p className="text-xs text-gray-400 dark:text-[#7aab8a] uppercase tracking-wide mb-2">Message</p>
+            <p className="text-gray-800 dark:text-[#c8e6d0] leading-relaxed whitespace-pre-wrap break-words max-h-48 overflow-y-auto">
+              {openMessage.message}
+            </p>
+          </div>
+
         </div>
 
         {/* Footer */}
-        <div className="flex mt-6 justify-end gap-2">
+        <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200 dark:border-[#2d5a3d] bg-gray-50 dark:bg-[#162820]">
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-gray-200 dark:bg-accent text-gray-800 dark:text-foreground rounded-lg hover:bg-gray-300 dark:hover:bg-accent/70 transition-colors font-medium text-sm"
+            className="px-5 py-2 bg-white dark:bg-[#1e3d2a] text-gray-700 dark:text-[#c8e6d0] rounded-lg border border-gray-300 dark:border-[#2d5a3d] hover:bg-gray-100 dark:hover:bg-[#2d5a3d] transition-colors font-medium text-sm cursor-pointer"
           >
             Close
           </button>
           <button
             onClick={onReply}
             disabled={openMessage.status === "Replied"}
-            className="px-5 py-2 bg-[#97cba9] dark:bg-primary text-white dark:text-primary-foreground rounded-lg hover:bg-[#7fb894] dark:hover:opacity-90 transition-colors font-medium text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2 bg-primary dark:bg-[#0b8457] text-white rounded-lg hover:bg-primary/90 dark:hover:bg-[#0b8457]/80 transition-colors font-medium text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <Reply className="w-4 h-4" />
             {openMessage.status === "Replied" ? "Already Replied" : "Reply via Email"}

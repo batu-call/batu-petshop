@@ -25,6 +25,7 @@ type Reviews = {
 interface ReviewListProps {
   reviews: Reviews[];
   onDeleteReview: (id: string) => void;
+  onBulkDeleteReviews: (ids: string[]) => void;
   formatDate: (dateString: string) => string;
 }
 
@@ -39,6 +40,7 @@ const getInitials = (firstName: string, lastName: string) => {
 const ReviewList: React.FC<ReviewListProps> = ({
   reviews,
   onDeleteReview,
+  onBulkDeleteReviews,
   formatDate,
 }) => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -59,7 +61,7 @@ const ReviewList: React.FC<ReviewListProps> = ({
   };
 
   const handleBulkDelete = () => {
-    selectedIds.forEach((id) => onDeleteReview(id));
+    onBulkDeleteReviews(selectedIds);
     setSelectedIds([]);
     setCurrentPage(1);
   };
@@ -89,7 +91,6 @@ const ReviewList: React.FC<ReviewListProps> = ({
         Product Reviews
       </h2>
 
-      {/* Select All / Bulk Delete Bar */}
       {reviews && reviews.length > 0 && (
         <div className="flex items-center justify-between mb-4 bg-white dark:bg-card rounded-xl p-3 shadow-sm dark:shadow-none border border-gray-100 dark:border-border">
           <label
@@ -136,7 +137,6 @@ const ReviewList: React.FC<ReviewListProps> = ({
                       : "border-gray-100 dark:border-border hover:border-gray-200 dark:hover:border-border/80"
                   }`}
                 >
-                  {/* Delete button — top right */}
                   {!isSelectionMode && (
                     <button
                       onClick={(e) => handleSingleDelete(e, review._id)}
@@ -146,10 +146,8 @@ const ReviewList: React.FC<ReviewListProps> = ({
                     </button>
                   )}
 
-                  {/* Header row: checkbox + avatar/name + stars */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      {/* Checkbox — inline, vertically centered with avatar */}
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -209,7 +207,6 @@ const ReviewList: React.FC<ReviewListProps> = ({
                       )}
                     </div>
 
-                    {/* Stars — right side, with some right padding to avoid delete button overlap */}
                     <div className="flex text-yellow-500 mr-6">
                       {[...Array(review.rating)].map((_, i) => (
                         <StarOutlineIcon key={i} fontSize="small" />
@@ -217,12 +214,10 @@ const ReviewList: React.FC<ReviewListProps> = ({
                     </div>
                   </div>
 
-                  {/* Comment */}
                   <p className="text-gray-600 dark:text-muted-foreground text-sm leading-relaxed break-words whitespace-pre-wrap pl-7">
                     {review.comment}
                   </p>
 
-                  {/* Helpful */}
                   <div className="mt-4 pl-7">
                     <span className="text-gray-400 dark:text-muted-foreground text-xs flex items-center gap-1 font-medium">
                       <ThumbUp sx={{ fontSize: 14 }} />
@@ -234,7 +229,6 @@ const ReviewList: React.FC<ReviewListProps> = ({
             })}
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-8">
               <button

@@ -3,6 +3,7 @@
 import CloseIcon from "@mui/icons-material/Close";
 import { Button } from "@/components/ui/button";
 import { Features } from "../hooks/useAddProduct";
+import { useConfirm } from "@/app/Context/confirmContext";
 
 type Props = {
   productFeatures: Features[];
@@ -26,6 +27,8 @@ const ProductFeatures = ({
   handleDeleteFeature,
   updateFeatureInList,
 }: Props) => {
+  const { confirm } = useConfirm();
+
   return (
     <div className="flex-1 bg-white dark:bg-[#1e3d2a] p-6 rounded-xl shadow-md border border-transparent dark:border-[#2d5a3d]">
       <h2 className="text-2xl font-bold text-color dark:text-[#c8e6d0] mb-4">Product Features</h2>
@@ -45,7 +48,16 @@ const ProductFeatures = ({
             className={`${inputClass} w-2/3`}
           />
           <button
-            onClick={() => handleDeleteFeature(index)}
+            onClick={async () => {
+              const ok = await confirm({
+                title: "Delete Feature",
+                description: "Are you sure you want to delete this feature?",
+                confirmText: "Yes, Delete",
+                cancelText: "Cancel",
+                variant: "destructive",
+              });
+              if (ok) handleDeleteFeature(index);
+            }}
             disabled={uploading}
             className="absolute top-2 right-2 text-color dark:text-[#7aab8a] cursor-pointer opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 hover:scale-110 hover:text-red-500 dark:hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed"
           >

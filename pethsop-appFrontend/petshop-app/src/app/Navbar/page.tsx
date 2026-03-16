@@ -37,6 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({
     searchQuery,
     searchResults,
     loading,
+    handleEnterSearch,
     isSearchFocused,
     setIsSearchFocused,
     setSearchQuery,
@@ -45,6 +46,7 @@ const Navbar: React.FC<NavbarProps> = ({
     filterButtonRef,
     filterTitleRef,
     filterDropdownRef,
+    
     handleLogout,
     handleSearch,
     handleMinPriceInputChange,
@@ -137,6 +139,7 @@ const Navbar: React.FC<NavbarProps> = ({
             searchQuery={searchQuery}
             searchResults={searchResults}
             loading={loading}
+            handleEnterSearch={handleEnterSearch}
             isSearchFocused={isSearchFocused}
             setIsSearchFocused={setIsSearchFocused}
             setSearchQuery={setSearchQuery}

@@ -33,7 +33,7 @@ type Reviews = {
     firstName: string;
     lastName: string;
     avatar: string;
-  };
+  } | null;
   helpful: string[];
   rating: number;
   comment: string;
@@ -96,14 +96,29 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
     return sortedReviews.slice(start, start + REVIEWS_PER_PAGE);
   }, [sortedReviews, page]);
 
-  // Reset to page 1 when sort changes
+  const { pageNumbers, paginationStart, paginationEnd } = React.useMemo(() => {
+    const visibleCount = 5;
+    let start = Math.max(2, page - Math.floor(visibleCount / 2));
+    let end = start + visibleCount - 1;
+    if (end >= totalPages) {
+      end = totalPages - 1;
+      start = Math.max(2, end - visibleCount + 1);
+    }
+    const nums: number[] = [];
+    for (let i = start; i <= end; i++) nums.push(i);
+    return { pageNumbers: nums, paginationStart: start, paginationEnd: end };
+  }, [page, totalPages]);
+
   React.useEffect(() => { setPage(1); }, [sortBy]);
 
-  const goToPage = (p: number) => {
-    setPage(p);
-    // Scroll to reviews section smoothly
-    document.getElementById("reviews-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+const goToPage = (p: number) => {
+  setPage(p);
+  const el = document.getElementById("reviews-section");
+  if (el) {
+    const top = el.getBoundingClientRect().top + window.scrollY - 100;
+    window.scrollTo({ top, behavior: "smooth" });
+  }
+};
 
   const handleSubmitReview = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -112,30 +127,19 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
   };
 
   const handleHelpful = async (reviewId: string) => {
-  if (!userId) { router.push("/Login"); return; }
-  try {
-    await onHelpful(reviewId);
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 429) {
-      toast.error("Please wait a moment before trying again.");
+    if (!userId) { router.push("/Login"); return; }
+    try {
+      await onHelpful(reviewId);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        toast.error("Please wait a moment before trying again.");
+      }
     }
-  }
-};
-
-  const visibleCount = 5;
-  let start = Math.max(2, page - Math.floor(visibleCount / 2));
-  let end = start + visibleCount - 1;
-  if (end >= totalPages) {
-    end = totalPages - 1;
-    start = Math.max(2, end - visibleCount + 1);
-  }
-  const pageNumbers: number[] = [];
-  for (let i = start; i <= end; i++) pageNumbers.push(i);
+  };
 
   return (
     <main className="px-4 pb-24 pt-2 max-w-[800px] mx-auto font-sans bg-gray-50 dark:bg-[#0d1f18]">
 
-      {/* Title */}
       <h2 className="text-color2 dark:text-[#0E5F44]! text-3xl md:text-4xl font-bold flex items-center w-full justify-center py-4 text-jost border-b-2 border-color2 dark:border-[#2d5a3d] mb-6">
         Product Reviews
       </h2>
@@ -207,7 +211,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
             required
             rows={4}
             placeholder="Share your experience with this product..."
-            className="w-full bg-gray-50 dark:bg-[#0d1f18] dark:text-[#c8e6d0] dark:placeholder-[#7aab8a] border border-[#97cba9] dark:border-[#2d5a3d] rounded-xl p-4 text-sm focus:ring-2 focus:ring-[#97cba9] dark:focus:ring-[#2d5a3d] focus:bg-[#D6EED6]/40 dark:focus:bg-[#1a3d2a] outline-none resize-none transition-all"
+            className="w-full bg-gray-50 dark:bg-[#0d1f18] dark:text-[#c8e6d0] dark:placeholder-[#7aab8a] border border-[#97cba9] dark:border-[#2d5a3d] rounded-xl p-4 text-base focus:ring-2 focus:ring-[#97cba9] dark:focus:ring-[#2d5a3d] focus:bg-[#D6EED6]/40 dark:focus:bg-[#1a3d2a] outline-none resize-none transition-all"
           />
 
           <button
@@ -239,7 +243,6 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
           )}
         </div>
 
-        {/* Empty state */}
         {reviews.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center bg-white dark:bg-[#162820] rounded-2xl border border-gray-100 dark:border-[#2d5a3d]">
             <RateReview sx={{ fontSize: 52 }} className="text-gray-200 dark:text-[#2d5a3d] mb-3" />
@@ -250,10 +253,11 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
           </div>
         ) : (
           <>
-           
             <div className="space-y-4">
               {paginatedReviews.map((review) => {
-                const isOwner = userId === review.userId?._id;
+ 
+                const reviewUserId = review.userId?._id ?? null;
+                const isOwner = !!userId && !!reviewUserId && userId === reviewUserId;
                 const isHelpful = review.helpful.includes(userId ?? "");
 
                 return (
@@ -261,26 +265,33 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
                     key={review._id}
                     className="bg-white dark:bg-[#162820] rounded-2xl shadow-sm border border-gray-100 dark:border-[#2d5a3d] overflow-hidden"
                   >
-                    {/* Card top */}
                     <div className="px-5 pt-5 pb-4">
                       <div className="flex items-start justify-between gap-3">
 
-                        {/* Avatar + name + date */}
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="relative w-11 h-11 rounded-full overflow-hidden border-2 border-[#97cba9] dark:border-[#2d5a3d] flex-shrink-0">
-                            <Image
-                              src={review.userId?.avatar || "/default-avatar.png"}
-                              alt={`${review.userId?.firstName ?? "User"} avatar`}
-                              fill
-                              sizes="44px"
-                              className="object-cover object-center"
-                              quality={90}
-                            />
+
+                            {review.userId?.avatar ? (
+                              <Image
+                                src={review.userId.avatar}
+                                alt={`${review.userId.firstName ?? "User"} avatar`}
+                                fill
+                                sizes="44px"
+                                className="object-cover object-center"
+                                quality={90}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-[#2d5a3d] dark:to-[#1a3d2a] flex items-center justify-center">
+                                <span className="text-gray-500 dark:text-[#7aab8a] font-black text-sm">?</span>
+                              </div>
+                            )}
                           </div>
                           <div className="min-w-0">
                             <h3 className="font-bold text-sm text-color dark:text-[#c8e6d0] truncate">
-                              {review.userId?.firstName || "User"}{" "}
-                              {review.userId?.lastName?.[0]}.
+                            
+                              {review.userId
+                                ? `${review.userId.firstName || "User"} ${review.userId.lastName?.[0] ?? ""}.`
+                                : "Deleted User"}
                             </h3>
                             <p className="text-[11px] text-gray-400 dark:text-[#7aab8a] mt-0.5">
                               {formatDate(review.createdAt)}
@@ -288,7 +299,6 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
                           </div>
                         </div>
 
-                        {/* Star rating */}
                         <div className="flex flex-shrink-0 mt-0.5">
                           {[...Array(5)].map((_, i) => (
                             <Star
@@ -304,16 +314,12 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
                         </div>
                       </div>
 
-                      {/* Review text */}
                       <p className="mt-4 text-gray-600 dark:text-[#a8d4b8] text-sm leading-relaxed break-words">
                         {review.comment}
                       </p>
                     </div>
 
-                    {/* Card bottom bar */}
                     <div className="flex items-center justify-between px-5 py-3 bg-gray-50 dark:bg-[#0d1f18]/60 border-t border-gray-100 dark:border-[#2d5a3d]">
-
-                      {/* Helpful button */}
                       <button
                         onClick={() => handleHelpful(review._id)}
                         className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-200 cursor-pointer active:scale-95 ${
@@ -335,7 +341,6 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
                         )}
                       </button>
 
-                      {/* Delete button — own reviews only */}
                       {isOwner && (
                         <button
                           onClick={() => onDeleteReview(review._id)}
@@ -351,7 +356,6 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
               })}
             </div>
 
-            {/* Pagination — only show if more than 1 page */}
             {totalPages > 1 && (
               <Pagination className="mt-8 text-color dark:text-[#a8d4b8]">
                 <PaginationContent>
@@ -362,7 +366,6 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
                     />
                   </PaginationItem>
 
-                  {/* First page */}
                   <PaginationItem className="cursor-pointer">
                     <PaginationLink
                       isActive={page === 1}
@@ -373,7 +376,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
                     </PaginationLink>
                   </PaginationItem>
 
-                  {start > 2 && (
+                  {paginationStart > 2 && (
                     <PaginationItem>
                       <span className="px-2 text-sm text-gray-400 dark:text-[#7aab8a]">…</span>
                     </PaginationItem>
@@ -391,13 +394,12 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
                     </PaginationItem>
                   ))}
 
-                  {end < totalPages - 1 && (
+                  {paginationEnd < totalPages - 1 && (
                     <PaginationItem>
                       <span className="px-2 text-sm text-gray-400 dark:text-[#7aab8a]">…</span>
                     </PaginationItem>
                   )}
 
-                  {/* Last page — only show if totalPages > 1 */}
                   {totalPages > 1 && (
                     <PaginationItem className="cursor-pointer">
                       <PaginationLink

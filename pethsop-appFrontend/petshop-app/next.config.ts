@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    scrollRestoration: false,
+  },
   images: {
     remotePatterns: [
       {
@@ -24,4 +27,3 @@ const nextConfig = {
 };
 
 export default nextConfig;
-  

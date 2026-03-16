@@ -81,7 +81,11 @@ const Page = () => {
     <div className="flex flex-col min-h-screen">
       {loading ? (
         <div className="md:ml-24 lg:ml-40 fixed inset-0 flex items-center justify-center bg-primary z-50">
-          <CircularText text="LOADING" spinDuration={20} className="text-white text-4xl" />
+          <CircularText
+            text="LOADING"
+            spinDuration={20}
+            className="text-white text-4xl"
+          />
         </div>
       ) : (
         <>
@@ -136,17 +140,21 @@ const Page = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-600 dark:text-muted-foreground">
+                <p className="text-sm text-gray-700 dark:text-[#a8d4b8]">
                   Showing{" "}
-                  <span className="font-bold text-color dark:text-foreground">{messages.length}</span>{" "}
+                  <span className="font-bold text-color dark:text-[#a8d4b8]!">
+                    {messages.length}
+                  </span>{" "}
                   of{" "}
-                  <span className="font-bold text-black dark:text-foreground">{totalMessages}</span>{" "}
+                  <span className="font-bold text-black/60 dark:text-[#c8e6d0]">
+                    {totalMessages}
+                  </span>{" "}
                   messages
                 </p>
                 {hasActiveFilters() && (
                   <button
                     onClick={clearFilters}
-                    className="flex gap-2 items-center bg-white dark:bg-accent text-gray-800 dark:text-foreground rounded-sm px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-accent/70 transition duration-300 ease-in-out hover:scale-[1.02] active:scale-[0.97] hover:shadow-md border border-gray-300 dark:border-border"
+                    className="flex gap-2 items-center bg-white dark:bg-[#1e3d2a] text-gray-800 dark:text-[#c8e6d0] rounded-sm px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#162820] transition duration-300 ease-in-out hover:scale-[1.02] active:scale-[0.97] hover:shadow-md border border-gray-300 dark:border-[#2d5a3d]"
                   >
                     <X className="w-4 h-4" />
                     Clear Filters
@@ -175,7 +183,11 @@ const Page = () => {
                   <PaginationItem className="cursor-pointer">
                     <PaginationPrevious
                       onClick={() => page > 1 && goToPage(page - 1)}
-                      className={page === 1 ? "opacity-50 pointer-events-none" : "dark:text-foreground dark:hover:bg-accent"}
+                      className={
+                        page === 1
+                          ? "opacity-50 pointer-events-none"
+                          : "dark:text-foreground dark:hover:bg-accent"
+                      }
                     />
                   </PaginationItem>
                   <PaginationItem className="cursor-pointer">
@@ -189,7 +201,9 @@ const Page = () => {
                   </PaginationItem>
                   {start > 2 && (
                     <PaginationItem>
-                      <span className="px-2 text-sm dark:text-muted-foreground">…</span>
+                      <span className="px-2 text-sm dark:text-muted-foreground">
+                        …
+                      </span>
                     </PaginationItem>
                   )}
                   {pages.map((p) => (
@@ -205,7 +219,9 @@ const Page = () => {
                   ))}
                   {end < totalPages - 1 && (
                     <PaginationItem>
-                      <span className="px-2 text-sm dark:text-muted-foreground">…</span>
+                      <span className="px-2 text-sm dark:text-muted-foreground">
+                        …
+                      </span>
                     </PaginationItem>
                   )}
                   {totalPages > 1 && (
@@ -222,7 +238,11 @@ const Page = () => {
                   <PaginationItem className="cursor-pointer">
                     <PaginationNext
                       onClick={() => page < totalPages && goToPage(page + 1)}
-                      className={page === totalPages ? "opacity-50 pointer-events-none" : "dark:text-foreground dark:hover:bg-accent"}
+                      className={
+                        page === totalPages
+                          ? "opacity-50 pointer-events-none"
+                          : "dark:text-foreground dark:hover:bg-accent"
+                      }
                     />
                   </PaginationItem>
                 </PaginationContent>

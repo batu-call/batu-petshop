@@ -37,6 +37,7 @@ interface MenuItem {
   text: string;
   href: string;
   icon?: React.ReactNode;
+  scrollTop?: boolean;
 }
 
 const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
@@ -61,6 +62,13 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
     }
   };
 
+  const handleNavigate = (href: string, scrollTop?: boolean) => {
+    setOpen(false);
+    setOpenCat(null);
+    if (scrollTop) window.scrollTo({ top: 0, behavior: "smooth" });
+    router.push(href);
+  };
+
   const categories: CategoryItem[] = [
     { text: "Cat",     href: "/category/Cat",     imgSrc: "/cat_7721779.png", subCategories: ["Food", "Bed", "Toy", "Litter", "Accessory"] },
     { text: "Dog",     href: "/category/Dog",     imgSrc: "/dog.png",         subCategories: ["Food", "Bed", "Toy", "Leash", "Accessory"] },
@@ -72,7 +80,7 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
   ];
 
   const general: MenuItem[] = [
-    { text: "Home",    href: "/",        icon: <HomeIcon sx={{ color: "#A8D1B5" }} /> },
+    { text: "Home",    href: "/",        icon: <HomeIcon sx={{ color: "#A8D1B5" }} />, scrollTop: true },
     { text: "Contact", href: "/Contact", icon: <ContactMailIcon sx={{ color: "#A8D1B5" }} /> },
   ];
 
@@ -108,15 +116,16 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
       <List disablePadding className="px-2">
         {general.map((item) => (
           <ListItem key={item.text} disablePadding>
-            <Link href={item.href} className="w-full" onClick={toggleDrawer(false)}>
-              <ListItemButton sx={{ borderRadius: "12px", mb: "2px" }}>
-                <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{ className: "font-semibold text-gray-700 dark:!text-white text-sm" }}
-                />
-              </ListItemButton>
-            </Link>
+            <ListItemButton
+              sx={{ borderRadius: "12px", mb: "2px" }}
+              onClick={() => handleNavigate(item.href, item.scrollTop)}
+            >
+              <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
+              <ListItemText
+                primary={item.text}
+                primaryTypographyProps={{ className: "font-semibold text-gray-700 dark:!text-white text-sm" }}
+              />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>
@@ -124,45 +133,45 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
       <SectionLabel label="Categories" />
       <div className="px-2 flex flex-col gap-1">
         {categories.map((cat) => {
-          const isOpen = openCat === cat.text;
+          const isOpenCat = openCat === cat.text;
 
           return (
             <div key={cat.text} className="rounded-2xl overflow-hidden">
-
               <div
-                className={`flex items-center rounded-2xl transition-all duration-200
-                  ${isOpen
+                className={`flex items-center rounded-2xl transition-all duration-200 ${
+                  isOpenCat
                     ? "bg-[#DDEEDD] dark:bg-[#0b8457]"
                     : "hover:bg-gray-50 dark:hover:bg-white/5"
-                  }`}
+                }`}
               >
                 <button
-                  onClick={() => {
-                    router.push(cat.href);
-                    setOpen(false);
-                    setOpenCat(null);
-                  }}
+                  onClick={() => handleNavigate(cat.href, true)}
                   className="flex-1 flex items-center gap-3 px-3 py-[10px] cursor-pointer"
                 >
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200
-                    ${isOpen ? "bg-white/50 dark:bg-white/10" : "bg-[#f0f9f4] dark:bg-[#1a3d2a]"}`}
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
+                      isOpenCat ? "bg-white/50 dark:bg-white" : "bg-[#f0f9f4] dark:bg-[#97cba9]"
+                    }`}
                   >
                     <Image src={cat.imgSrc} alt={cat.text} width={24} height={24} className="object-contain" />
                   </div>
-                  <span className={`text-sm font-semibold transition-colors duration-200
-                    ${isOpen ? "text-[#0b6e45] dark:text-white" : "text-gray-700 dark:text-white/80"}`}
+                  <span
+                    className={`text-sm font-semibold transition-colors duration-200 ${
+                      isOpenCat ? "text-[#0b6e45] dark:text-white" : "text-gray-700 dark:text-white/80"
+                    }`}
                   >
                     {cat.text}
                   </span>
                 </button>
 
                 <button
-                  onClick={() => setOpenCat(isOpen ? null : cat.text)}
+                  onClick={() => setOpenCat(isOpenCat ? null : cat.text)}
                   className="px-4 py-[10px] cursor-pointer"
                 >
                   <svg
-                    className={`w-4 h-4 transition-all duration-300
-                      ${isOpen ? "rotate-180 text-[#0b6e45] dark:text-white" : "text-gray-300 dark:text-white/30"}`}
+                    className={`w-4 h-4 transition-all duration-300 ${
+                      isOpenCat ? "rotate-180 text-[#0b6e45] dark:text-white" : "text-gray-300 dark:text-white/30"
+                    }`}
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -172,29 +181,20 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
 
               <div
                 className="overflow-hidden transition-all duration-300 ease-in-out"
-                style={{ maxHeight: isOpen ? `${cat.subCategories.length * 44 + 16}px` : "0px" }}
+                style={{ maxHeight: isOpenCat ? `${cat.subCategories.length * 44 + 16}px` : "0px" }}
               >
                 <div className="px-3 pt-2 pb-3 flex flex-wrap gap-[6px]">
                   {cat.subCategories.map((sub) => (
                     <button
                       key={sub}
-                      onClick={() => {
-                        router.push(`${cat.href}?sub=${sub}`);
-                        setOpen(false);
-                        setOpenCat(null);
-                      }}
-                      className="px-3 py-[7px] rounded-xl text-xs font-bold cursor-pointer
-                        bg-[#0b8457] text-white
-                        hover:bg-[#096e47]
-                        active:scale-95
-                        transition-all duration-150 shadow-sm"
+                      onClick={() => handleNavigate(`${cat.href}?sub=${sub}`, true)}
+                      className="px-3 py-[7px] rounded-xl text-xs font-bold cursor-pointer bg-[#0b8457] text-white hover:bg-[#096e47] active:scale-95 transition-all duration-150 shadow-sm"
                     >
                       {sub}
                     </button>
                   ))}
                 </div>
               </div>
-
             </div>
           );
         })}
@@ -206,15 +206,16 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
           <List disablePadding className="px-2">
             {accountItems.map((item) => (
               <ListItem key={item.text} disablePadding>
-                <Link href={item.href} className="w-full" onClick={toggleDrawer(false)}>
-                  <ListItemButton sx={{ borderRadius: "12px", mb: "2px" }}>
-                    <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
-                    <ListItemText
-                      primary={item.text}
-                      primaryTypographyProps={{ className: "font-semibold text-gray-700 dark:!text-white text-sm" }}
-                    />
-                  </ListItemButton>
-                </Link>
+                <ListItemButton
+                  sx={{ borderRadius: "12px", mb: "2px" }}
+                  onClick={() => handleNavigate(item.href)}
+                >
+                  <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{ className: "font-semibold text-gray-700 dark:!text-white text-sm" }}
+                  />
+                </ListItemButton>
               </ListItem>
             ))}
           </List>
@@ -225,25 +226,21 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
         {isAuthenticated ? (
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer
-              bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40
-              transition-all duration-200 group"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all duration-200 group"
           >
             <LogoutIcon sx={{ color: "#FF6347", fontSize: 20 }} />
             <span className="text-sm font-semibold text-red-500 group-hover:text-red-600">Logout</span>
           </button>
         ) : (
-          <Link href="/Login" onClick={toggleDrawer(false)}>
-            <div className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl
-              bg-[#f0f9f4] dark:bg-[#1a3d2a] hover:bg-[#DDEEDD] dark:hover:bg-[#0b8457]
-              transition-all duration-200 group cursor-pointer"
-            >
-              <LoginIcon sx={{ color: "#97cba9", fontSize: 20 }} />
-              <span className="text-sm font-semibold text-[#2d7a52] dark:text-[#a8d4b8] group-hover:text-[#0b6e45] dark:group-hover:text-white">
-                Login
-              </span>
-            </div>
-          </Link>
+          <button
+            onClick={() => handleNavigate("/Login")}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#f0f9f4] dark:bg-[#1a3d2a] hover:bg-[#DDEEDD] dark:hover:bg-[#0b8457] transition-all duration-200 group cursor-pointer"
+          >
+            <LoginIcon sx={{ color: "#97cba9", fontSize: 20 }} />
+            <span className="text-sm font-semibold text-[#2d7a52] dark:text-[#a8d4b8] group-hover:text-[#0b6e45] dark:group-hover:text-white">
+              Login
+            </span>
+          </button>
         )}
       </div>
     </div>

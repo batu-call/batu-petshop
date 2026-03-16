@@ -43,7 +43,6 @@ export const ProductSchema = new mongoose.Schema(
       enum: ["Cat", "Dog", "Fish", "Bird", "Reptile", "Rabbit", "Horse"],
     },
 
-    // YENİ: Alt kategori
     subCategory: {
       type: String,
       enum: [...ALL_SUB_CATEGORIES, null],

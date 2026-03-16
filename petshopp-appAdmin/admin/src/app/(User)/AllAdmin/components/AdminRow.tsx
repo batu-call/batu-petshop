@@ -18,7 +18,7 @@ const AdminRow = ({ a, currentAdminId, setSelectedAdmin, handleDelete }: Props) 
     <div
       onClick={() => setSelectedAdmin(a)}
       className={`flex flex-col lg:flex-row group gap-3 border dark:border-[#2d5a3d] p-3 md:p-2 items-start lg:items-center relative hover:bg-[#eeeeee] dark:hover:bg-[#1e3d2a] cursor-pointer transition-colors ${
-        currentAdminId === a._id ? "bg-secondary dark:bg-[#393E46]!" : ""
+        currentAdminId === a._id ? "bg-[#E0F7FA] dark:bg-[#393E46]!" : ""
       }`}
     >
       <div className="w-full h-50 lg:w-16 lg:h-16 relative shrink-0">
@@ -33,40 +33,40 @@ const AdminRow = ({ a, currentAdminId, setSelectedAdmin, handleDelete }: Props) 
       </div>
 
       <div className="flex-1 flex flex-col lg:flex-row sm:flex-wrap lg:flex-nowrap gap-3 min-w-0">
-        <div className="flex-1 min-w-0 overflow-hidden lg:flex lg:justify-center">
+        <div className="flex-1 min-w-0 overflow-hidden lg:flex lg:justify-center lg:items-center">
           <p className="lg:hidden text-xs text-gray-500 dark:text-[#7aab8a]">First Name</p>
           <span className="block truncate max-w-[120px] text-sm md:text-md lg:text-sm dark:text-[#c8e6d0]" title={a.firstName}>
             {a.firstName}
           </span>
         </div>
-        <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex-1 min-w-0 overflow-hidden lg:flex lg:justify-center lg:items-center">
           <p className="lg:hidden text-xs text-gray-500 dark:text-[#7aab8a]">Last Name</p>
           <span className="block truncate max-w-[120px] text-sm md:text-md lg:text-sm dark:text-[#c8e6d0]" title={a.lastName}>
             {a.lastName}
           </span>
         </div>
-        <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex-1 min-w-0 overflow-hidden lg:flex lg:justify-center lg:items-center">
           <p className="lg:hidden text-xs text-gray-500 dark:text-[#7aab8a]">Email</p>
           <span className="block truncate max-w-[160px] text-sm md:text-md lg:text-sm dark:text-[#c8e6d0]" title={a.email}>
             {a.email}
           </span>
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 lg:flex lg:justify-center lg:items-center">
           <p className="lg:hidden text-xs text-gray-500 dark:text-[#7aab8a]">Phone</p>
           <PhoneInput country="us" value={a.phone} disabled inputStyle={{ width: "100%" }} />
         </div>
-        <div className="flex-1 min-w-0 overflow-hidden w-56">
+        <div className="flex-1 min-w-0 overflow-hidden w-56 lg:flex lg:justify-center lg:items-center">
           <p className="lg:hidden text-xs text-gray-500 dark:text-[#7aab8a]">Address</p>
-          <span className="block truncate max-w-[180px] text-sm md:text-md lg:text-sm dark:text-[#c8e6d0]" title={a.address}>
+          <span className="block truncate max-w-45 text-sm md:text-md lg:text-sm dark:text-[#c8e6d0]" title={a.address}>
             {a.address}
           </span>
         </div>
-        <div className="flex-1 min-w-0 flex justify-center ml-2">
+        <div className="flex-1 min-w-0 flex justify-center lg:flex lg:justify-center lg:items-center">
           <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 h-7">
             {a.role}
           </span>
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 lg:flex lg:justify-center lg:items-center">
           <p className="lg:hidden text-xs text-gray-500 dark:text-[#7aab8a]">Created</p>
           <span className="text-sm md:text-md lg:text-sm text-gray-600 dark:text-[#a8d4b8]">
             {new Date(a.createdAt).toLocaleDateString("en-US", {

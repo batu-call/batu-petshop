@@ -54,8 +54,9 @@ const CategoryPage = () => {
   const searchParams = useSearchParams();
 
   const page = Number(searchParams.get("page")) || 1;
-  const [totalPages, setTotalPages] = useState(1);
+  const subCategory = searchParams.get("sub") ?? "";
 
+  const [totalPages, setTotalPages] = useState(1);
   const [product, setProduct] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewStats, setReviewStats] = useState<ReviewStats>({});
@@ -73,25 +74,23 @@ const CategoryPage = () => {
             params: {
               category: categorySlug,
               page,
+              subCategory: subCategory || undefined,
             },
           },
         );
 
         const fetchedProducts = res.data.products || [];
 
-        // 🔥 Sort products: low stock first, then discount (same as frontend)
         const sortedProducts = [...fetchedProducts].sort((a, b) => {
           const aStock = Number(a.stock ?? 0);
           const bStock = Number(b.stock ?? 0);
 
-          // Priority 1: Low stock (0 < stock < 6)
           const aLowStock = aStock > 0 && aStock < 6;
           const bLowStock = bStock > 0 && bStock < 6;
 
           if (aLowStock && !bLowStock) return -1;
           if (!aLowStock && bLowStock) return 1;
 
-          // Priority 2: On sale (has discount)
           const aDiscount = a.salePrice && a.salePrice < a.price;
           const bDiscount = b.salePrice && b.salePrice < b.price;
 
@@ -111,9 +110,8 @@ const CategoryPage = () => {
     };
 
     fetchProducts();
-  }, [categorySlug, page]);
+  }, [categorySlug, page, subCategory]);
 
-  //  FETCH REVIEWS
   useEffect(() => {
     const fetchReviewStats = async () => {
       try {
@@ -159,10 +157,11 @@ const CategoryPage = () => {
     }
   };
 
-  //  PAGINATION
-
   const goToPage = (p: number) => {
-    router.push(`/category/${categorySlug}?page=${p}`, { scroll: false });
+    const params = new URLSearchParams();
+    params.set("page", String(p));
+    if (subCategory) params.set("sub", subCategory);
+    router.push(`/category/${categorySlug}?${params.toString()}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -193,14 +192,12 @@ const CategoryPage = () => {
           </div>
         ) : (
           <>
-            {/* EMPTY STATE */}
             {product.length === 0 && (
               <div className="text-center text-gray-500 mt-24">
                 No products found in this category.
               </div>
             )}
 
-            {/* PRODUCTS */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 [@media(min-width:1600px)]:grid-cols-5 gap-4 sm:gap-5 [@media(min-width:1600px)]:gap-4">
               {product.map((p) => {
                 const discountPercent =
@@ -233,29 +230,12 @@ const CategoryPage = () => {
                         e.stopPropagation();
                         handlerRemove(p._id);
                       }}
-                      className="
-    absolute 
-    top-1 right-1
-    sm:top-2 sm:right-2
-    md:top-3 md:right-3
-    z-10
-    rounded-full
-    bg-white/80
-    backdrop-blur
-    p-1.5
-    transition-all duration-200 ease-in-out
-    hover:scale-105 hover:bg-[#97cba9] hover:text-white hover:border hover:border-white
-    active:scale-95
-    cursor-pointer
-  "
+                      className="absolute top-1 right-1 sm:top-2 sm:right-2 md:top-3 md:right-3 z-10 rounded-full bg-white/80 backdrop-blur p-1.5 transition-all duration-200 ease-in-out hover:scale-105 hover:bg-[#97cba9] hover:text-white hover:border hover:border-white active:scale-95 cursor-pointer"
                     >
                       <X className="w-4 h-4 sm:w-5 sm:h-5 dark:text-[#162820]" />
                     </button>
 
-                    <Link
-                      href={`/Products/${p.slug}`}
-                      className="flex-1 flex flex-col"
-                    >
+                    <Link href={`/Products/${p.slug}`} className="flex-1 flex flex-col">
                       <div className="w-full shrink-0">
                         {p.image && p.image.length > 0 ? (
                           <div className="relative w-full h-50 md:w-36 md:h-36 lg:w-44 lg:h-44 mx-auto bg-white rounded-xs md:rounded-full overflow-hidden border border-white md:border-4">
@@ -269,13 +249,10 @@ const CategoryPage = () => {
                             />
                           </div>
                         ) : (
-                          <p className="text-white text-sm text-center">
-                            No image!
-                          </p>
+                          <p className="text-white text-sm text-center">No image!</p>
                         )}
                       </div>
 
-                      {/* Name + Star */}
                       <div className="px-2 sm:px-4 pt-2 pb-1 flex flex-col items-center justify-center gap-1 min-h-[56px]">
                         <h2 className="text-white text-lg sm:text-base md:text-lg truncate font-semibold text-center w-full">
                           {p.product_name}
@@ -283,11 +260,9 @@ const CategoryPage = () => {
                         {stats && stats.count > 0 && (
                           <div className="flex items-center gap-1">
                             <div className="flex text-yellow-500">
-                              {[...Array(Math.round(stats.avgRating))].map(
-                                (_, i) => (
-                                  <Star key={i} sx={{ fontSize: 14 }} />
-                                ),
-                              )}
+                              {[...Array(Math.round(stats.avgRating))].map((_, i) => (
+                                <Star key={i} sx={{ fontSize: 14 }} />
+                              ))}
                             </div>
                             <span className="text-[10px] text-color3 font-semibold">
                               ({stats.count})
@@ -325,7 +300,6 @@ const CategoryPage = () => {
                         Add To Cart
                       </Button>
 
-                      {/* mobil cart */}
                       <Button className="flex md:hidden bg-secondary text-color cursor-pointer hover:bg-[#D6EED6]/90 transition-all duration-300 active:scale-95 rounded-full aspect-square p-0 min-w-[44px] min-h-[44px] w-11 h-11 shadow-sm">
                         <ShoppingCart size={20} />
                       </Button>
@@ -335,57 +309,42 @@ const CategoryPage = () => {
               })}
             </div>
 
-            {/* PAGINATION */}
             {totalPages > 1 && (
               <Pagination className="mt-12 text-color">
                 <PaginationContent>
-                  {/* PREVIOUS */}
                   <PaginationItem>
                     <PaginationPrevious
                       onClick={() => page > 1 && goToPage(page - 1)}
-                      className={
-                        page === 1 ? "opacity-50 pointer-events-none" : ""
-                      }
+                      className={page === 1 ? "opacity-50 pointer-events-none" : ""}
                     />
                   </PaginationItem>
 
-                  {/* FIRST PAGE */}
                   <PaginationItem>
-                    <PaginationLink
-                      isActive={page === 1}
-                      onClick={() => goToPage(1)}
-                    >
+                    <PaginationLink isActive={page === 1} onClick={() => goToPage(1)}>
                       1
                     </PaginationLink>
                   </PaginationItem>
 
-                  {/* LEFT ELLIPSIS */}
                   {start > 2 && (
                     <PaginationItem>
                       <span className="px-2 text-sm">…</span>
                     </PaginationItem>
                   )}
 
-                  {/* MIDDLE PAGES */}
                   {pages.map((p) => (
                     <PaginationItem key={p}>
-                      <PaginationLink
-                        isActive={page === p}
-                        onClick={() => goToPage(p)}
-                      >
+                      <PaginationLink isActive={page === p} onClick={() => goToPage(p)}>
                         {p}
                       </PaginationLink>
                     </PaginationItem>
                   ))}
 
-                  {/* RIGHT ELLIPSIS */}
                   {end < totalPages - 1 && (
                     <PaginationItem>
                       <span className="px-2 text-sm">…</span>
                     </PaginationItem>
                   )}
 
-                  {/* LAST PAGE */}
                   <PaginationItem>
                     <PaginationLink
                       isActive={page === totalPages}
@@ -395,15 +354,10 @@ const CategoryPage = () => {
                     </PaginationLink>
                   </PaginationItem>
 
-                  {/* NEXT */}
                   <PaginationItem>
                     <PaginationNext
                       onClick={() => page < totalPages && goToPage(page + 1)}
-                      className={
-                        page === totalPages
-                          ? "opacity-50 pointer-events-none"
-                          : ""
-                      }
+                      className={page === totalPages ? "opacity-50 pointer-events-none" : ""}
                     />
                   </PaginationItem>
                 </PaginationContent>

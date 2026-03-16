@@ -236,7 +236,25 @@ const StripePayForm = ({
       onSubmit={handleSubmit}
       className="flex flex-col gap-4 w-full max-w-md mx-auto p-4 border border-gray-200 dark:border-[#2d5a3d] rounded-lg shadow-md bg-white dark:bg-[#1e3d2a]"
     >
-      <PaymentElement />
+   <PaymentElement 
+  options={{
+    defaultValues: {
+      billingDetails: {
+        address: {
+          country: "US",
+        },
+      },
+    },
+  wallets: {
+  applePay: "auto",   // "never" yerine "auto"
+  googlePay: "auto",  // "never" yerine "auto"
+},
+    layout: {
+      type: "tabs",
+      defaultCollapsed: false,
+    },
+  }}
+/>
 
       {!isAddressComplete && (
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 text-yellow-800 dark:text-yellow-300 px-4 py-2 rounded text-sm">
