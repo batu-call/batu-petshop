@@ -42,6 +42,7 @@ type Reviews = {
 type Features = { name: string; description: string };
 type ProductImage = { url: string; publicId: string; _id: string };
 type Category = { _id: string; name: string; slug: string };
+type Section = { _id: string; title: string; items: { _id: string; text: string }[] };
 type Product = {
   _id: string;
   product_name: string;
@@ -74,9 +75,9 @@ const ProductDetails = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
 
-  // Shipping state
   const [shippingFee, setShippingFee] = useState("");
   const [freeOver, setFreeOver] = useState("");
+  const [shippingSections, setShippingSections] = useState<Section[]>([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -104,19 +105,21 @@ const ProductDetails = () => {
     fetchProduct();
   }, [slug]);
 
-  // Shipping fetch
   useEffect(() => {
     const fetchShippingSettings = async () => {
       try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/shipping`,
-        );
-        if (res.data.success) {
-          setShippingFee(String(res.data.data.fee));
-          setFreeOver(String(res.data.data.freeOver));
+        const [feeRes, contentRes] = await Promise.all([
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/shipping`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/shipping/content`),
+        ]);
+        if (feeRes.data.success) {
+          setShippingFee(String(feeRes.data.data.fee));
+          setFreeOver(String(feeRes.data.data.freeOver));
+        }
+        if (contentRes.data.success && contentRes.data.data?.sections?.length > 0) {
+          setShippingSections(contentRes.data.data.sections);
         }
       } catch {
-        // sessizce geç, ShippingInfo fallback gösterir
       }
     };
     fetchShippingSettings();
@@ -346,6 +349,7 @@ const ProductDetails = () => {
           <ShippingInfo
             shippingFee={shippingFee}
             freeOver={freeOver}
+            sections={shippingSections}
           />
         );
       case "features":

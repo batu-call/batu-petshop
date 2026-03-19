@@ -1,6 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React from "react";
 
 type Item = { _id: string; text: string };
 type Section = { _id: string; title: string; items: Item[] };
@@ -8,31 +7,11 @@ type Section = { _id: string; title: string; items: Item[] };
 interface Props {
   shippingFee: string;
   freeOver: string;
+  sections: Section[];
 }
 
-const ShippingInfo: React.FC<Props> = ({ shippingFee, freeOver }) => {
-  const [sections, setSections] = useState<Section[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/shipping/content`,
-        );
-        if (res.data.success && res.data.data?.sections?.length > 0) {
-          setSections(res.data.data.sections);
-        }
-      } catch {
-        // sessizce geç
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchContent();
-  }, []);
-
-  if (loading) return null;
+const ShippingInfo: React.FC<Props> = ({ shippingFee, freeOver, sections }) => {
+  if (sections.length === 0) return null;
 
   return (
     <div className="mx-auto max-w-[800px] px-6 py-4">
