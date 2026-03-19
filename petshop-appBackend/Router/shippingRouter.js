@@ -1,7 +1,7 @@
 import express from "express";
 import { getShippingSettings, updateShippingSettings } from "../Controller/shippingController.js";
 import { isAdminAuthenticated } from "../Middlewares/Auth.js";
-import { getShippingContent, updateShippingContent } from "../Controller/Shippingcontentcontroller.js";
+import { getShippingContent, updateShippingContent } from "../Controller/shippingContentController.js";
 
 const router = express.Router();
 
