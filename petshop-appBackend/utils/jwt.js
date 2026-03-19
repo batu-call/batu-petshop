@@ -7,8 +7,23 @@ export const generateToken = (user, message, statusCode, res, rememberMe = false
   const options = {
     ...getCookieOptions(),
     maxAge: rememberMe
-      ? 30 * 24 * 60 * 60 * 1000  // 30 day
-      : 24 * 60 * 60 * 1000,       // 1 day
+      ? 30 * 24 * 60 * 60 * 1000
+      : 24 * 60 * 60 * 1000,
+  };
+
+  const safeUser = {
+    _id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.phone,
+    address: user.address,
+    avatar: user.avatar,
+    role: user.role,
+    authProvider: user.authProvider,
+    notificationSettings: user.notificationSettings,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   };
 
   res
@@ -17,8 +32,7 @@ export const generateToken = (user, message, statusCode, res, rememberMe = false
     .json({
       success: true,
       message,
-      user,
-      token,
+      user: safeUser,
     });
 };
 

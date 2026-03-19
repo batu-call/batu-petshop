@@ -24,9 +24,7 @@ export const isAdminAuthenticated = catchAsyncError(async (req, res, next) => {
   }
 
   if (user.role !== "Admin") {
-    return next(
-      new ErrorHandler(`${user.role} not authorized for this resource!`, 403)
-    );
+    return next(new ErrorHandler(`${user.role} not authorized for this resource!`, 403));
   }
 
   req.user = user;
@@ -53,6 +51,11 @@ export const isUserAuthenticated = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("User not found", 404));
   }
 
+  const validRoles = ["User", "Admin"];
+  if (!validRoles.includes(user.role)) {
+    return next(new ErrorHandler("Unauthorized role", 403));
+  }
+
   req.user = user;
   next();
 });
@@ -75,7 +78,8 @@ export const optionalAuth = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
     const user = await User.findById(decoded.id);
     if (user) req.user = user;
-  } catch (_) {
+  } catch (err) {
+    console.error("optionalAuth error:", err.message);
   }
   next();
 };

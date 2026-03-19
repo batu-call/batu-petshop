@@ -15,17 +15,31 @@ import {
   validatePassword,
 } from "../../utils/securityHelper.js";
 
-const ALLOWED_SORT_FIELDS = ["createdAt", "firstName", "lastName", "email", "orderCount"];
+const ALLOWED_SORT_FIELDS = [
+  "createdAt",
+  "firstName",
+  "lastName",
+  "email",
+  "orderCount",
+];
 
 export const getAllUser = catchAsyncError(async (req, res, next) => {
   const {
-    page = 1, search, role,
-    minOrders, maxOrders,
-    sortBy = "createdAt", sortOrder = "desc",
+    page = 1,
+    search,
+    role,
+    minOrders,
+    maxOrders,
+    sortBy = "createdAt",
+    sortOrder = "desc",
   } = req.query;
 
   const { page: safePage, limit, skip } = buildSafePagination(page, 15);
-  const sortOptions = buildSafeSortOptions(sortBy, sortOrder, ALLOWED_SORT_FIELDS);
+  const sortOptions = buildSafeSortOptions(
+    sortBy,
+    sortOrder,
+    ALLOWED_SORT_FIELDS,
+  );
 
   let matchStage = { role: "User" };
 
@@ -86,7 +100,14 @@ export const getAllUser = catchAsyncError(async (req, res, next) => {
   pipeline.push({ $sort: sortOptions });
   pipeline.push({ $skip: skip });
   pipeline.push({ $limit: limit });
-  pipeline.push({ $project: { password: 0, orders: 0 } });
+  pipeline.push({
+    $project: {
+      password: 0,
+      orders: 0,
+      resetPasswordToken: 0,
+      resetPasswordExpire: 0,
+    },
+  });
 
   const users = await User.aggregate(pipeline);
 
@@ -108,7 +129,9 @@ export const getUserDetails = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Invalid user ID", 400));
   }
 
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).select(
+    "-password -resetPasswordToken -resetPasswordExpire",
+  );
   if (!user) return next(new ErrorHandler("User not found!", 404));
 
   if (req.user.role !== "Admin" && req.user._id.toString() !== userId) {
@@ -119,8 +142,11 @@ export const getUserDetails = catchAsyncError(async (req, res, next) => {
 });
 
 export const getUserMe = catchAsyncError(async (req, res, next) => {
-  const user = await User.findById(req.user._id).select("-password");
-  if (!user) return res.status(404).json({ success: false, message: "User not found" });
+  const user = await User.findById(req.user._id).select(
+    "-password -resetPasswordToken -resetPasswordExpire",
+  );
+  if (!user)
+    return res.status(404).json({ success: false, message: "User not found" });
 
   res.status(200).json({ success: true, user });
 });
@@ -160,12 +186,32 @@ export const updateUser = catchAsyncError(async (req, res, next) => {
   }
 
   if (req.file) {
-    const result = await cloudinary.uploader.upload(req.file.path, { folder: "avatars" });
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "avatars",
+    });
     user.avatar = result.secure_url;
   }
 
   await user.save();
-  res.status(200).json({ success: true, message: "User updated successfully", user });
+
+  res.status(200).json({
+    success: true,
+    message: "User updated successfully",
+    user: {
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      address: user.address,
+      avatar: user.avatar,
+      role: user.role,
+      authProvider: user.authProvider,
+      notificationSettings: user.notificationSettings,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    },
+  });
 });
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
@@ -183,7 +229,10 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Not authorized to delete this user", 403));
   }
 
-  await Session.updateMany({ userId: user._id, endedAt: null }, { endedAt: new Date() });
+  await Session.updateMany(
+    { userId: user._id, endedAt: null },
+    { endedAt: new Date() },
+  );
   await user.deleteOne();
 
   const clearOptions = getClearCookieOptions();
@@ -199,7 +248,10 @@ export const deleteUserSelf = catchAsyncError(async (req, res, next) => {
   const user = await User.findById(req.user._id);
   if (!user) return next(new ErrorHandler("User not found", 404));
 
-  await Session.updateMany({ userId: user._id, endedAt: null }, { endedAt: new Date() });
+  await Session.updateMany(
+    { userId: user._id, endedAt: null },
+    { endedAt: new Date() },
+  );
   await user.deleteOne();
 
   const clearOptions = getClearCookieOptions();

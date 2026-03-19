@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
       validate: {
-        validator: function(v) {
+        validator: function (v) {
           if (!v || v === "") return true;
           return /^\d{10,15}$/.test(v);
         },
@@ -57,8 +57,7 @@ const userSchema = new mongoose.Schema(
 
     avatar: {
       type: String,
-      default:
-        "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg",
+      default: "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg",
     },
 
     role: {
@@ -77,22 +76,29 @@ const userSchema = new mongoose.Schema(
       emailNotifications: {
         type: Boolean,
         default: true,
-        description: "Order confirmations, shipping updates, and delivery notifications"
+        description: "Order confirmations, shipping updates, and delivery notifications",
       },
       systemAlerts: {
         type: Boolean,
         default: true,
-        description: "System maintenance, promotions, and important announcements"
+        description: "System maintenance, promotions, and important announcements",
       },
       newsletter: {
         type: Boolean,
         default: true,
-        description: "Monthly newsletters, new products, and stock alerts"
+        description: "Monthly newsletters, new products, and stock alerts",
       },
     },
 
-    resetPasswordToken: String,
-    resetPasswordExpire: Date,
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+
+    resetPasswordExpire: {
+      type: Date,
+      select: false,
+    },
   },
   { timestamps: true }
 );
@@ -104,7 +110,7 @@ userSchema.pre("save", async function (next) {
 
   if (this.authProvider === "local") {
     const strongPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
-    
+
     if (!strongPassword.test(this.password)) {
       const error = new Error("Password must be at least 8 characters and include letters and numbers");
       return next(error);

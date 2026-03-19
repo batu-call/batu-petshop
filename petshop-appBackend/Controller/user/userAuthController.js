@@ -26,7 +26,7 @@ const uploadBufferToCloudinary = (buffer, folder) => {
       (error, result) => {
         if (error) return reject(error);
         resolve(result.secure_url);
-      }
+      },
     );
     stream.end(buffer);
   });
@@ -52,30 +52,31 @@ const saveLoginActivity = (userId, ipAddress, userAgent) => {
       ipAddress: sanitizeString(ipAddress),
       userAgent: sanitizeString(userAgent),
     }),
-    Session.find({ userId }).sort({ startedAt: -1 }).then(async (sessions) => {
-      if (sessions.length >= 5) {
-        const oldIds = sessions.slice(5).map((s) => s._id);
-        await Session.deleteMany({ _id: { $in: oldIds } });
-      }
-      await Session.create({
-        userId,
-        startedAt: new Date(),
-        ipAddress: sanitizeString(ipAddress),
-        userAgent: sanitizeString(userAgent),
-      });
-    }),
+    Session.find({ userId })
+      .sort({ startedAt: -1 })
+      .then(async (sessions) => {
+        if (sessions.length >= 5) {
+          const oldIds = sessions.slice(4).map((s) => s._id);
+          await Session.deleteMany({ _id: { $in: oldIds } });
+        }
+        await Session.create({
+          userId,
+          startedAt: new Date(),
+          ipAddress: sanitizeString(ipAddress),
+          userAgent: sanitizeString(userAgent),
+        });
+      }),
   ]).catch((err) => console.error("Login activity error:", err.message));
 };
 
 const closeUserSessions = async (userId) => {
   try {
     const now = new Date();
-    // endedAt: null olan tüm sessionları bul ve kapat
     const openSessions = await Session.find({ userId, endedAt: null });
     for (const session of openSessions) {
       session.endedAt = now;
       session.duration = now.getTime() - session.startedAt.getTime();
-      await session.save(); // pre("save") hook'u duration hesaplar
+      await session.save();
     }
   } catch (err) {
     console.error("Session close error:", err.message);
@@ -86,7 +87,13 @@ export const UserRegister = catchAsyncError(async (req, res, next) => {
   const { firstName, lastName, email, phone, password } = req.body;
 
   try {
-    validateRequiredFields(req.body, ["firstName", "lastName", "email", "phone", "password"]);
+    validateRequiredFields(req.body, [
+      "firstName",
+      "lastName",
+      "email",
+      "phone",
+      "password",
+    ]);
   } catch (error) {
     return next(new ErrorHandler(error.message, 400));
   }
@@ -115,9 +122,11 @@ export const UserRegister = catchAsyncError(async (req, res, next) => {
   }
 
   const userExists = await User.findOne({ email: sanitizedEmail });
-  if (userExists) return next(new ErrorHandler("User Already Registered!", 400));
+  if (userExists)
+    return next(new ErrorHandler("User Already Registered!", 400));
 
-  let avatarUrl = "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg";
+  let avatarUrl =
+    "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg";
   if (req.file) {
     try {
       avatarUrl = await uploadBufferToCloudinary(req.file.buffer, "avatars");
@@ -148,7 +157,8 @@ export const UserRegister = catchAsyncError(async (req, res, next) => {
 export const Login = catchAsyncError(async (req, res, next) => {
   const { email, password, rememberMe } = req.body;
 
-  if (!email || !password) return next(new ErrorHandler("Please Fill Full Form!", 400));
+  if (!email || !password)
+    return next(new ErrorHandler("Please Fill Full Form!", 400));
 
   let sanitizedEmail;
   try {
@@ -157,11 +167,14 @@ export const Login = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Invalid email format", 400));
   }
 
-  const user = await User.findOne({ email: sanitizedEmail }).select("+password");
+  const user = await User.findOne({ email: sanitizedEmail }).select(
+    "+password",
+  );
   if (!user) return next(new ErrorHandler("Invalid Password Or Email!", 400));
 
   const isPasswordMatch = await user.comparePassword(password);
-  if (!isPasswordMatch) return next(new ErrorHandler("Invalid Password Or Email!", 400));
+  if (!isPasswordMatch)
+    return next(new ErrorHandler("Invalid Password Or Email!", 400));
 
   const ipAddress = req.ip || req.connection.remoteAddress;
   const userAgent = req.headers["user-agent"] || "Unknown";
@@ -184,7 +197,8 @@ export const googleLogin = catchAsyncError(async (req, res, next) => {
   }
 
   const { email, name, picture } = payload;
-  if (!email) return next(new ErrorHandler("Email not found in Google token", 400));
+  if (!email)
+    return next(new ErrorHandler("Email not found in Google token", 400));
 
   let sanitizedEmail;
   try {
@@ -206,7 +220,9 @@ export const googleLogin = catchAsyncError(async (req, res, next) => {
       phone: "",
       password: crypto.randomBytes(32).toString("hex"),
       role: "User",
-      avatar: picture || "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg",
+      avatar:
+        picture ||
+        "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg",
       authProvider: "google",
     });
 
@@ -224,7 +240,6 @@ export const googleLogin = catchAsyncError(async (req, res, next) => {
 
   generateToken(user, "Google login successful", 200, res);
 });
-
 
 export const Logout = catchAsyncError(async (req, res, next) => {
   if (req.user?._id) {

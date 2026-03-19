@@ -77,7 +77,21 @@ export const newAdmin = catchAsyncError(async (req, res, next) => {
     html: `<p>You have been added as an admin.</p>`,
   }).catch((err) => console.error("Admin mail failed:", err.message));
 
-  res.status(201).json({ success: true, message: "New Admin Registered!", admin });
+  res.status(201).json({
+    success: true,
+    message: "New Admin Registered!",
+    admin: {
+      _id: admin._id,
+      firstName: admin.firstName,
+      lastName: admin.lastName,
+      email: admin.email,
+      phone: admin.phone,
+      address: admin.address,
+      avatar: admin.avatar,
+      role: admin.role,
+      createdAt: admin.createdAt,
+    },
+  });
 });
 
 export const adminLogin = catchAsyncError(async (req, res, next) => {
@@ -119,11 +133,12 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
     success: true,
     message: "Admin login successful",
     admin: {
-      id: admin._id,
+      _id: admin._id,
       firstName: admin.firstName,
       lastName: admin.lastName,
       email: admin.email,
       avatar: admin.avatar,
+      role: admin.role,
     },
   });
 });
@@ -144,7 +159,7 @@ export const AdminLogout = catchAsyncError(async (req, res, next) => {
 });
 
 export const getAdmin = catchAsyncError(async (req, res, next) => {
-  const admin = await User.findById(req.user.id).select("-password");
+  const admin = await User.findById(req.user.id).select("-password -resetPasswordToken -resetPasswordExpire");
   res.status(200).json({ success: true, admin });
 });
 
@@ -171,7 +186,11 @@ export const getAdminDetails = catchAsyncError(async (req, res, next) => {
   }
 
   const filteredAdmins = await User.countDocuments(filter);
-  const adminDetails = await User.find(filter).select("-password").sort(sortOptions).skip(skip).limit(limit);
+  const adminDetails = await User.find(filter)
+    .select("-password -resetPasswordToken -resetPasswordExpire")
+    .sort(sortOptions)
+    .skip(skip)
+    .limit(limit);
 
   res.status(200).json({
     success: true,

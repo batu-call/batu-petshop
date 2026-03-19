@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import CircularText from "@/components/CircularText";
@@ -37,6 +37,8 @@ const CategoryPage = () => {
   const { addToCart }       = useCart();
   const { favorites, addFavorite, removeFavorite } = useFavorite();
 
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
+
   const filters = useCategoryFilters(page);
 
   const {
@@ -60,10 +62,14 @@ const CategoryPage = () => {
 
   const handlerAddToCart = async (product: Product) => {
     if (!isAuthenticated) return router.push("/Login");
+    if (addingToCart === product._id) return;
     try {
+      setAddingToCart(product._id);
       await addToCart(product._id);
     } catch {
       toast.error("Something went wrong!");
+    } finally {
+      setAddingToCart(null);
     }
   };
 
@@ -194,7 +200,7 @@ const CategoryPage = () => {
                   isFavorite={isFavorite}
                   handleFavorite={handleFavorite}
                   handlerAddToCart={handlerAddToCart}
-                  addingToCart={null}
+                  addingToCart={addingToCart}
                 />
               ))}
             </div>
