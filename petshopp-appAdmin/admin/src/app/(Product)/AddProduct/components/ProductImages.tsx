@@ -14,7 +14,7 @@ type Props = {
 const ProductImages = ({ previews, uploading, removeImage, handleFileChange }: Props) => {
   return (
     <div className="flex-1 flex flex-col items-center justify-start">
-      <h2 className="text-color dark:text-[#c8e6d0] text-2xl mb-2 text-jost font-semibold">
+      <h2 className="text-color dark:text-[#c8e6d0]! text-2xl mb-2 text-jost font-semibold">
         Product Images ({previews.length}/6)
       </h2>
 

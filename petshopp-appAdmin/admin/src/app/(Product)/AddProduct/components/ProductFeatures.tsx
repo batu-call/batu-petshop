@@ -31,7 +31,7 @@ const ProductFeatures = ({
 
   return (
     <div className="flex-1 bg-white dark:bg-[#1e3d2a] p-6 rounded-xl shadow-md border border-transparent dark:border-[#2d5a3d]">
-      <h2 className="text-2xl font-bold text-color dark:text-[#c8e6d0] mb-4">Product Features</h2>
+      <h2 className="text-2xl font-bold text-color dark:text-[#c8e6d0]! mb-4">Product Features</h2>
 
       {productFeatures.map((f, index) => (
         <div key={index} className="flex items-start gap-3 border-b dark:border-[#2d5a3d] py-2 mb-2 relative group">
@@ -84,7 +84,7 @@ const ProductFeatures = ({
         <Button
           onClick={handleAddFeature}
           disabled={uploading}
-          className="bg-primary dark:bg-[#0b8457] hover:bg-[#A8D1B5] dark:hover:bg-[#2d5a3d] text-[#393E46] dark:text-[#c8e6d0] font-semibold transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
+          className="bg-primary dark:bg-[#0b8457]! hover:bg-[#A8D1B5] dark:hover:bg-[#2d5a3d] text-[#393E46] dark:text-[#c8e6d0] font-semibold transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
         >
           Add Feature
         </Button>

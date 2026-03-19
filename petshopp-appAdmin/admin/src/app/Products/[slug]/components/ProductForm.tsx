@@ -146,6 +146,7 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({
 
       {/* Category */}
       <div className="flex flex-col gap-2">
+        {/* FIX: dark:text-foreground eklendi */}
         <label className="text-lg text-color dark:text-foreground font-semibold">
           Category
         </label>
@@ -171,6 +172,7 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({
 
       {subCatList.length > 0 && (
         <div className="flex flex-col gap-2">
+          {/* FIX: dark:text-foreground eklendi */}
           <label className="text-lg text-color dark:text-foreground font-semibold">
             Sub Category
           </label>
@@ -197,6 +199,7 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({
 
       {/* Price */}
       <div className="flex flex-col gap-2">
+        {/* FIX: dark:text-foreground eklendi */}
         <label className="text-lg text-color dark:text-foreground font-semibold">
           Price ($)
         </label>
@@ -210,6 +213,7 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({
 
       {/* Sale Price */}
       <div className="flex flex-col gap-2">
+        {/* FIX: dark:text-foreground eklendi */}
         <label className="text-lg text-color dark:text-foreground font-semibold">
           Sale Price (optional)
         </label>
@@ -231,6 +235,7 @@ const AdminProductForm: React.FC<AdminProductFormProps> = ({
       {/* Stock + Switches */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-4">
+          {/* FIX: dark:text-foreground eklendi */}
           <label className="text-lg text-color dark:text-foreground font-semibold">
             Stock:
           </label>

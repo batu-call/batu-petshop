@@ -77,7 +77,7 @@ const NavbarSearch = ({
 
       {isSearchFocused && (searchQuery || loading) && (
         <div
-          className="absolute top-full right-0 w-[min(16rem,calc(100vw-2rem))] sm:w-72 md:w-full mt-2 z-50"
+          className="absolute top-full left-1/2 -translate-x-1/2 w-72 max-w-[calc(100vw-2rem)] mt-2 z-50 md:w-full md:left-0 md:translate-x-0"
           style={{ animation: "searchFadeIn 0.2s ease forwards" }}
         >
           <div className="bg-white dark:bg-[#162820] rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden">

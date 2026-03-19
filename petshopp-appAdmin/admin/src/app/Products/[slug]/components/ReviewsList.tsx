@@ -70,6 +70,11 @@ const ReviewList: React.FC<ReviewListProps> = ({
     e.stopPropagation();
     setSelectedIds((prev) => prev.filter((x) => x !== id));
     onDeleteReview(id);
+
+    const remainingOnPage = paginatedReviews.filter((r) => r._id !== id).length;
+    if (remainingOnPage === 0 && currentPage > 1) {
+      setCurrentPage((p) => p - 1);
+    }
   };
 
   const toggleSelectAll = () => {

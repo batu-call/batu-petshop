@@ -157,13 +157,15 @@ const CategoryPage = () => {
     }
   };
 
-  const goToPage = (p: number) => {
-    const params = new URLSearchParams();
-    params.set("page", String(p));
-    if (subCategory) params.set("sub", subCategory);
+const goToPage = (p: number) => {
+  const params = new URLSearchParams();
+  params.set("page", String(p));
+  if (subCategory) params.set("sub", subCategory);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  setTimeout(() => {
     router.push(`/category/${categorySlug}?${params.toString()}`, { scroll: false });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, 100);
+};
 
   const visibleCount = 5;
   let start = Math.max(2, page - Math.floor(visibleCount / 2));

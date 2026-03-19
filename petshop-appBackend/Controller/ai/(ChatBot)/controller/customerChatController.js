@@ -5,10 +5,10 @@ import { runChat } from "../services/chatService.js";
 import { buildSystemPrompt } from "../prompts/systemPrompt.js";
 import { ChatHistory } from "../../../../Models/ChatHistorySchema.js";
 
-const DAILY_MAX    = 50;
-const SESSION_MAX  = 20;
-const MAX_HISTORY  = 10;
-const MAX_STORED   = 50; 
+const DAILY_MAX   = 50;
+const SESSION_MAX = 20;
+const MAX_HISTORY = 20;
+const MAX_STORED  = 50;
 
 // ── Session
 
@@ -32,7 +32,7 @@ const getOrCreateSession = (sessionId, userId) =>
     { upsert: true, new: true }
   );
 
-// ── Rate Limit 
+// ── Rate Limit
 
 const checkRateLimit = (session) => {
   const now = new Date();
@@ -46,16 +46,29 @@ const checkRateLimit = (session) => {
     throw new ErrorHandler(`Session limit reached (${SESSION_MAX}). Start a new chat.`, 429);
 };
 
-// ── History 
+
+const isRateLimitError = (err) =>
+  err?.status === 429 ||
+  err?.statusCode === 429 ||
+  err?.error?.code === "rate_limit_exceeded" ||
+  err?.error?.error?.code === "rate_limit_exceeded" ||
+  err?.message?.includes("rate_limit_exceeded") ||
+  err?.message?.includes("Rate limit");
+
+// ── History
 
 const prepareHistory = (stored) =>
   stored
+    .slice(-MAX_HISTORY * 2)
+    .filter(
+      (m) =>
+        (m.role === "user" && m.content) ||
+        (m.role === "assistant" && m.content && !m.tool_calls)
+    )
     .slice(-MAX_HISTORY)
-    .filter((m) => m.role === "user" || m.role === "assistant")
     .map((m) => ({ role: m.role, content: m.content }));
 
-// ── Push Messages 
-// Only user messages count toward rate limits
+// ── Push Messages
 
 const pushMessage = (session, role, content, extras = {}) => {
   session.messages.push({ role, content, timestamp: new Date(), ...extras });
@@ -90,13 +103,21 @@ export const customerChat = catchAsyncError(async (req, res, next) => {
       history
     ));
   } catch (err) {
-    console.error("[customerChat] error:", err.message);
-    if (err.status === 429)
+    console.error("[customerChat] error:", {
+      status:     err?.status,
+      statusCode: err?.statusCode,
+      code:       err?.error?.code ?? err?.error?.error?.code,
+      message:    err?.message,
+    });
+
+    if (isRateLimitError(err)) {
       return res.status(200).json({
         success: true,
-        answer: "I'm a bit busy 🐾 Please try again in a few seconds!",
+        answer: "I'm a bit busy right now 🐾 Please try again in a few seconds!",
         sessionId: sid,
       });
+    }
+
     return res.status(200).json({
       success: true,
       answer: "Oops, something went wrong 😅 Could you try again?",
@@ -111,7 +132,6 @@ export const customerChat = catchAsyncError(async (req, res, next) => {
     });
   }
 
-  // Prevent unbounded document growth
   if (session.messages.length > MAX_STORED) {
     session.messages = session.messages.slice(-MAX_STORED);
   }

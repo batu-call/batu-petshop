@@ -5,6 +5,8 @@ import { Cart } from "../../../../Models/CartSchema.js";
 import Favorite from "../../../../Models/favoriteSchema.js";
 import ShippingSetting from "../../../../Models/ShippingSetting.js";
 import Coupon from "../../../../Models/couponSchema.js";
+import Message from "../../../../Models/messageSchema.js";
+import mongoose from "mongoose";
 
 const PRODUCT_SELECT = "product_name price salePrice category subCategory stock image slug isFeatured";
 
@@ -207,6 +209,200 @@ export const tools = {
       items: cart.items.map((item) => ({ quantity: item.quantity, product: compactImages(item.product) })),
       total: +total.toFixed(2),
       appliedCoupon: cart.appliedCoupon || null,
+    };
+  },
+
+  getOrderDetail: async ({ userId, orderId }) => {
+    if (!orderId || !/^[0-9a-fA-F]{24}$/.test(orderId)) return { error: "Invalid order ID" };
+    const order = await Order.findOne({ _id: orderId, user: userId })
+      .populate({ path: "items.product", select: "product_name image slug" })
+      .lean();
+    if (!order) return { error: "Order not found" };
+    return {
+      _id: order._id,
+      status: order.status,
+      totalAmount: order.totalAmount,
+      shippingFee: order.shippingFee,
+      discountAmount: order.discountAmount,
+      couponCode: order.couponCode,
+      createdAt: order.createdAt,
+      tracking: order.tracking || null,
+      shippingAddress: {
+        fullName: order.shippingAddress?.fullName,
+        city: order.shippingAddress?.city,
+        country: order.shippingAddress?.country,
+      },
+      items: order.items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        image: item.product?.image?.[0]?.url || item.image || "",
+        slug: item.product?.slug || "",
+      })),
+    };
+  },
+
+  requestCancellation: async ({ userId, orderId, reason }) => {
+    if (!orderId || !/^[0-9a-fA-F]{24}$/.test(orderId)) return { error: "Invalid order ID" };
+    const order = await Order.findOne({ _id: orderId, user: userId });
+    if (!order) return { error: "Order not found" };
+    if (!["pending", "paid"].includes(order.status)) return { error: `Cannot cancel order with status: ${order.status}` };
+    await Order.findByIdAndUpdate(orderId, {
+      $set: {
+        status: "cancellation_requested",
+        cancelReason: reason || "",
+      },
+    });
+    return { success: true, message: "Cancellation request submitted. Our team will process it within 1 business day." };
+  },
+
+  getProductDetail: async ({ slug, productId }) => {
+    let product;
+    if (slug) {
+      product = await Product.findOne({ slug, isActive: true }).select(`${PRODUCT_SELECT} description productFeatures`).lean();
+    } else if (productId && /^[0-9a-fA-F]{24}$/.test(productId)) {
+      product = await Product.findOne({ _id: productId, isActive: true }).select(`${PRODUCT_SELECT} description productFeatures`).lean();
+    }
+    if (!product) return { error: "Product not found" };
+    const stats = await Review.aggregate([
+      { $match: { productId: product._id } },
+      { $group: { _id: null, avg: { $avg: "$rating" }, count: { $sum: 1 } } },
+    ]);
+    return {
+      ...compactImages(product),
+      avgRating: stats.length ? +stats[0].avg.toFixed(1) : null,
+      reviewCount: stats.length ? stats[0].count : 0,
+    };
+  },
+
+  getProductReviews: async ({ productId, limit = 5 }) => {
+    if (!productId || !/^[0-9a-fA-F]{24}$/.test(productId)) return { error: "Invalid product ID" };
+    const reviews = await Review.find({ productId })
+      .populate("userId", "firstName lastName avatar")
+      .sort({ createdAt: -1 })
+      .limit(Math.min(limit, 5))
+      .lean();
+    const stats = await Review.aggregate([
+      { $match: { productId: new mongoose.Types.ObjectId(productId) } },
+      { $group: { _id: null, avg: { $avg: "$rating" }, count: { $sum: 1 } } },
+    ]);
+    return {
+      avgRating: stats.length ? +stats[0].avg.toFixed(1) : null,
+      totalReviews: stats.length ? stats[0].count : 0,
+      reviews: reviews.map((r) => ({
+        rating: r.rating,
+        comment: r.comment,
+        helpful: r.helpful?.length || 0,
+        createdAt: r.createdAt,
+        user: r.userId ? `${r.userId.firstName} ${r.userId.lastName[0]}.` : "Anonymous",
+      })),
+    };
+  },
+
+  getPersonalizedRecommendations: async ({ userId, limit = 5 }) => {
+    const [favs, orders] = await Promise.all([
+      Favorite.find({ userId }).populate({ path: "productId", match: { isActive: true }, select: "category subCategory" }).limit(20).lean(),
+      Order.find({ user: userId }).select("items").sort({ createdAt: -1 }).limit(5).lean(),
+    ]);
+
+    const categoryCount = {};
+    const subCategoryCount = {};
+    const seenProductIds = new Set();
+
+    for (const fav of favs) {
+      if (!fav.productId) continue;
+      seenProductIds.add(fav.productId._id.toString());
+      const cat = fav.productId.category;
+      const sub = fav.productId.subCategory;
+      if (cat) categoryCount[cat] = (categoryCount[cat] || 0) + 2;
+      if (sub) subCategoryCount[sub] = (subCategoryCount[sub] || 0) + 2;
+    }
+
+    for (const order of orders) {
+      for (const item of order.items || []) {
+        seenProductIds.add(item.product?.toString());
+      }
+    }
+
+    const topCategory = Object.entries(categoryCount).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const topSubCategory = Object.entries(subCategoryCount).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+    if (!topCategory) {
+      const products = await Product.find({ isActive: true, stock: { $gt: 0 } })
+        .sort({ sold: -1 }).limit(Math.min(limit, 5)).select(PRODUCT_SELECT).lean();
+      return products.map(compactImages);
+    }
+
+    const filter = {
+      isActive: true,
+      stock: { $gt: 0 },
+      category: topCategory,
+      _id: { $nin: [...seenProductIds].filter((id) => /^[0-9a-fA-F]{24}$/.test(id)).map((id) => new mongoose.Types.ObjectId(id)) },
+    };
+    if (topSubCategory) filter.subCategory = topSubCategory;
+
+    let products = await Product.find(filter).sort({ sold: -1, isFeatured: -1 }).limit(Math.min(limit, 5)).select(PRODUCT_SELECT).lean();
+
+    if (products.length < 3) {
+      delete filter.subCategory;
+      products = await Product.find(filter).sort({ sold: -1, isFeatured: -1 }).limit(Math.min(limit, 5)).select(PRODUCT_SELECT).lean();
+    }
+
+    return products.map(compactImages);
+  },
+
+  addToCart: async ({ userId, productId, quantity = 1 }) => {
+    if (!productId || !/^[0-9a-fA-F]{24}$/.test(productId)) return { error: "Invalid product ID" };
+    const product = await Product.findOne({ _id: productId, isActive: true, stock: { $gt: 0 } });
+    if (!product) return { error: "Product not found or out of stock" };
+    let cart = await Cart.findOne({ user: userId });
+    if (!cart) cart = await Cart.create({ user: userId, items: [], appliedCoupon: null });
+    const safeQty = Math.min(Math.max(Number(quantity) || 1, 1), 99);
+    const idx = cart.items.findIndex((i) => i.product.toString() === productId);
+    if (idx > -1) cart.items[idx].quantity += safeQty;
+    else cart.items.push({ product: product._id, quantity: safeQty });
+    await cart.save();
+    return { success: true, message: `${product.product_name} added to your cart (qty: ${safeQty}).`, productName: product.product_name, quantity: safeQty };
+  },
+
+  addToFavorites: async ({ userId, productId }) => {
+    if (!productId || !/^[0-9a-fA-F]{24}$/.test(productId)) return { error: "Invalid product ID" };
+    const product = await Product.findOne({ _id: productId, isActive: true });
+    if (!product) return { error: "Product not found" };
+    const exists = await Favorite.findOne({ userId, productId });
+    if (exists) return { success: true, message: `${product.product_name} is already in your favorites.` };
+    await Favorite.create({ userId, productId });
+    return { success: true, message: `${product.product_name} added to your favorites! 🤍` };
+  },
+
+  createSupportTicket: async ({ userId, userName, userEmail, subject, message, category, orderId }) => {
+    const subjectMap = {
+      damaged: "Damaged Item Report",
+      missing: "Missing Package",
+      return:  "Return Request",
+      order:   "Order Issue",
+      payment: "Payment Issue",
+      product: "Product Question",
+      other:   "Support Request",
+    };
+
+    const finalSubject  = subjectMap[category] || subject || "Support Request";
+    const orderRef      = orderId ? `\n\nOrder Reference: ${orderId}` : "";
+    const finalMessage  = `${message}${orderRef}\n\n[Submitted via AI Chat Assistant]`;
+
+    const ticket = await Message.create({
+      name:    userName  || "Customer",
+      email:   userEmail || "no-email@batupetshop.com",
+      subject: finalSubject,
+      message: finalMessage,
+      status:  "New",
+      user:    userId && /^[0-9a-fA-F]{24}$/.test(userId) ? userId : undefined,
+    });
+
+    return {
+      success:  true,
+      ticketId: ticket._id.toString().slice(-8).toUpperCase(),
+      message:  `Your support ticket has been created. Reference: #${ticket._id.toString().slice(-8).toUpperCase()}. Our team will respond within 1 business day.`,
     };
   },
 };

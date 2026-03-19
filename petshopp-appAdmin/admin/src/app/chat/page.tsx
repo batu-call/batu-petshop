@@ -496,7 +496,9 @@ const AdminChatWidget = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/ai/admin/chat`,
         { message: text },
         { withCredentials: true },
+        
       );
+      
       const { text: t, products, orders } = parseMessage(data.answer);
       setMessages((prev) => [
         ...prev,

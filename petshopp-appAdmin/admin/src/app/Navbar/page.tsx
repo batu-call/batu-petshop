@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, Bell } from "lucide-react";
+import { ChevronDown, ChevronUp, Package, Users, ShoppingBag } from "lucide-react";
 import MobileMenu from "../components/mobile";
 import { useAdminAuth } from "../Context/AdminAuthContext";
 import { ThemeToggle } from "@/app/components/ThemeToggle";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import LogoutIcon from "@mui/icons-material/Logout";
 import {
   Dropdown,
@@ -35,6 +36,17 @@ const Navbar = () => {
     setOpenDropdown(null);
   }, [pathname]);
 
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   const pageTitle = () => {
     const staticTitles: Record<string, string> = {
       "/": "Dashboard",
@@ -49,7 +61,6 @@ const Navbar = () => {
     };
 
     if (staticTitles[pathname]) return staticTitles[pathname];
-
     if (pathname.startsWith("/category/Cat")) return "Cat Products";
     if (pathname.startsWith("/category/Dog")) return "Dog Products";
     if (pathname.startsWith("/category/Bird")) return "Bird Products";
@@ -91,6 +102,12 @@ const Navbar = () => {
     },
   ];
 
+  const menuIcons: Record<string, React.ReactElement> = {
+    products: <Package size={15} strokeWidth={1.8} />,
+    users: <Users size={15} strokeWidth={1.8} />,
+    orders: <ShoppingBag size={15} strokeWidth={1.8} />,
+  };
+
   const handleLogout = async () => {
     try {
       const response = await axios.get(
@@ -128,7 +145,6 @@ const Navbar = () => {
   return (
     <div className="md:ml-24 lg:ml-40 h-14 sm:h-14 lg:h-18 bg-primary dark:bg-[#1e3d2a] shadow-md lg:relative fixed w-full md:w-[calc(100%-6rem)] lg:w-[calc(100%-10rem)] z-30 opacity-95">
       <div className="flex items-center justify-between h-14 sm:h-14 lg:h-18 px-2 md:px-4">
-        {/* Left — hamburger + page title */}
         <div className="flex items-center gap-4">
           <div className="md:hidden">
             <MobileMenu anchor="left" />
@@ -140,9 +156,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Right — actions */}
         <div className="flex items-center gap-3">
-          {/* Tablet toggle */}
           <div
             className="lg:hidden text-color rounded-2xl"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -162,7 +176,6 @@ const Navbar = () => {
             </Button>
           </div>
 
-          {/* Desktop menu */}
           <div className="hidden lg:flex gap-4 items-center mr-2">
             {NavbarMenu.map((menu) => {
               const isOpen = openDropdown === menu.key;
@@ -209,10 +222,8 @@ const Navbar = () => {
             })}
           </div>
 
-          {/* Dark mode toggle */}
           <ThemeToggle />
 
-          {/* Admin avatar dropdown */}
           <Dropdown>
             <DropdownButton>
               <div className="relative mt-1 w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97]">
@@ -237,20 +248,20 @@ const Navbar = () => {
               <DropdownMenu>
                 <DropdownLabel>
                   <span className="text-sm font-bold text-color dark:text-[#c8e6d0]">
-                    {`${admin?.firstName ?? ""} ${admin?.lastName ?? ""}`.trim() ||
-                      "Admin"}
+                    {`${admin?.firstName ?? ""} ${admin?.lastName ?? ""}`.trim() || "Admin"}
                   </span>
                 </DropdownLabel>
                 <DropdownItem href="/AddAdmin">
                   <PersonAddIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Add Admin
                 </DropdownItem>
                 <DropdownItem href="/Notifications">
-                  <NotificationsIcon sx={{ color: "#A8D1B5", mr: 1 }} />{" "}
-                  Notifications
+                  <NotificationsIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Notifications
                 </DropdownItem>
                 <DropdownItem href="/Pricing-promotions">
-                  <LocalOfferIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Pricing &
-                  Promotions
+                  <LocalOfferIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Pricing & Promotions
+                </DropdownItem>
+                <DropdownItem href="/ShippingContent">
+                  <LocalShippingIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Shipping & Returns
                 </DropdownItem>
                 <DropdownItem onClick={handleLogout} href="#">
                   <LogoutIcon sx={{ color: "#A8D1B5", mr: 1 }} /> Logout
@@ -261,10 +272,9 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Backdrop */}
       {menuOpen && (
         <div
-          className="fixed inset-0 bg-black/10 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/20 z-40 lg:hidden"
           onClick={() => {
             setMenuOpen(false);
             setOpenDropdown(null);
@@ -272,46 +282,83 @@ const Navbar = () => {
         />
       )}
 
-      {/* Mobile/Tablet dropdown menu */}
       {menuOpen && (
-        <div className="lg:hidden fixed top-14 left-0 right-0 flex flex-col pb-1 border-t border-gray-700 bg-primary dark:bg-[#1e3d2a] z-50 pointer-events-auto">
-          {NavbarMenu.map((menu) => {
-            const isOpen = openDropdown === menu.key;
-            return (
-              <div
-                key={menu.key}
-                className="border border-secondary dark:border-[#2d5a3d] rounded-md overflow-hidden md:ml-24"
-              >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleDropdown(menu.key);
-                  }}
-                  className="w-full flex items-center justify-between px-4 py-3 text-color dark:text-[#c8e6d0] bg-primary dark:bg-[#1e3d2a] transition"
-                >
-                  <span className="font-medium">{menu.label}</span>
-                  <ChevronDown
-                    size={18}
-                    className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
+        <div className="lg:hidden fixed top-14 left-0 right-0 z-50 pointer-events-auto">
+          <div className="mx-3 mt-1 mb-3 md:ml-28 rounded-2xl overflow-hidden
+            border border-[#78b898]/40 dark:border-[#2d5a3d]/70
+            bg-[#d6eed6] dark:bg-[#0d2e1e]
+            shadow-lg shadow-[#5a9e7a]/20 dark:shadow-black/40">
 
-                {isOpen && (
-                  <div className="flex flex-col bg-secondary dark:bg-[#162820]">
-                    {menu.items.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className="px-6 py-3 text-sm text-color dark:text-[#a8d4b8] border-t border-secondary dark:border-[#2d5a3d] transition hover:bg-primary/10 dark:hover:bg-[#1e3d2a]"
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
+            {NavbarMenu.map((menu, index) => {
+              const isOpen = openDropdown === menu.key;
+              const isLast = index === NavbarMenu.length - 1;
+              return (
+                <div key={menu.key}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleDropdown(menu.key);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-4 transition-all duration-200 active:scale-[0.98]
+                      ${isOpen
+                        ? "bg-[#97cba9]/40 dark:bg-[#1e3d2a]/80"
+                        : "active:bg-[#97cba9]/30 dark:active:bg-[#1e3d2a]/50"
+                      }`}
+                  >
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200
+                      ${isOpen
+                        ? "bg-[#97cba9] dark:bg-[#2d5a3d] border border-[#5a9e7a]/50 dark:border-[#3d7a55] [&>svg]:stroke-[#393E46] dark:[&>svg]:stroke-[#c8e6d0]"
+                        : "bg-[#b1cbbb]/40 dark:bg-[#1e3d2a] border border-[#78b898]/30 dark:border-[#2d5a3d]/60 [&>svg]:stroke-[#393E46]/60 dark:[&>svg]:stroke-[#7aab8a]"
+                      }`}>
+                      {menuIcons[menu.key]}
+                    </div>
+
+                    <span className={`text-[14px] font-medium flex-1 text-left transition-colors duration-200
+                      ${isOpen
+                        ? "text-[#393E46] dark:text-[#c8e6d0]"
+                        : "text-[#393E46]/70 dark:text-[#7aab8a]"
+                      }`}>
+                      {menu.label}
+                    </span>
+
+                    <ChevronDown
+                      size={16}
+                      strokeWidth={2}
+                      className={`flex-shrink-0 transition-transform duration-300
+                        ${isOpen
+                          ? "rotate-180 stroke-[#393E46] dark:stroke-[#c8e6d0]"
+                          : "stroke-[#393E46]/30 dark:stroke-[#3d6a50]"
+                        }`}
+                    />
+                  </button>
+
+                  <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+                    ${isOpen ? "max-h-60" : "max-h-0"}`}>
+                    <div className="flex flex-col gap-0.5 px-3 pb-2 pt-1
+                      bg-[#eaf5ea]/60 dark:bg-[#071a10]/60">
+                      {menu.items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className="flex items-center gap-3 px-3 py-3 rounded-xl text-[13px]
+                            text-[#393E46]/60 dark:text-[#5f8870]
+                            active:scale-[0.97] active:bg-[#97cba9]/30 dark:active:bg-[#1e3d2a]
+                            transition-all duration-150"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#5a9e7a]/50 dark:bg-[#3d6a50] flex-shrink-0" />
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
+
+                  {!isLast && (
+                    <div className="mx-4 h-px bg-[#78b898]/25 dark:bg-[#2d5a3d]/60" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

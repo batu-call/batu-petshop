@@ -8,10 +8,14 @@ interface CustomTooltipProps {
     value: number;
     payload: { month: string; orders: number; revenue: number };
   }[];
+  mounted?: boolean;
 }
 
-const MonthlyOrdersTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
+const MonthlyOrdersTooltip: React.FC<CustomTooltipProps> = ({ active, payload, mounted }) => {
   const { resolvedTheme } = useTheme();
+
+  if (!mounted) return null;
+
   const isDark = resolvedTheme === "dark";
 
   if (active && payload && payload.length) {

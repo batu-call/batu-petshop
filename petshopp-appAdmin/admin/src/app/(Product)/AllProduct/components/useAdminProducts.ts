@@ -180,7 +180,7 @@ export const useAdminProducts = () => {
     const emptyFilters: Filters = {
       search: "", category: "", minPrice: "", maxPrice: "",
       minStock: "", minSold: "", maxSold: "", maxStock: "",
-      isActive: "", isFeatured: "", onSale: "", // ✅
+      isActive: "", isFeatured: "", onSale: "", 
     };
     setLocalFilter(emptyFilters);
     setAppliedFilter(emptyFilters);
@@ -207,7 +207,7 @@ export const useAdminProducts = () => {
     if (appliedFilter.maxStock)   params.set("maxStock",   appliedFilter.maxStock);
     if (appliedFilter.isActive)   params.set("isActive",   appliedFilter.isActive);
     if (appliedFilter.isFeatured) params.set("isFeatured", appliedFilter.isFeatured);
-    if (appliedFilter.onSale)     params.set("onSale",     appliedFilter.onSale); // ✅
+    if (appliedFilter.onSale)     params.set("onSale",     appliedFilter.onSale); 
     router.push(`?${params.toString()}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };

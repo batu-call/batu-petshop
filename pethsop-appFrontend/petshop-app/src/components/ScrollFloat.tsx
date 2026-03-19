@@ -43,56 +43,51 @@ const ScrollFloat: React.FC<ScrollFloatProps> = ({
     if (!el) return;
 
     const isMobile = window.innerWidth < 768;
+    const charElements = el.querySelectorAll(".inline-block");
+
+    if (isMobile) {
+      gsap.set(charElements, {
+        opacity: 1,
+        yPercent: 0,
+        scaleY: 1,
+        scaleX: 1,
+      });
+      return;
+    }
+
     const scroller =
       scrollContainerRef && scrollContainerRef.current
         ? scrollContainerRef.current
         : window;
 
-    const charElements = el.querySelectorAll(".inline-block");
-
-    const fromVars = {
-      willChange: "opacity, transform",
-      opacity: 0,
-      yPercent: 120,
-      scaleY: 2.3,
-      scaleX: 0.7,
-      transformOrigin: "50% 0%",
-    };
-
-    const toVars: gsap.TweenVars = {
-      duration: animationDuration,
-      ease: ease,
-      opacity: 1,
-      yPercent: 0,
-      scaleY: 1,
-      scaleX: 1,
-      stagger: stagger,
-      scrollTrigger: isMobile
-        ? {
-            trigger: el,
-            scroller,
-
-            start: "top 85%",
-            toggleActions: "play none none none",
-          }
-        : {
-            trigger: el,
-            scroller,
-            start: scrollStart,
-            end: scrollEnd,
-            scrub: true,
-          },
-    };
-
-    gsap.fromTo(charElements, fromVars, toVars);
-  }, [
-    scrollContainerRef,
-    animationDuration,
-    ease,
-    scrollStart,
-    scrollEnd,
-    stagger,
-  ]);
+    gsap.fromTo(
+      charElements,
+      {
+        willChange: "opacity, transform",
+        opacity: 0,
+        yPercent: 120,
+        scaleY: 2.3,
+        scaleX: 0.7,
+        transformOrigin: "50% 0%",
+      },
+      {
+        duration: animationDuration,
+        ease: ease,
+        opacity: 1,
+        yPercent: 0,
+        scaleY: 1,
+        scaleX: 1,
+        stagger: stagger,
+        scrollTrigger: {
+          trigger: el,
+          scroller,
+          start: scrollStart,
+          end: scrollEnd,
+          scrub: true,
+        },
+      }
+    );
+  }, [scrollContainerRef, animationDuration, ease, scrollStart, scrollEnd, stagger]);
 
   return (
     <h2

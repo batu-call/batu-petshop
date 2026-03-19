@@ -19,7 +19,7 @@ interface Props {
 
 const MonthlyOrdersChart = ({ monthlyStats, mounted }: Props) => {
   const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+  const isDark = mounted ? resolvedTheme === "dark" : false;
 
   return (
     <div className="bg-white dark:bg-[#162820] rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-[#2d5a3d] overflow-hidden">
@@ -75,7 +75,7 @@ const MonthlyOrdersChart = ({ monthlyStats, mounted }: Props) => {
                 dx={-12}
               />
               <Tooltip
-                content={<MonthlyOrdersTooltip />}
+                content={<MonthlyOrdersTooltip mounted={mounted} />}
                 cursor={{ fill: isDark ? "rgba(45,90,61,0.3)" : "rgba(151, 203, 169, 0.1)", radius: 8 }}
               />
               <Bar

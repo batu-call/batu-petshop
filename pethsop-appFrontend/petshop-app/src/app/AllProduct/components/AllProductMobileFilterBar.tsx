@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Slider from "@mui/material/Slider";
 import { ChevronDown, ChevronUp, DollarSign, Filter, X } from "lucide-react";
@@ -25,6 +26,8 @@ type Props = {
   setShowOnSale: (v: boolean) => void;
   minRating: number;
   setMinRating: (v: number) => void;
+  setPriceRange: (r: number[]) => void;
+  setTempPriceRange: (r: number[]) => void;
 };
 
 const AllProductMobileFilterBar = ({
@@ -39,19 +42,49 @@ const AllProductMobileFilterBar = ({
   sortOptions,
   tempPriceRange,
   priceStats,
-  handleMinPriceInputChange,
-  handleMaxPriceInputChange,
-  applyManualPriceInput,
   handlePriceChange,
   handlePriceChangeCommitted,
   showOnSale,
   setShowOnSale,
   minRating,
   setMinRating,
+  setPriceRange,
+  setTempPriceRange,
 }: Props) => {
+  const [minInput, setMinInput] = useState(String(tempPriceRange[0]));
+  const [maxInput, setMaxInput] = useState(String(tempPriceRange[1]));
+
+  useEffect(() => {
+    setMinInput(String(tempPriceRange[0]));
+    setMaxInput(String(tempPriceRange[1]));
+  }, [tempPriceRange]);
+
+  const applyPriceInputs = () => {
+    const rawMin = parseFloat(minInput);
+    const rawMax = parseFloat(maxInput);
+
+    const min = isNaN(rawMin)
+      ? priceStats.min
+      : Math.max(priceStats.min, Math.min(rawMin, priceStats.max));
+    const max = isNaN(rawMax)
+      ? priceStats.max
+      : Math.max(priceStats.min, Math.min(rawMax, priceStats.max));
+
+    const safeMin = Math.min(min, max);
+    const safeMax = Math.max(min, max);
+
+    setMinInput(String(safeMin));
+    setMaxInput(String(safeMax));
+    setTempPriceRange([safeMin, safeMax]);
+    setPriceRange([safeMin, safeMax]);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") applyPriceInputs();
+  };
+
   return (
     <>
-      {/* Mobil Showing + Filter Button */}
       <div className="flex items-center justify-between mb-4 md:hidden">
         <div className="text-sm text-gray-700 dark:text-[#a8d4b8]">
           Showing{" "}
@@ -72,10 +105,8 @@ const AllProductMobileFilterBar = ({
         </Button>
       </div>
 
-      {/* Filter Panel */}
       {showMobileFilters && (
         <div className="md:hidden bg-white dark:bg-[#162820] rounded-2xl shadow-2xl border-2 border-primary/20 dark:border-[#2d5a3d] p-4 mb-4 z-40 max-w-full">
-          {/* Panel Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 text-primary dark:text-[#7aab8a] font-bold text-lg">
               <Filter size={20} />
@@ -92,7 +123,6 @@ const AllProductMobileFilterBar = ({
             )}
           </div>
 
-          {/* Sort */}
           <div className="mb-4">
             <label className="block text-sm font-semibold text-primary dark:text-[#7aab8a] mb-2">Sort By</label>
             <select
@@ -106,44 +136,54 @@ const AllProductMobileFilterBar = ({
             </select>
           </div>
 
-          {/* Price */}
           <div className="mb-4">
             <label className="text-sm font-semibold text-primary dark:text-[#7aab8a] flex items-center gap-2 mb-2">
               <DollarSign size={16} />
               Price: ${tempPriceRange[0]} - ${tempPriceRange[1]}
             </label>
 
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-3">
               <div className="flex-1">
                 <label className="block text-xs text-gray-600 dark:text-[#7aab8a] mb-1">Min Price</label>
-                <input
-                  type="number"
-                  value={tempPriceRange[0]}
-                  onChange={handleMinPriceInputChange}
-                  min={priceStats.min}
-                  max={priceStats.max}
-                  className="w-full pl-7 pr-3 py-2 rounded-lg border-2 border-primary/30 dark:border-[#2d5a3d] bg-white dark:bg-[#0d1f18] text-gray-900 dark:text-[#c8e6d0] focus:border-primary dark:focus:border-[#7aab8a] focus:ring-2 focus:ring-primary/20 dark:focus:ring-[#2d5a3d] transition-all outline-none"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-[#7aab8a] text-sm">$</span>
+                  <input
+                    type="number"
+                    value={minInput}
+                    onChange={(e) => setMinInput(e.target.value)}
+                    onBlur={applyPriceInputs}
+                    onKeyDown={handleKeyDown}
+                    min={priceStats.min}
+                    max={priceStats.max}
+                    className="w-full pl-7 pr-3 py-2 rounded-lg border-2 border-primary/30 dark:border-[#2d5a3d] bg-white dark:bg-[#0d1f18] text-gray-900 dark:text-[#c8e6d0] focus:border-primary dark:focus:border-[#7aab8a] focus:ring-2 focus:ring-primary/20 dark:focus:ring-[#2d5a3d] transition-all outline-none"
+                  />
+                </div>
               </div>
-              <div className="text-gray-400 dark:text-[#7aab8a] font-bold pt-5">-</div>
+              <div className="text-gray-400 dark:text-[#7aab8a] font-bold pt-5">—</div>
               <div className="flex-1">
                 <label className="block text-xs text-gray-600 dark:text-[#7aab8a] mb-1">Max Price</label>
-                <input
-                  type="number"
-                  value={tempPriceRange[1]}
-                  onChange={handleMaxPriceInputChange}
-                  min={priceStats.min}
-                  max={priceStats.max}
-                  className="w-full pl-7 pr-3 py-2 rounded-lg border-2 border-primary/30 dark:border-[#2d5a3d] bg-white dark:bg-[#0d1f18] text-gray-900 dark:text-[#c8e6d0] focus:border-primary dark:focus:border-[#7aab8a] focus:ring-2 focus:ring-primary/20 dark:focus:ring-[#2d5a3d] transition-all outline-none"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-[#7aab8a] text-sm">$</span>
+                  <input
+                    type="number"
+                    value={maxInput}
+                    onChange={(e) => setMaxInput(e.target.value)}
+                    onBlur={applyPriceInputs}
+                    onKeyDown={handleKeyDown}
+                    min={priceStats.min}
+                    max={priceStats.max}
+                    className="w-full pl-7 pr-3 py-2 rounded-lg border-2 border-primary/30 dark:border-[#2d5a3d] bg-white dark:bg-[#0d1f18] text-gray-900 dark:text-[#c8e6d0] focus:border-primary dark:focus:border-[#7aab8a] focus:ring-2 focus:ring-primary/20 dark:focus:ring-[#2d5a3d] transition-all outline-none"
+                  />
+                </div>
               </div>
-              <Button
-                onClick={applyManualPriceInput}
-                className="bg-primary text-white hover:bg-primary/90 px-4 py-2 mt-5 transition-all hover:scale-105 cursor-pointer"
-              >
-                Apply
-              </Button>
             </div>
+
+            <Button
+              onClick={applyPriceInputs}
+              className="w-full mb-3 bg-primary text-white hover:bg-[#D6EED6] hover:text-[#393E46] cursor-pointer transition duration-300 ease-in-out hover:scale-[1.02] active:scale-[0.97]"
+            >
+              Apply Price
+            </Button>
 
             <Slider
               value={tempPriceRange}
@@ -166,7 +206,6 @@ const AllProductMobileFilterBar = ({
             </div>
           </div>
 
-          {/* On Sale + Rating */}
           <div className="space-y-3">
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -185,7 +224,7 @@ const AllProductMobileFilterBar = ({
                   <button
                     key={rating}
                     onClick={() => setMinRating(rating)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                       minRating === rating
                         ? "bg-primary text-white shadow-md scale-105"
                         : "bg-white dark:bg-[#1e3d2a] text-primary dark:text-[#7aab8a] border border-primary/30 dark:border-[#2d5a3d] hover:scale-105"

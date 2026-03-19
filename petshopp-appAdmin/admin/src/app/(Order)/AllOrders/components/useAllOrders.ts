@@ -17,6 +17,7 @@ export const useAllOrders = () => {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [pageReady, setPageReady] = useState(false);
 
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -39,9 +40,11 @@ export const useAllOrders = () => {
 
   useEffect(() => {
     if (!searchParams.get("page")) {
+      setPageReady(false);
       router.replace("?page=1", { scroll: false });
       return;
     }
+    setPageReady(true);
     const newFilters = getInitialFilters();
     setLocalFilter(newFilters);
     setAppliedFilter(newFilters);
@@ -90,6 +93,8 @@ export const useAllOrders = () => {
   ]);
 
   const fetchOrders = useCallback(async () => {
+    if (!pageReady) return;
+
     if (abortControllerRef.current) abortControllerRef.current.abort();
     abortControllerRef.current = new AbortController();
     setLoading(true);
@@ -136,6 +141,7 @@ export const useAllOrders = () => {
       setInitialLoad(false);
     }
   }, [
+    pageReady,
     page,
     appliedFilter.search,
     appliedFilter.email,

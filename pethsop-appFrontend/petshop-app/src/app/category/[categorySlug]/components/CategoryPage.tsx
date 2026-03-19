@@ -49,12 +49,13 @@ const CategoryPage = () => {
   } = useCategoryProducts(
     filters.categorySlug,
     page,
-    filters.priceRange,
+    filters.priceRange[0],
+    filters.priceRange[1],
     filters.priceStats,
     filters.showOnSale,
     filters.minRating,
     filters.sortBy,
-    filters.subCategory, 
+    filters.subCategory,
   );
 
   const handlerAddToCart = async (product: Product) => {
@@ -78,8 +79,10 @@ const CategoryPage = () => {
 
   const goToPage = (p: number) => {
     const sub = filters.subCategory ? `&sub=${filters.subCategory}` : "";
-    router.push(`/category/${filters.categorySlug}?page=${p}${sub}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: "smooth" });
+    setTimeout(() => {
+      router.push(`/category/${filters.categorySlug}?page=${p}${sub}`, { scroll: false });
+    }, 100);
   };
 
   return (
@@ -122,15 +125,14 @@ const CategoryPage = () => {
               sortOptions={SORT_OPTIONS}
               tempPriceRange={filters.tempPriceRange}
               priceStats={filters.priceStats}
-              handleMinPriceInputChange={filters.handleMinPriceInputChange}
-              handleMaxPriceInputChange={filters.handleMaxPriceInputChange}
-              applyManualPriceInput={filters.applyManualPriceInput}
               handlePriceChange={filters.handlePriceChange}
               handlePriceChangeCommitted={filters.handlePriceChangeCommitted}
               showOnSale={filters.showOnSale}
               setShowOnSale={filters.setShowOnSale}
               minRating={filters.minRating}
               setMinRating={filters.setMinRating}
+              setPriceRange={filters.setPriceRange}
+              setTempPriceRange={filters.setTempPriceRange}
             />
 
             <div className="hidden md:block mb-4 text-sm text-gray-700 dark:text-[#a8d4b8]">
@@ -143,6 +145,7 @@ const CategoryPage = () => {
                 <span className="ml-2 inline-flex items-center gap-1 text-xs bg-primary text-white px-2 py-[2px] rounded-full">
                   {filters.subCategory}
                   <button
+                    type="button"
                     onClick={() => filters.clearAllFilters()}
                     className="hover:text-red-300 transition-colors"
                   >
@@ -170,6 +173,7 @@ const CategoryPage = () => {
                 </p>
                 {filters.hasActiveFilters() && (
                   <button
+                    type="button"
                     onClick={filters.clearAllFilters}
                     className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-[#D6EED6] hover:text-[#393E46] cursor-pointer transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97]"
                   >

@@ -54,19 +54,6 @@ const FeaturedProducts = ({ reviewStats }: Props) => {
   const { addToCart } = useCart();
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);
-  const [scrollConfig, setScrollConfig] = useState({
-    scrollStart: "center bottom+=50%",
-    scrollEnd: "bottom bottom-=40%",
-  });
-
-  useEffect(() => {
-    if (window.innerWidth < 768) {
-      setScrollConfig({
-        scrollStart: "top bottom-=5%",
-        scrollEnd: "center center+=10%",
-      });
-    }
-  }, []);
 
   useEffect(() => {
     const check = () =>
@@ -152,8 +139,8 @@ const FeaturedProducts = ({ reviewStats }: Props) => {
         <ScrollFloat
           animationDuration={1}
           ease="back.inOut(2)"
-          scrollStart={scrollConfig.scrollStart}
-          scrollEnd={scrollConfig.scrollEnd}
+          scrollStart="center bottom+=50%"
+          scrollEnd="bottom bottom-=40%"
           stagger={0.03}
         >
           Featured Products
@@ -204,7 +191,6 @@ const FeaturedProducts = ({ reviewStats }: Props) => {
             return (
               <SwiperSlide key={item._id} className="p-2">
                 <div className="bg-primary h-92 w-full sm:w-auto rounded-2xl shadow-md hover:shadow-xl flex flex-col overflow-hidden justify-between transition duration-300 ease-in-out hover:scale-[1.02] relative group">
-                  {/* Badges */}
                   <div className="absolute top-3 left-0 z-10 flex flex-col gap-1.5">
                     {discountPercent > 0 && (
                       <span className="bg-secondary text-color text-[9px] sm:text-[11px] font-bold pl-2.5 pr-3 py-1 rounded-r-full shadow-md tracking-wide">
@@ -218,7 +204,6 @@ const FeaturedProducts = ({ reviewStats }: Props) => {
                     )}
                   </div>
 
-                  {/* Favorite — desktop */}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -239,7 +224,6 @@ const FeaturedProducts = ({ reviewStats }: Props) => {
                     />
                   </Button>
 
-                  {/* Favorite — mobile */}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -266,7 +250,6 @@ const FeaturedProducts = ({ reviewStats }: Props) => {
                     href={`/Products/${item.slug}`}
                     className="flex-1 flex flex-col"
                   >
-                    {/* Image */}
                     <div className="w-full shrink-0">
                       {item.image && item.image.length > 0 ? (
                         <div className="relative w-full aspect-square md:w-36 md:h-36 lg:w-44 lg:h-44 mx-auto bg-white rounded-xs md:rounded-full overflow-hidden border border-white md:border-4">
@@ -286,7 +269,6 @@ const FeaturedProducts = ({ reviewStats }: Props) => {
                       )}
                     </div>
 
-                    {/* Name + Star */}
                     <div className="px-2 sm:px-4 pt-2 pb-1 flex flex-col items-center gap-1 min-h-[56px] justify-center">
                       <h2 className="text-white text-lg sm:text-base md:text-lg truncate font-semibold text-center w-full">
                         {item.product_name}
@@ -307,7 +289,6 @@ const FeaturedProducts = ({ reviewStats }: Props) => {
                       )}
                     </div>
 
-                    {/* Description */}
                     <div className="px-4 py-2 h-12 sm:h-12 md:h-18 overflow-hidden">
                       <h2 className="text-[10px] sm:text-xs lg:text-sm text-color font-semibold line-clamp-2 md:line-clamp-3 leading-snug">
                         {item.description}
@@ -315,7 +296,6 @@ const FeaturedProducts = ({ reviewStats }: Props) => {
                     </div>
                   </Link>
 
-                  {/* Price + Cart */}
                   <div className="flex gap-2 justify-between items-center px-2 sm:px-4 py-2">
                     <div className="flex flex-col items-center">
                       {item.salePrice && item.salePrice < item.price ? (
@@ -367,7 +347,6 @@ const FeaturedProducts = ({ reviewStats }: Props) => {
         </Swiper>
       )}
 
-      {/* Pagination */}
       <div className="flex justify-center mt-8 gap-2 min-h-[20px]">
         {product.map((_, index) => (
           <div

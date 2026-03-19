@@ -142,9 +142,11 @@ const FavoritePage = () => {
   };
 
   const goToPage = (p: number) => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  setTimeout(() => {
     router.push(`/favorite?page=${p}`, { scroll: false });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, 100);
+};
 
   const visibleCount = 5;
   let start = Math.max(2, page - Math.floor(visibleCount / 2));

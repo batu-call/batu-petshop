@@ -24,11 +24,14 @@ type Product = {
 
 export const useAllProducts = (
   currentPage: number,
-  priceRange: number[],
+  priceMin: number,
+  priceMax: number,
   priceStats: { min: number; max: number },
   showOnSale: boolean,
   minRating: number,
   sortBy: string,
+  search: string,
+  priceStatsLoaded: boolean,
 ) => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -37,18 +40,21 @@ export const useAllProducts = (
   const [reviewStats, setReviewStats] = useState<ReviewStats>({});
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    if (!priceStatsLoaded) return;
+
+    const timer = setTimeout(async () => {
       setLoading(true);
       try {
         const params: any = { page: currentPage, sortBy };
 
-        if (priceRange[0] !== priceStats.min || priceRange[1] !== priceStats.max) {
-          params.minPrice = priceRange[0];
-          params.maxPrice = priceRange[1];
+        if (priceMin !== priceStats.min || priceMax !== priceStats.max) {
+          params.minPrice = priceMin;
+          params.maxPrice = priceMax;
         }
 
         if (showOnSale) params.onSale = true;
         if (minRating > 0) params.minRating = minRating;
+        if (search) params.search = search;
 
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product/products`,
@@ -58,7 +64,7 @@ export const useAllProducts = (
         if (response.data.success) {
           setAllProducts(response.data.products);
           setTotalPages(response.data.totalPages);
-          setTotalProducts(response.data.totalProducts || 0);
+          setTotalProducts(response.data.filteredProducts || 0);
         }
       } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
@@ -69,9 +75,10 @@ export const useAllProducts = (
       } finally {
         setLoading(false);
       }
-    };
-    fetchProduct();
-  }, [currentPage, priceRange, priceStats.min, priceStats.max, showOnSale, minRating, sortBy]);
+    }, 80);
+
+    return () => clearTimeout(timer);
+  }, [currentPage, priceMin, priceMax, priceStats.min, priceStats.max, showOnSale, minRating, sortBy, search, priceStatsLoaded]);
 
   useEffect(() => {
     const fetchReviewStats = async () => {

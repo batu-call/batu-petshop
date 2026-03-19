@@ -64,7 +64,6 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   const [currentIdx, setCurrentIdx] = useState(selectedImageIndex);
   const [nextIdx, setNextIdx] = useState<number | null>(null);
 
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [hasRevealed, setHasRevealed] = useState(false);
 
@@ -94,20 +93,6 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   }, [hasRevealed]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const el = wrapperRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const viewH = window.innerHeight;
-      const progress = 1 - (rect.top + rect.height) / (viewH + rect.height);
-      setScrollProgress(Math.min(1, Math.max(0, progress)));
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     const preloadAll = () => {
@@ -133,8 +118,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
     const observer = new ResizeObserver(preloadAll);
     observer.observe(container);
     return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [images]);
+  }, [images]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (selectedImageIndex === currentIdx) return;
@@ -160,6 +144,19 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
     };
   }, [selectedImageIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const handler = (e: TouchEvent) => {
+      if (!touchStartX.current || !touchStartY.current) return;
+      const dx = Math.abs(e.touches[0].clientX - touchStartX.current);
+      const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
+      if (dx > dy * 1.5 && dx > 10) e.preventDefault();
+    };
+    el.addEventListener("touchmove", handler, { passive: false });
+    return () => el.removeEventListener("touchmove", handler);
+  }, []);
+
   const navigateGallery = useCallback(
     (dir: "prev" | "next") => {
       if (images.length <= 1 || slidingRef.current) return;
@@ -179,7 +176,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   const swipeLogic = (sx: number | null, sy: number | null, ex: number, ey: number) => {
     if (images.length <= 1 || !sx || !sy) return;
     const dx = ex - sx, dy = ey - sy;
-    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
     navigateGallery(dx < 0 ? "next" : "prev");
   };
 
@@ -207,7 +204,6 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   const currentFit = currentMeta?.fit ?? "object-cover";
   const showBlur = currentMeta?.blur ?? false;
   const currentImageReady = imageReadyMap[currentImageUrl] ?? false;
-  const parallaxY = scrollProgress * 18;
 
   const enterFrom = slideDir === "left" ? "translateX(100%)" : "translateX(-100%)";
   const exitTo = slideDir === "left" ? "translateX(-100%)" : "translateX(100%)";
@@ -254,7 +250,6 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
         ref={wrapperRef}
         className="w-full md:w-1/2 flex flex-col-reverse md:flex-row md:min-h-[420px]"
       >
-        {/* Thumbnails */}
         {images.length > 1 && (
           <div className={`flex flex-row md:flex-col gap-3 p-2 justify-center items-center h-20 sm:h-30 md:h-auto overflow-x-auto md:overflow-y-auto ${isVisible ? "gallery-thumbs-reveal" : "gallery-hidden"}`}>
             {visibleImages.map((img, index) => (
@@ -281,20 +276,18 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
           </div>
         )}
 
-        {/* Main Image */}
         <div
           ref={containerRef}
           className={`flex-1 relative min-h-[350px] ${isVisible ? "gallery-image-reveal gallery-shimmer-once" : "gallery-hidden"}`}
         >
-          {/* Badges */}
           <div className="absolute top-4 left-0 z-30 flex flex-col gap-2">
             {discountPercent > 0 && (
-              <div className="bg-secondary text-color text-[8px] sm:text-[10px] md:text-[9px] lg:text-[11px] font-bold pl-2 pr-2.5 sm:pl-2.5 sm:pr-3 py-0.5 sm:py-1 rounded-r-full shadow-md tracking-wide">
+              <div className="bg-secondary text-color text-[14px] sm:text-[10px] md:text-[9px] lg:text-[12px] xl:text-[14px] font-bold pl-2 pr-2.5 sm:pl-2.5 sm:pr-3 py-0.5 sm:py-1 rounded-r-full shadow-md tracking-wide">
                 {discountPercent}% OFF
               </div>
             )}
             {showStockWarning && (
-              <div className="bg-white/90 backdrop-blur-sm border-r border-t border-b border-red-200 text-red-400 text-[8px] sm:text-[10px] md:text-[9px] lg:text-[11px] font-semibold pl-2 pr-2.5 sm:pl-2.5 sm:pr-3 py-0.5 sm:py-1 rounded-r-full shadow-sm tracking-wide">
+              <div className="bg-white/90 backdrop-blur-sm border-r border-t border-b border-red-200 text-red-400 text-[14px] sm:text-[10px] md:text-[9px] lg:text-[12px] xl:text-[14px] font-semibold pl-2 pr-2.5 sm:pl-2.5 sm:pr-3 py-0.5 sm:py-1 rounded-r-full shadow-sm tracking-wide">
                 Only {stockNumber} left
               </div>
             )}
@@ -310,6 +303,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
 
           <div
             className="absolute inset-0 rounded-xl overflow-hidden cursor-zoom-in"
+            style={{ touchAction: "pan-y" }}
             onClick={() => setIsZoomed(true)}
             onTouchStart={(e) => {
               touchStartX.current = e.touches[0].clientX;
@@ -324,7 +318,6 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
               )
             }
           >
-            {/* Blur bg */}
             <div
               className={`absolute inset-0 transition-opacity duration-300 ${showBlur ? "opacity-100" : "opacity-0"}`}
               style={{ backgroundColor: "#edf7f1" }}
@@ -354,10 +347,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
               <div
                 style={{
                   position: "absolute",
-                  top: `-${parallaxY + 18}px`,
-                  bottom: `-${parallaxY + 18}px`,
-                  left: 0,
-                  right: 0,
+                  inset: 0,
                   opacity: currentImageReady ? 1 : 0,
                   transition: "opacity 0.18s ease",
                 }}
@@ -393,7 +383,6 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
               </div>
             )}
 
-            {/* Nav arrows */}
             {images.length > 1 && (
               <>
                 <button
@@ -414,7 +403,6 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
             )}
           </div>
 
-          {/* Counter */}
           {images.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-medium">
               {selectedImageIndex + 1} / {images.length}

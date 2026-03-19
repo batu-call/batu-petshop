@@ -15,6 +15,7 @@ import OrderCard from "./OrderCard";
 type Props = {
   orders: OrdersType[];
   initialLoad: boolean;
+  loading: boolean;
   totalPages: number;
   page: number;
   expandedOrder: string | null;
@@ -30,6 +31,7 @@ type Props = {
 const OrdersList = ({
   orders,
   initialLoad,
+  loading,
   totalPages,
   page,
   expandedOrder,
@@ -43,7 +45,9 @@ const OrdersList = ({
 }: Props) => {
   const pages = getPaginationPages();
 
-  if (!initialLoad && orders.length === 0) {
+  if (initialLoad || loading) return null;
+
+  if (orders.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="text-6xl mb-4 flex justify-center">

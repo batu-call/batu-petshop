@@ -49,7 +49,7 @@ export const getFavorite = catchAsyncError(async (req, res, next) => {
   const userId = req.user._id;
   
   const page = parseInt(req.query.page) || 1;
-  const limit = 15;
+  const limit = 20;
   const skip = (page - 1) * limit;
 
   const allFavorites = await Favorite.find({ userId }).populate({

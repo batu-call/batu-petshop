@@ -41,6 +41,7 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
     onSale,
     minRating,
     sortBy = "default",
+    search
   } = req.query;
 
   const { page: safePage, limit, skip } = buildSafePagination(page, 20);
@@ -60,18 +61,18 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
     }
   }
 
+  if (search && typeof search === "string") {
+    const rx = createSafeRegex(search, 50);
+    if (rx) filter.$or = [{ product_name: rx }, { description: rx }];
+  }
+
   const totalAllProducts = await Product.countDocuments(filter);
 
   if (minPrice || maxPrice) {
     try {
       const min = minPrice ? sanitizeNumber(minPrice, 0, 1000000) : 0;
-      const max = maxPrice
-        ? sanitizeNumber(maxPrice, 0, 1000000)
-        : Number.MAX_SAFE_INTEGER;
-      if (min > max)
-        return next(
-          new ErrorHandler("minPrice cannot be greater than maxPrice", 400),
-        );
+      const max = maxPrice ? sanitizeNumber(maxPrice, 0, 1000000) : Number.MAX_SAFE_INTEGER;
+      if (min > max) return next(new ErrorHandler("minPrice cannot be greater than maxPrice", 400));
       filter.$or = [
         { salePrice: { $ne: null, $gte: min, $lte: max } },
         { salePrice: null, price: { $gte: min, $lte: max } },
@@ -122,8 +123,7 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
       }))
       .sort((a, b) => {
         if (b.avgRating !== a.avgRating) return b.avgRating - a.avgRating;
-        if (b.reviewCount !== a.reviewCount)
-          return b.reviewCount - a.reviewCount;
+        if (b.reviewCount !== a.reviewCount) return b.reviewCount - a.reviewCount;
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
 
@@ -131,7 +131,9 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
       sorted = sorted.filter((p) => p.avgRating >= minRatingNum);
       totalFilteredProducts = sorted.length;
     }
+
     products = sorted.slice(skip, skip + limit);
+
   } else if (safeSortBy === "price-asc" || safeSortBy === "price-desc") {
     const sortDir = safeSortBy === "price-asc" ? 1 : -1;
     let aggFilter = { ...filter };
@@ -142,11 +144,13 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
         { $match: { avgRating: { $gte: minRatingNum } } },
       ]);
       const ids = rs.map((s) => s._id);
-      if (ids.length > 0) aggFilter._id = { $in: ids };
-      else {
+      if (ids.length > 0) {
+        aggFilter._id = { $in: ids };
+        totalFilteredProducts = await Product.countDocuments(aggFilter);
+      } else {
         products = [];
+        totalFilteredProducts = 0;
       }
-      totalFilteredProducts = ids.length;
     }
 
     if (!products) {
@@ -156,12 +160,7 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
           $addFields: {
             effectivePrice: {
               $cond: {
-                if: {
-                  $and: [
-                    { $ne: ["$salePrice", null] },
-                    { $gt: ["$salePrice", 0] },
-                  ],
-                },
+                if: { $and: [{ $ne: ["$salePrice", null] }, { $gt: ["$salePrice", 0] }] },
                 then: "$salePrice",
                 else: "$price",
               },
@@ -173,6 +172,7 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
         { $limit: limit },
       ]);
     }
+
   } else {
     let sortOption = {};
     switch (safeSortBy) {
@@ -192,11 +192,13 @@ export const getAllProduct = catchAsyncError(async (req, res, next) => {
         { $match: { avgRating: { $gte: minRatingNum } } },
       ]);
       const ids = rs.map((s) => s._id);
-      if (ids.length > 0) filter._id = { $in: ids };
-      else {
+      if (ids.length > 0) {
+        filter._id = { $in: ids };
+        totalFilteredProducts = await Product.countDocuments(filter);
+      } else {
         products = [];
+        totalFilteredProducts = 0;
       }
-      totalFilteredProducts = ids.length;
     }
 
     if (!products) {

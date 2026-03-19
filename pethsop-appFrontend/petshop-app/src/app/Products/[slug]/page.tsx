@@ -52,7 +52,7 @@ type Product = {
   slug: string;
   category: Category;
   productFeatures: Features[];
-  stock?: string | number; 
+  stock?: string | number;
 };
 
 const ProductDetails = () => {
@@ -68,12 +68,15 @@ const ProductDetails = () => {
   const [selectedTab, setSelectedTab] = useState("similar");
   const [loading, setLoading] = useState(true);
   const { setCart } = useCart();
-  const { favorites, addFavorite, removeFavorite, fetchFavorites } =
-    useFavorite();
+  const { favorites, addFavorite, removeFavorite, fetchFavorites } = useFavorite();
   const { confirm } = useConfirm();
   const [reviewStats, setReviewStats] = useState<ReviewStats>({});
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
+
+  // Shipping state
+  const [shippingFee, setShippingFee] = useState("");
+  const [freeOver, setFreeOver] = useState("");
 
   useEffect(() => {
     if (!slug) return;
@@ -101,6 +104,24 @@ const ProductDetails = () => {
     fetchProduct();
   }, [slug]);
 
+  // Shipping fetch
+  useEffect(() => {
+    const fetchShippingSettings = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/shipping`,
+        );
+        if (res.data.success) {
+          setShippingFee(String(res.data.data.fee));
+          setFreeOver(String(res.data.data.freeOver));
+        }
+      } catch {
+        // sessizce geç, ShippingInfo fallback gösterir
+      }
+    };
+    fetchShippingSettings();
+  }, []);
+
   useEffect(() => {
     if (!product?._id) return;
     const fetchSimilarProducts = async () => {
@@ -124,7 +145,6 @@ const ProductDetails = () => {
 
   useEffect(() => {
     if (!product?._id) return;
-
     const fetchReviews = async () => {
       try {
         const response = await axios.get(
@@ -151,9 +171,7 @@ const ProductDetails = () => {
       router.push("/Login");
       return;
     }
-
     if (!product?._id || addingToCart === product._id) return;
-
     try {
       setAddingToCart(product._id);
       const response = await axios.post(
@@ -181,9 +199,7 @@ const ProductDetails = () => {
       router.push("/Login");
       return;
     }
-
     if (!item._id || addingToCart === item._id) return;
-
     try {
       setAddingToCart(item._id);
       const response = await axios.post(
@@ -239,12 +255,10 @@ const ProductDetails = () => {
         variant: "destructive",
       });
       if (!ok) return;
-
       await axios.delete(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews/${id}`,
         { withCredentials: true },
       );
-
       setReviews((prev) => prev.filter((r) => r._id !== id));
       toast.success("Review deleted");
     } catch (error: unknown) {
@@ -264,7 +278,6 @@ const ProductDetails = () => {
       {},
       { withCredentials: true },
     );
-
     setReviews((prev) =>
       prev.map((r) => (r._id === id ? { ...r, helpful: res.data.helpful } : r)),
     );
@@ -280,7 +293,6 @@ const ProductDetails = () => {
       return;
     }
     const isFav = favorites.some((f) => f._id === productId);
-
     if (isFav) {
       await removeFavorite(productId);
     } else {
@@ -299,7 +311,6 @@ const ProductDetails = () => {
         toast.error("Failed to load reviews");
       }
     };
-
     fetchReviewStats();
   }, []);
 
@@ -331,7 +342,12 @@ const ProductDetails = () => {
   const renderTabContent = () => {
     switch (selectedTab) {
       case "shipping":
-        return <ShippingInfo />;
+        return (
+          <ShippingInfo
+            shippingFee={shippingFee}
+            freeOver={freeOver}
+          />
+        );
       case "features":
         return <ProductFeatures features={product?.productFeatures || []} />;
       case "reviews":
@@ -390,7 +406,6 @@ const ProductDetails = () => {
                   discountPercent={discountPercent}
                   stock={product.stock}
                 />
-
                 <ProductInfo
                   productName={product.product_name}
                   description={product.description}

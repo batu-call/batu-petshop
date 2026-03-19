@@ -101,6 +101,29 @@ const EmptyState = ({
   </div>
 );
 
+const CheckboxHitArea = ({
+  checked,
+  onChange,
+  stopPropagation = false,
+}: {
+  checked: boolean;
+  onChange: () => void;
+  stopPropagation?: boolean;
+}) => (
+  <label
+    className="relative flex items-center justify-center w-10 h-10 cursor-pointer shrink-0"
+    onClick={stopPropagation ? (e) => e.stopPropagation() : undefined}
+  >
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      className="h-4 w-4 rounded accent-green-500 border-gray-300 cursor-pointer"
+    />
+    <span className="absolute inset-0" />
+  </label>
+);
+
 const MessageTable = ({
   messages,
   selectedIds,
@@ -120,13 +143,19 @@ const MessageTable = ({
       <div className="md:hidden flex flex-col gap-3 px-3 sm:px-4">
         {/* Select-all header */}
         {messages.length > 0 && (
-          <label className="flex items-center gap-2 py-2 px-3 rounded-lg bg-white dark:bg-card border border-border-light dark:border-border shadow-sm cursor-pointer">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded accent-green-500 cursor-pointer"
-              checked={selectedIds.size === messages.length && messages.length > 0}
-              onChange={toggleSelectAll}
-            />
+          <label
+            className="flex items-center gap-2 py-2 px-3 rounded-lg bg-white dark:bg-card border border-border-light dark:border-border shadow-sm cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="relative flex items-center justify-center w-8 h-8">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded accent-green-500 cursor-pointer"
+                checked={selectedIds.size === messages.length && messages.length > 0}
+                onChange={toggleSelectAll}
+              />
+              <span className="absolute inset-0" />
+            </span>
             <span className="text-xs text-gray-500 dark:text-muted-foreground font-medium select-none">
               {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
             </span>
@@ -147,7 +176,7 @@ const MessageTable = ({
                 key={msg.id}
                 onClick={() => handleOpenMessage(msg)}
                 className={`
-                  relative flex items-start gap-3 p-3 sm:p-4 rounded-xl border cursor-pointer
+                  relative flex items-start gap-2 p-3 sm:p-4 rounded-xl border cursor-pointer
                   transition-all duration-150 active:scale-[0.99] shadow-sm hover:shadow-md
                   ${isSelected
                     ? "border-green-400 bg-green-50/40 dark:border-green-700 dark:bg-green-900/20"
@@ -156,19 +185,13 @@ const MessageTable = ({
                   ${msg.status === "Replied" && !isSelected ? "bg-green-50/30 dark:bg-green-950/20" : ""}
                 `}
               >
-                <label
-                  className="mt-1 shrink-0 cursor-pointer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleSelect(msg.id)}
-                    className="h-4 w-4 rounded accent-green-500 border-gray-300 cursor-pointer"
-                  />
-                </label>
+                <CheckboxHitArea
+                  checked={isSelected}
+                  onChange={() => toggleSelect(msg.id)}
+                  stopPropagation
+                />
 
-                <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                <div className="shrink-0 mt-1" onClick={(e) => e.stopPropagation()}>
                   <AvatarCell msg={msg} />
                 </div>
 
@@ -220,14 +243,20 @@ const MessageTable = ({
               <thead className="bg-primary dark:bg-primary/80">
                 <tr>
                   <th className="px-3 lg:px-4 py-3 w-12 text-center">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded cursor-pointer accent-green-500 border-border-light"
-                      checked={selectedIds.size === messages.length && messages.length > 0}
-                      onChange={toggleSelectAll}
-                    />
+                    <label
+                      className="relative inline-flex items-center justify-center w-10 h-10 cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded cursor-pointer accent-green-500 border-border-light"
+                        checked={selectedIds.size === messages.length && messages.length > 0}
+                        onChange={toggleSelectAll}
+                      />
+                      <span className="absolute inset-0" />
+                    </label>
                   </th>
-                  {["Sender", "Subject", "Message", "Date", "Status"].map((h, i) => (
+                  {["Sender", "Subject", "Message", "Date", "Status"].map((h) => (
                     <th
                       key={h}
                       className={`px-3 lg:px-4 py-3 text-left text-text-dark dark:text-primary-foreground text-xs font-semibold uppercase tracking-wider ${
@@ -258,15 +287,14 @@ const MessageTable = ({
                         `}
                         onClick={() => handleOpenMessage(msg)}
                       >
+                        {/* Row checkbox — geniş tıklama alanı */}
                         <td
-                          className="px-3 lg:px-4 py-3 text-center"
+                          className="px-1 lg:px-2 py-1 text-center"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <input
-                            type="checkbox"
+                          <CheckboxHitArea
                             checked={selectedIds.has(msg.id)}
                             onChange={() => toggleSelect(msg.id)}
-                            className="h-4 w-4 rounded cursor-pointer accent-green-500 border-border-light"
                           />
                         </td>
 

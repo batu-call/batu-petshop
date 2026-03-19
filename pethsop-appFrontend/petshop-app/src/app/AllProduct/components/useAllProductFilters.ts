@@ -8,15 +8,18 @@ export const useAllProductFilters = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentPage = Number(searchParams.get("page")) || 1;
+  const search = searchParams.get("search") || "";
 
   const [priceRange, setPriceRange] = useState<number[]>([0, 1000]);
   const [tempPriceRange, setTempPriceRange] = useState<number[]>([0, 1000]);
   const [priceStats, setPriceStats] = useState<{ min: number; max: number }>({ min: 0, max: 1000 });
+  const [priceStatsLoaded, setPriceStatsLoaded] = useState(false);
   const [sortBy, setSortBy] = useState("default");
   const [showOnSale, setShowOnSale] = useState(false);
   const [minRating, setMinRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
 
   useEffect(() => {
     const fetchPriceStats = async () => {
@@ -28,11 +31,13 @@ export const useAllProductFilters = () => {
         setPriceStats({ min, max });
         setPriceRange([min, max]);
         setTempPriceRange([min, max]);
+        setPriceStatsLoaded(true);
       } catch (error) {
         console.error("Failed to fetch price stats:", error);
         setPriceStats({ min: 0, max: 1000 });
         setPriceRange([0, 1000]);
         setTempPriceRange([0, 1000]);
+        setPriceStatsLoaded(true);
       }
     };
     fetchPriceStats();
@@ -40,16 +45,28 @@ export const useAllProductFilters = () => {
 
   useEffect(() => {
     if (currentPage !== 1) {
-      router.push("?page=1", { scroll: false });
+      const params = new URLSearchParams();
+      params.set("page", "1");
+      if (search) params.set("search", search);
+      router.push(`?${params.toString()}`, { scroll: false });
     }
   }, [priceRange, showOnSale, minRating, sortBy]);
 
+  const buildParams = (overrides: Record<string, string> = {}) => {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    Object.entries(overrides).forEach(([k, v]) => params.set(k, v));
+    return params.toString();
+  };
+
   const clearAllFilters = () => {
+    setIsClearing(true);
     setPriceRange([priceStats.min, priceStats.max]);
     setTempPriceRange([priceStats.min, priceStats.max]);
     setShowOnSale(false);
     setMinRating(0);
     setSortBy("default");
+    router.replace("/AllProduct", { scroll: false });
   };
 
   const hasActiveFilters = () =>
@@ -57,7 +74,8 @@ export const useAllProductFilters = () => {
     priceRange[1] !== priceStats.max ||
     showOnSale ||
     minRating > 0 ||
-    sortBy !== "default";
+    sortBy !== "default" ||
+    !!search;
 
   const handlePriceChange = (_: Event, newValue: number | number[]) => {
     setTempPriceRange(newValue as number[]);
@@ -66,6 +84,10 @@ export const useAllProductFilters = () => {
   const handlePriceChangeCommitted = () => {
     setPriceRange(tempPriceRange);
     setShowMobileFilters(false);
+  };
+
+  const applyManualPriceInput = () => {
+    setPriceRange(tempPriceRange);
   };
 
   const handleMinPriceInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,18 +106,20 @@ export const useAllProductFilters = () => {
     setTempPriceRange([tempPriceRange[0], Math.max(0, numValue)]);
   };
 
-  const applyManualPriceInput = () => handlePriceChangeCommitted();
-
   return {
     currentPage,
+    search,
+    buildParams,
     priceRange, setPriceRange,
     tempPriceRange, setTempPriceRange,
     priceStats,
+    priceStatsLoaded,
     sortBy, setSortBy,
     showOnSale, setShowOnSale,
     minRating, setMinRating,
     showFilters, setShowFilters,
     showMobileFilters, setShowMobileFilters,
+    isClearing, setIsClearing,
     clearAllFilters,
     hasActiveFilters,
     handlePriceChange,

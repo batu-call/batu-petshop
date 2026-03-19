@@ -16,6 +16,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -82,6 +83,7 @@ const MobileMenu = ({ anchor = "left" }: { anchor?: Anchor }) => {
         { text: "Add Admin",            href: "/add-admin",          icon: <AccountCircleIcon sx={{ color: ic }} /> },
         { text: "Notifications",        href: "/Notifications",      icon: <NotificationsIcon sx={{ color: ic }} /> },
         { text: "Pricing & Promotions", href: "/Pricing-promotions", icon: <LocalOfferIcon    sx={{ color: ic }} /> },
+        { text: "Shipping & Returns", href: "/ShippingContent", icon: <LocalShippingIcon    sx={{ color: ic }} /> },
         { text: "Product Stats",        href: "/ProductStats",       icon: <BarChartIcon      sx={{ color: ic }} /> },
         { text: "User Activity",        href: "/UserActivity",       icon: <PeopleAltIcon     sx={{ color: ic }} /> },
         { text: "Order Stats",          href: "/OrderStats",         icon: <ShoppingCartIcon  sx={{ color: ic }} /> },

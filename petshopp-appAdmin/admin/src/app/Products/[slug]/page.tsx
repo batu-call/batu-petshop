@@ -264,7 +264,6 @@ const AdminProductDetails = () => {
     }
   };
 
-
   const handleBulkDeleteReviews = async (ids: string[]) => {
     const ok = await confirm({
       title: "Delete Reviews",
@@ -315,8 +314,10 @@ const AdminProductDetails = () => {
         toast.success("Product deleted");
         router.push("/AllProduct");
       }
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Unexpected error");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response)
+        toast.error(error.response.data.message || "Unexpected error");
+      else toast.error("Unexpected error");
     }
   };
 

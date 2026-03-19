@@ -33,7 +33,7 @@ const FeatureManager: React.FC<FeatureManagerProps> = ({
 
       {features.map((f, index) => (
         <div
-          key={index}
+          key={`feature-${f.name}-${index}`}
           className="flex items-start gap-3 border-b border-gray-200 dark:border-border py-2 mb-2 relative group"
         >
           <input

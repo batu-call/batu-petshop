@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import React from "react";
@@ -9,7 +9,8 @@ import { Product, ReviewStats } from "./types";
 export const useCategoryProducts = (
   categorySlug: string,
   page: number,
-  priceRange: number[],
+  priceMin: number,
+  priceMax: number,
   priceStats: { min: number; max: number },
   showOnSale: boolean,
   minRating: number,
@@ -22,24 +23,29 @@ export const useCategoryProducts = (
   const [filteredProducts, setFilteredProducts] = useState(0);
   const [loading, setLoading]                   = useState(true);
   const [reviewStats, setReviewStats]           = useState<ReviewStats>({});
+  const categoryTotalRef                        = useRef(0);
+
+  useEffect(() => {
+    categoryTotalRef.current = 0;
+  }, [categorySlug]);
 
   useEffect(() => {
     if (!categorySlug) return;
 
     const controller = new AbortController();
 
-    const fetchProducts = async () => {
+    const timer = setTimeout(async () => {
       setLoading(true);
       try {
         const params: Record<string, unknown> = { category: categorySlug, page, sortBy };
 
-        if (priceRange[0] !== priceStats.min || priceRange[1] !== priceStats.max) {
-          params.minPrice = priceRange[0];
-          params.maxPrice = priceRange[1];
+        if (priceMin !== priceStats.min || priceMax !== priceStats.max) {
+          params.minPrice = priceMin;
+          params.maxPrice = priceMax;
         }
 
-        if (showOnSale)    params.onSale    = true;
-        if (minRating > 0) params.minRating = minRating;
+        if (showOnSale)    params.onSale      = true;
+        if (minRating > 0) params.minRating   = minRating;
         if (subCategory)   params.subCategory = subCategory;
 
         const res = await axios.get(
@@ -47,10 +53,23 @@ export const useCategoryProducts = (
           { params, signal: controller.signal },
         );
 
+        const fetched = res.data.filteredProducts || 0;
+
+        const isBaseQuery =
+          !showOnSale &&
+          minRating === 0 &&
+          priceMin === priceStats.min &&
+          priceMax === priceStats.max &&
+          !subCategory;
+
+        if (isBaseQuery) {
+          categoryTotalRef.current = fetched;
+        }
+
         setAllProducts(res.data.products || []);
         setTotalPages(res.data.totalPages || 1);
-        setTotalProducts(res.data.totalProducts || 0);
-        setFilteredProducts(res.data.filteredProducts || 0);
+        setFilteredProducts(fetched);
+        setTotalProducts(categoryTotalRef.current || fetched);
       } catch (err) {
         if (axios.isCancel(err)) return;
         toast.error("Products could not be loaded");
@@ -59,14 +78,13 @@ export const useCategoryProducts = (
           setLoading(false);
         }
       }
-    };
-
-    fetchProducts();
+    }, 80);
 
     return () => {
+      clearTimeout(timer);
       controller.abort();
     };
-  }, [categorySlug, page, priceRange, priceStats.min, priceStats.max, showOnSale, minRating, sortBy, subCategory]);
+  }, [categorySlug, page, priceMin, priceMax, priceStats.min, priceStats.max, showOnSale, minRating, sortBy, subCategory]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -86,9 +104,7 @@ export const useCategoryProducts = (
 
     fetchReviewStats();
 
-    return () => {
-      controller.abort();
-    };
+    return () => controller.abort();
   }, []);
 
   const displayProducts = React.useMemo(() => {

@@ -9,10 +9,7 @@ export const useCategoryFilters = (page: number) => {
   const router       = useRouter();
   const searchParams = useSearchParams();
 
-  const [subCategory, setSubCategory] = useState<string | null>(
-    searchParams.get("sub")
-  );
-
+  const [subCategory, setSubCategory] = useState<string | null>(searchParams.get("sub"));
   const [priceRange, setPriceRange]             = useState<number[]>([0, 1000]);
   const [tempPriceRange, setTempPriceRange]     = useState<number[]>([0, 1000]);
   const [priceStats, setPriceStats]             = useState<{ min: number; max: number }>({ min: 0, max: 1000 });
@@ -25,8 +22,7 @@ export const useCategoryFilters = (page: number) => {
   const prevCategorySlug = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    const sub = searchParams.get("sub");
-    setSubCategory(sub);
+    setSubCategory(searchParams.get("sub"));
   }, [searchParams]);
 
   useEffect(() => {
@@ -41,7 +37,6 @@ export const useCategoryFilters = (page: number) => {
 
   useEffect(() => {
     if (!categorySlug) return;
-
     const fetchPriceStats = async () => {
       try {
         const response = await axios.get(
@@ -58,7 +53,6 @@ export const useCategoryFilters = (page: number) => {
         setTempPriceRange([0, 1000]);
       }
     };
-
     fetchPriceStats();
   }, [categorySlug]);
 
@@ -105,23 +99,9 @@ export const useCategoryFilters = (page: number) => {
     setShowMobileFilters(false);
   };
 
-  const handleMinPriceInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === "") { setTempPriceRange([priceStats.min, tempPriceRange[1]]); return; }
-    const numValue = parseInt(value);
-    if (isNaN(numValue)) return;
-    setTempPriceRange([Math.max(priceStats.min, Math.min(numValue, tempPriceRange[1])), tempPriceRange[1]]);
+  const applyManualPriceInput = () => {
+    setPriceRange(tempPriceRange);
   };
-
-  const handleMaxPriceInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === "") { setTempPriceRange([tempPriceRange[0], priceStats.max]); return; }
-    const numValue = parseInt(value);
-    if (isNaN(numValue)) return;
-    setTempPriceRange([tempPriceRange[0], Math.min(priceStats.max, Math.max(numValue, tempPriceRange[0]))]);
-  };
-
-  const applyManualPriceInput = () => handlePriceChangeCommitted();
 
   return {
     categorySlug,
@@ -138,8 +118,6 @@ export const useCategoryFilters = (page: number) => {
     hasActiveFilters,
     handlePriceChange,
     handlePriceChangeCommitted,
-    handleMinPriceInputChange,
-    handleMaxPriceInputChange,
     applyManualPriceInput,
   };
 };

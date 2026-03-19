@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Slider from "@mui/material/Slider";
 import { DollarSign, Filter, X } from "lucide-react";
@@ -34,9 +35,6 @@ const NavbarFilterDropdown = ({
   tempPriceRange,
   setTempPriceRange,
   setPriceRange,
-  handleMinPriceInputChange,
-  handleMaxPriceInputChange,
-  applyManualPriceInput,
   handlePriceChange,
   handlePriceChangeCommitted,
   showOnSale,
@@ -48,6 +46,42 @@ const NavbarFilterDropdown = ({
   setShowFilters,
   filterDropdownRef,
 }: Props) => {
+  const [minInput, setMinInput] = useState(String(tempPriceRange?.[0] ?? ""));
+  const [maxInput, setMaxInput] = useState(String(tempPriceRange?.[1] ?? ""));
+
+  useEffect(() => {
+    if (tempPriceRange) {
+      setMinInput(String(tempPriceRange[0]));
+      setMaxInput(String(tempPriceRange[1]));
+    }
+  }, [tempPriceRange]);
+
+  const applyPriceInputs = () => {
+    if (!priceStats || !setTempPriceRange || !setPriceRange) return;
+
+    const rawMin = parseFloat(minInput);
+    const rawMax = parseFloat(maxInput);
+
+    const min = isNaN(rawMin)
+      ? priceStats.min
+      : Math.max(priceStats.min, Math.min(rawMin, priceStats.max));
+    const max = isNaN(rawMax)
+      ? priceStats.max
+      : Math.max(priceStats.min, Math.min(rawMax, priceStats.max));
+
+    const safeMin = Math.min(min, max);
+    const safeMax = Math.max(min, max);
+
+    setMinInput(String(safeMin));
+    setMaxInput(String(safeMax));
+    setTempPriceRange([safeMin, safeMax]);
+    setPriceRange([safeMin, safeMax]);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") applyPriceInputs();
+  };
+
   return (
     <div
       ref={filterDropdownRef}
@@ -58,7 +92,6 @@ const NavbarFilterDropdown = ({
         p-4 sm:p-6 z-50
         max-h-[calc(100vh-5rem)] overflow-y-auto"
     >
-      {/* Header */}
       <div className="flex items-center justify-between mb-4 sticky top-0 bg-white dark:bg-[#162820] pb-2 border-b border-gray-100 dark:border-white/10">
         <div className="flex items-center gap-2 text-primary dark:text-[#7aab8a] font-bold text-lg">
           <Filter size={20} />
@@ -78,7 +111,6 @@ const NavbarFilterDropdown = ({
         )}
       </div>
 
-      {/* Sort */}
       {setSortBy && sortBy !== undefined && (
         <div className="mb-4">
           <label className="block text-sm font-semibold text-primary dark:text-[#7aab8a] mb-2">Sort By</label>
@@ -100,7 +132,6 @@ const NavbarFilterDropdown = ({
         </div>
       )}
 
-      {/* Price Range */}
       {priceStats && tempPriceRange && setTempPriceRange && handlePriceChange && (
         <div className="mb-4">
           <label className="text-sm font-semibold text-primary dark:text-[#7aab8a] flex items-center gap-2 mb-3">
@@ -108,15 +139,17 @@ const NavbarFilterDropdown = ({
             Price Range: ${tempPriceRange[0]} - ${tempPriceRange[1]}
           </label>
 
-          <div className="flex items-end gap-2 mb-4">
+          <div className="flex items-end gap-2 mb-3">
             <div className="flex-1">
               <label className="block text-xs text-gray-600 dark:text-[#7aab8a] mb-1 font-medium">Min Price</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-[#7aab8a] text-sm">$</span>
                 <input
                   type="number"
-                  value={tempPriceRange[0]}
-                  onChange={handleMinPriceInputChange}
+                  value={minInput}
+                  onChange={(e) => setMinInput(e.target.value)}
+                  onBlur={applyPriceInputs}
+                  onKeyDown={handleKeyDown}
                   min={priceStats.min}
                   max={priceStats.max}
                   className="w-full pl-7 pr-3 py-2.5 rounded-lg
@@ -138,8 +171,10 @@ const NavbarFilterDropdown = ({
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-[#7aab8a] text-sm">$</span>
                 <input
                   type="number"
-                  value={tempPriceRange[1]}
-                  onChange={handleMaxPriceInputChange}
+                  value={maxInput}
+                  onChange={(e) => setMaxInput(e.target.value)}
+                  onBlur={applyPriceInputs}
+                  onKeyDown={handleKeyDown}
                   min={priceStats.min}
                   max={priceStats.max}
                   className="w-full pl-7 pr-3 py-2.5 rounded-lg
@@ -152,14 +187,14 @@ const NavbarFilterDropdown = ({
                 />
               </div>
             </div>
-
-            <Button
-              onClick={applyManualPriceInput}
-              className="bg-primary text-white hover:bg-primary/90 px-4 py-2.5 h-[42px] transition-all hover:scale-105 cursor-pointer font-semibold"
-            >
-              Apply
-            </Button>
           </div>
+
+          <Button
+            onClick={applyPriceInputs}
+            className="w-full mb-3 bg-primary text-white hover:bg-[#D6EED6] hover:text-[#393E46] cursor-pointer transition duration-300 ease-in-out hover:scale-[1.02] active:scale-[0.97]"
+          >
+            Apply Price
+          </Button>
 
           <div className="px-1">
             <Slider
@@ -197,7 +232,6 @@ const NavbarFilterDropdown = ({
         </div>
       )}
 
-      {/* On Sale + Rating */}
       <div className="space-y-4">
         {setShowOnSale !== undefined && showOnSale !== undefined && (
           <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-[#1e3d2a] transition-colors">

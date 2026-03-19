@@ -133,14 +133,15 @@ export const useNavbar = (
     }, 400);
   };
 
-  const handleEnterSearch = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== "Enter") return;
-    const q = searchQuery.trim();
-    if (!q) return;
-    setIsSearchFocused(false);
-    setSearchResults([]);
-    router.push(`/Products?search=${encodeURIComponent(q)}`);
-  };
+ const handleEnterSearch = (e: KeyboardEvent<HTMLInputElement>) => {
+  if (e.key !== "Enter") return;
+  const q = searchQuery.trim();
+  if (!q) return;
+  setIsSearchFocused(false);
+  setSearchResults([]);
+  setSearchQuery("");
+  router.push(`/AllProduct?search=${encodeURIComponent(q)}`);
+};
 
   const handleMinPriceInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!setTempPriceRange || !tempPriceRange) return;

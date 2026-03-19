@@ -72,7 +72,7 @@ const ProductForm = ({
 
   return (
     <div className="flex-1">
-      <h2 className="text-color dark:text-[#c8e6d0] text-2xl mb-4 text-jost font-semibold">
+      <h2 className="text-color dark:text-[#c8e6d0]! text-2xl mb-4 text-jost font-semibold">
         Add New Product
       </h2>
 
@@ -174,7 +174,7 @@ const ProductForm = ({
           />
         }
         label={
-          <span className="text-color dark:text-[#a8d4b8]">Active Product</span>
+          <span className="text-color dark:text-[#a8d4b8]!">Active Product</span>
         }
       />
       <FormControlLabel
@@ -189,7 +189,7 @@ const ProductForm = ({
           />
         }
         label={
-          <span className="text-color dark:text-[#a8d4b8]">
+          <span className="text-color dark:text-[#a8d4b8]!">
             Featured Product
           </span>
         }

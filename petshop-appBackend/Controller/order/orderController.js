@@ -3,7 +3,7 @@ import ErrorHandler from "../../Middlewares/errorMiddleware.js";
 import { Order } from "../../Models/orderSchema.js";
 import { Product } from "../../Models/ProductSchema.js";
 import { Cart } from "../../Models/CartSchema.js";
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 import {
   sanitizeString,
   sanitizeObjectId,
@@ -246,16 +246,29 @@ export const AllOrders = catchAsyncError(async (req, res, next) => {
   const { page: safePage, limit, skip } = buildSafePagination(page, 15);
   const matchStage = {};
 
-  if (search && typeof search === "string") {
-    const regex = createSafeRegex(search, 50);
-    if (regex) {
-      matchStage.$or = [
-        { "shippingAddress.fullName": regex },
-        { "shippingAddress.phoneNumber": regex },
-      ];
-    }
+if (search && typeof search === "string") {
+  const trimmed = search.trim().replace(/^#/, "").toLowerCase();
+  const regex = createSafeRegex(search.trim(), 50);
+
+  const orConditions = [
+    { "shippingAddress.fullName": regex },
+    { "shippingAddress.phoneNumber": regex },
+  ];
+
+  if (/^[0-9a-f]{6,8}$/i.test(trimmed)) {
+    orConditions.push({
+      $expr: {
+        $regexMatch: {
+          input: { $toString: "$_id" },
+          regex: trimmed,
+          options: "i",
+        },
+      },
+    });
   }
 
+  matchStage.$or = orConditions;
+}
   const validStatuses = ["pending", "paid", "shipped", "delivered", "cancelled", "cancellation_requested"];
   if (status && validStatuses.includes(status)) matchStage.status = status;
 
