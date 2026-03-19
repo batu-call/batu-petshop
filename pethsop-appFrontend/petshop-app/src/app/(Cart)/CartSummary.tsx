@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { TextField } from "@mui/material";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -38,11 +38,22 @@ const CartSummary: React.FC<CartSummaryProps> = ({
   setSummaryOpen,
 }) => {
   const { confirm } = useConfirm();
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = summaryOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [summaryOpen]);
+
+  const handleApply = async () => {
+    if (applying) return;
+    setApplying(true);
+    try {
+      await handleApplyCoupon();
+    } finally {
+      setApplying(false);
+    }
+  };
 
   return (
     <>
@@ -121,11 +132,13 @@ const CartSummary: React.FC<CartSummaryProps> = ({
                 <TextField
                   value={discountCode}
                   onChange={(e) => setDiscountCode(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleApply(); }}
                   variant="outlined"
                   size="small"
                   fullWidth
                   placeholder="Enter code"
                   autoComplete="off"
+                  disabled={applying}
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       "& fieldset": { borderColor: "#4a7a5a" },
@@ -137,10 +150,18 @@ const CartSummary: React.FC<CartSummaryProps> = ({
                   }}
                 />
                 <button
-                  onClick={handleApplyCoupon}
-                  className="bg-primary text-white py-2 rounded-md hover:opacity-70 cursor-pointer transition active:scale-[0.97] hover:shadow-md"
+                  onClick={handleApply}
+                  disabled={applying}
+                  className="bg-primary text-white py-2 rounded-md hover:opacity-70 cursor-pointer transition active:scale-[0.97] hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  Apply Code
+                  {applying ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Applying...
+                    </>
+                  ) : (
+                    "Apply Code"
+                  )}
                 </button>
               </>
             )}

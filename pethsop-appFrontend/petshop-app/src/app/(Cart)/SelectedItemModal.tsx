@@ -73,7 +73,7 @@ const SelectedItemModal = ({
           {selectedItem.product.slug && (
             <Link href={`/Products/${selectedItem.product.slug}`} className="w-full flex-shrink-0">
               <Button
-                className="mt-5 w-full bg-primary hover:bg-secondary text-foreground font-semibold transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97] hover:shadow-md cursor-pointer"
+                className="mt-5 w-full bg-primary text-foreground font-semibold transition duration-300 ease-in-out hover:scale-[1.05] active:scale-[0.97] hover:shadow-md cursor-pointer"
                 onClick={onClose}
               >
                 View Full Details

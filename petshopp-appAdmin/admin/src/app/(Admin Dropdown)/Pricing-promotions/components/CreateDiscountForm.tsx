@@ -115,13 +115,13 @@ const CreateDiscountForm = ({
           <button
             type="button"
             onClick={handleReset}
-            className="px-6 py-2 border border-slate-200 dark:border-white/10 text-sm font-semibold rounded-lg text-gray-700 dark:text-[#c8e6d0] hover:bg-slate-50 dark:hover:bg-[#1e3d2a] transition-colors"
+            className="px-6 py-2 border border-slate-200 dark:border-white/10 text-sm font-semibold rounded-lg text-gray-700 dark:text-[#c8e6d0] hover:bg-slate-50 dark:hover:bg-[#1e3d2a] transition-colors cursor-pointer"
           >
             Discard
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-[#97cba9] dark:bg-[#0b8457] text-white text-sm font-semibold rounded-lg hover:bg-[#7fb894] dark:hover:bg-[#0E5F44] shadow-lg transition-all flex items-center gap-2"
+            className="px-6 py-2 bg-[#97cba9] dark:bg-[#0b8457] text-white text-sm font-semibold rounded-lg hover:bg-[#7fb894] dark:hover:bg-[#0E5F44] shadow-lg transition-all flex items-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Create Code

@@ -76,7 +76,7 @@ const ShippingSettings = ({
 
         <button
           onClick={updateShipping}
-          className="w-full py-2.5 bg-[#162820] dark:bg-[#0b8457] text-white text-sm font-semibold rounded-lg hover:bg-[#1e3d2a] dark:hover:bg-[#0E5F44] transition-colors flex items-center justify-center gap-2"
+          className="w-full py-2.5 bg-[#162820] dark:bg-[#0b8457] text-white text-sm font-semibold rounded-lg hover:bg-[#1e3d2a] dark:hover:bg-[#0E5F44] transition-colors flex items-center justify-center gap-2 cursor-pointer"
         >
           <Truck className="w-4 h-4" />
           Update Shipping Logic
